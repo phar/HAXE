@@ -27,10 +27,21 @@ class GraphicsButton(QGraphicsTextItem):
     def mousePressEvent(self, event):
         self.clicked.emit()
 
+class MyProxy(QGraphicsProxyWidget):
+    def __init__(self, parent, skip_view=None):
+        super(MyProxy, self).__init__(parent)
+        self.skip_view = skip_view
+
+    def paint(self, painter, options, widget):
+        if widget == self.skip_view.viewport():
+            return
+        super(MyProxy, self).paint(painter, options, widget)
+
 class GraphNodeItem(QGraphicsRectItem):
-    def __init__(self, child, title="title", x=100,y=100,width=100,height=100):
+    def __init__(self, child, title="title", x=100,y=100,width=100,height=100, preview_view=None):
         super(GraphNodeItem, self).__init__(x, y, width, height+24)
         self.title = QGraphicsTextItem(title, self)
+        self.preview_view = preview_view
         self.title_font = QFont("Courier")
         self.title_font.setBold(True)
         self.title.setFont(self.title_font)
@@ -39,23 +50,18 @@ class GraphNodeItem(QGraphicsRectItem):
         self.pen = QPen(Qt.black, 0)
         self.pen.setWidth(0)
         self.setPen(self.pen)
-        self.p1 = QGraphicsProxyWidget(self)
+        self.p1 = MyProxy(self, preview_view)
         # self.p2 = QGraphicsProxyWidget(self)
         self.p2 = GraphicsButton("N", self)
         self.p2.setFont(self.title_font)
         self.child = child
-        child.setStyleSheet("QWidget { border: 1px solid black; };")
-        self.child.resize(width+1, height+1)
+        child.setStyleSheet("QWidget { border: 0px solid black; };")
+        self.child.resize(width-4, height-4)
         self.p1.setWidget(child)
-        # self.pb = QPushButton("N")
-        # self.pb.setMinimumWidth(22)
-        # self.pb.setMinimumHeight(22)
-        # self.pb.resize(22,22)
-        # self.p2.setWidget(self.pb)
         self.p2.clicked.connect(self.edit)
         self.title.setPos(x,y)
         self.p2.setPos(x+width-22, y)
-        self.p1.setPos(x, y+24)
+        self.p1.setPos(x+2, y+24)
         self.setFlag(QGraphicsItem.ItemIsMovable, True)
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.ItemSendsScenePositionChanges, True)
@@ -104,6 +110,9 @@ class GraphNodeItem(QGraphicsRectItem):
         return value
 
     def paint(self, painter, style, widget):
+        # if widget == self.preview_view.viewport():
+        #     self.p1.setFlag(QGraphicsItem.ItemHasNoContents, True)
+
         if self.isSelected():
             self.setBrush(QBrush(Qt.gray))
         else:
@@ -112,6 +121,10 @@ class GraphNodeItem(QGraphicsRectItem):
         # don't draw selection border
         style.state &= ~ QStyle.State_Selected
         super(GraphNodeItem, self).paint(painter, style, widget)
+        #        if widget == self.preview_view.viewport():
+        self.p1.setFlag(QGraphicsItem.ItemHasNoContents, False)
+
+
 
 class GraphEdgeItem(QGraphicsItem):
     def __init__(self, src, dst):
@@ -307,9 +320,38 @@ class MainView(QGraphicsView):
         self.setDragMode(QGraphicsView.ScrollHandDrag)
         self.horizontalScrollBar().setValue(0)
         self.verticalScrollBar().setValue(0)
+        self.setMaxSize(self.scene().sceneRect())
+        self.scene().sceneRectChanged.connect(self.setMaxSize)
+        #self.
+
+    def setMaxSize(self, rect):
+        self.setMaximumWidth(rect.width())
+        self.setMaximumHeight(rect.height())
+
 
     def resizeEvent(self, event):
         self.resized.emit()
+        super(MainView, self).resizeEvent(event)
+
+    def visibleRect(self):
+        tl = QPointF(self.horizontalScrollBar().value(),
+                     self.verticalScrollBar().value())
+        br = tl + self.viewport().rect().bottomRight()
+        mat = self.matrix().inverted()[0]
+        return mat.mapRect(QRectF(tl, br))
+
+    def wheelEvent(self, event):
+        mods = QApplication.keyboardModifiers()
+        d =  event.delta()
+        if mods & Qt.ShiftModifier:
+            if d > 0:
+                self.scale(1.2, 1.2)
+            else:
+                self.scale(1/1.2, 1/1.2)
+            return True
+        else:
+            return super(MainView, self).wheelEvent(event)
+
 
 class PreView(QGraphicsView):
     def __init__(self, scene=None, parent=None, selector=None):
@@ -320,14 +362,16 @@ class PreView(QGraphicsView):
         sr = self.scene().sceneRect()
         self.setFixedSize(int(sr.width() *0.1), int(sr.height() * 0.1) )
         self.setDragMode(QGraphicsView.RubberBandDrag)
-#        self.setAcceptHoverEvents(True)
-        viewsize = self.size()
-        srect = self.scene().sceneRect()
-        self.resetTransform()
-        self.scale(viewsize.width() / (srect.width() + 10),
-                   viewsize.height() / (srect.height() + 10))
+        self.setBackgroundBrush(QBrush(QColor(240,240,240,0)))
+        self.setStyleSheet("background: transparent")
+        #self.setAttribute(Qt.WA_OpaquePaintEvent, True)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setAttribute(Qt.WA_NoSystemBackground)
+        self.setAttribute(Qt.WA_PaintOnScreen)
+        self.setWindowOpacity(0.5)
+        #self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
+        #self.show()
         self.update()
-
         parent.resized.connect(self.update)
 
 
@@ -342,8 +386,13 @@ class PreView(QGraphicsView):
             self.selector.setFlag(QGraphicsItem.ItemIsMovable, False)
 
     def update(self):
-        self.setGeometry(self.parent().size().width() - self.size().width(),
-                         self.parent().size().height() - self.size().height(),
+        self.resetTransform()
+        viewsize = self.viewport().size()
+        srect = self.scene().sceneRect()
+        self.scale(viewsize.width() / (srect.width()),
+                   viewsize.height() / (srect.height()))
+        self.setGeometry(self.parent().size().width() - self.size().width() - 3,
+                         self.parent().size().height() - self.size().height() - 3,
                          self.size().width(),
                          self.size().height())
 
@@ -360,39 +409,45 @@ class Selector(QGraphicsRectItem):
         self.view.verticalScrollBar().valueChanged.connect(self.update)
         # self.setBrush(QBrush(Qt.blue))
         self.setOpacity(1)
+        self.setPen(QPen(Qt.gray))
         self.updating = False
         self.update()
 
     def update(self, *ignored):
         if not self.updating:
-            self.setRect(QRectF(QPointF(self.view.horizontalScrollBar().sliderPosition(),
-                                        self.view.verticalScrollBar().sliderPosition()),
-                                self.view.size()))
-        #self.view.fitInView(self)
+            vis_rect = self.view.visibleRect()
+            self.setPos(vis_rect.topLeft())
+            self.setRect(-1, -1, vis_rect.width()+2, vis_rect.height()+2)
 
-    def itemChange(self, change, value):
-        if change == QGraphicsItem.ItemPositionChange:
-            #print self.boundingRect()
-            self.updating = True
-            self.view.horizontalScrollBar().setValue(self.mapRectToScene(self.boundingRect()).left())
-            self.view.verticalScrollBar().setValue(self.mapRectToScene(self.boundingRect()).top())
-            self.updating = False
-            return value
-        return super(Selector,self).itemChange(change, value)
 
-    def mouseMoveEvent(self, event):#
+    def mouseMoveEvent(self, event):
         vec = event.scenePos() - event.lastScenePos()
-        print self.pos(), vec
+        #print self.pos(), vec
+        #print self.parentItem(), self.parentObject(), self.parentWidget()
+        self.updating = True
         self.moveBy(vec.x(), vec.y())
+        width = self.scene().width()
+        height= self.scene().height()
+
         if self.x() < 0:
-            self.setPos(0, self.y())
-        elif self.x() > 640 - self.rect().width():
-            self.setPos(640 - self.rect().width(), self.y())
+            self.setX(0)
+        elif self.x() > width - self.rect().width():
+            self.setX(width - self.rect().width())
 
         if self.y() < 0:
-            self.setPos(self.x(), 0)
-        elif self.y() > 1200 - self.rect().height():
-            self.setPos(self.x(), 1200 - self.rect().height())
+            self.setY(0)
+        elif self.y() > height - self.rect().height():
+            self.setY(height - self.rect().height())
+
+        self.view.fitInView(self.mapRectToScene(self.rect().adjusted(1,1,-1,-1)))
+        self.view.resetTransform()
+        self.updating = False
+
+    def paint(self, painter, options, widget):
+        if widget == self.view.viewport():
+            return
+        options.state &= ~ QStyle.State_Selected
+        super(Selector, self).paint(painter, options, widget)
 
 
 class HexWidget(QWidget):
@@ -426,6 +481,7 @@ class Ida(QWidget):
 
         self.setWindowTitle("Ida View")
         self.preview = view2 = PreView(scene, view1, s)
+        view2.setStyleSheet("QWidget { border: 0px solid gray }")
 
         self.button = b = QPushButton("Do Stuff")
         self.button.clicked.connect(self.layout_graph)
@@ -448,7 +504,8 @@ class Ida(QWidget):
         self.edges = edges = []
         scene = self.scene
         for i in range(3):
-            nodes.append(GraphNodeItem(QTextEdit("<b>xor eax, eax<br>ret</b>"), "", 300, 100 + i*300))
+            nodes.append(GraphNodeItem(QTextEdit("<b>xor eax, eax<br>ret</b>"), "", 300, 100 + i*300,
+                                       preview_view = self.preview))
             scene.addItem(nodes[-1])
 
 
