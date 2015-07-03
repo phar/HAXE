@@ -14,20 +14,94 @@
 #     You should have received a copy of the GNU General Public License along
 #     with this program; if not, write to the Free Software Foundation, Inc.,
 #     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+import sip
+sip.setapi('QDate', 2)
+sip.setapi('QDateTime', 2)
+sip.setapi('QString', 2)
+sip.setapi('QTextStream', 2)
+sip.setapi('QTime', 2)
+sip.setapi('QUrl', 2)
+sip.setapi('QVariant', 2)
 
 from PySide.QtGui import *
 from PySide.QtCore import *
+#from PyQt4.Qsci import *
 from binascii import *
 import time
+import mmap
 from math import *
 import re
 import collections
 
+try:
+    Signal = pyqtSignal
+except:
+    pass
 
-Cursor = collections.namedtuple("Cursor", ["address", "nibble"])
+class Cursor(QObject):
+    changed = Signal()
 
-class Selection(object):
-    def __init__(self, start=0, end=0, active=False, color=Qt.green):
+    def __init__(self, address=0, nibble=0):
+        super(Cursor, self).__init__()
+        self._address = address
+        self._nibble = nibble
+
+    @property
+    def address(self):
+        return self._address
+
+    @address.setter
+    def address(self, value):
+        self._address = value
+        self.changed.emit()
+
+
+    @property
+    def nibble(self):
+        return self._nibble
+
+    @nibble.setter
+    def nibble(self, value):
+        self._nibble = value
+        self.changed.emit()
+
+    def update(self, other_cursor):
+        changed = False
+        if not self.address == other_cursor.address:
+            self._address = other_cursor.address
+            changed = True
+        if not self.nibble == other_cursor.nibble:
+            self._nibble = other_cursor.nibble
+            changed = True
+        if changed:
+            self.changed.emit()
+
+    def right(self):
+        if self.nibble == 0:
+            self.nibble = 1
+        else:
+            self.address +=1
+            self.nibble = 0
+
+    def left(self):
+        if self.nibble == 1:
+            self.nibble = 0
+        else:
+            self.address -=1
+            self.nibble = 1
+
+    def rewind(self, amount):
+        self.address -= amount
+        if self.address < 0:
+            self.address = 0
+
+
+    def forward(self, amount):
+        self.address += amount
+
+
+class Selection(QObject):
+    def __init__(self, start=0, end=0, active=True, color=Qt.green):
         self._start = min(start, end)
         self._end = max(start, end)
         self.active = active
@@ -46,10 +120,11 @@ class Selection(object):
 
     @start.setter
     def start(self, value):
+        if not self.active:
+            self._start = self._end = value
+            return
         self._start = min(value, self.end)
         self._end = max(value, self.end)
-        if self._end == self._start:
-            self.active = False
 
     @property
     def end(self):
@@ -57,27 +132,28 @@ class Selection(object):
 
     @end.setter
     def end(self, value):
+        if not self.active:
+            self._start = self._end = value
+            return
         self._end = max(value, self.start)
         self._start = min(value, self.start)
-        if self._end == self._start:
-            self.active = False
 
 class HexView(QAbstractScrollArea):
     selectionChanged = Signal()
-    cursorChanged = Signal()
     def __init__(self, parent=None, data=open("hexview.py").read()):
         super(HexView, self).__init__(parent)
-        self.data = data
-
+        self.data = mmap.mmap(-1, len(data))
+        self.data[:] = data
         # font stuff
         self.setFont(QFont("Courier", 10))
         self.charWidth = self.fontMetrics().width("2")
         self.charHeight = self.fontMetrics().height()
         self.magic_font_offset = 4
 
+        self.viewport().setCursor(Qt.IBeamCursor)
         # constants
         self.addr_width = 8
-        self.bpl = 32
+        self.bpl = 16
         self.addr_start = 1
         self.gap2 = 2
         self.gap3 = 2
@@ -88,11 +164,12 @@ class HexView(QAbstractScrollArea):
         self.pos = 0
         self.blink = False
 
-        self.selection = Selection(color=self.palette().color(QPalette.Highlight))
+        self.selection = Selection(active=False, color=self.palette().color(QPalette.Highlight))
 
         self.highlights = []
-        self.cursor = Cursor(32,1)
+        self._cursor = Cursor(32,1)
 
+        self.cursor.changed.connect(self.cursorMove)
         # cursor blinking timer
         self.cursorTimer = QTimer()
         self.cursorTimer.timeout.connect(self.updateCursor)
@@ -100,6 +177,14 @@ class HexView(QAbstractScrollArea):
         self.cursorTimer.start()
 
         self.adjust()
+
+    @property
+    def cursor(self):
+        return self._cursor
+
+    @cursor.setter
+    def cursor(self, value):
+        self._cursor.update(value)
 
     def getLine(self, pos=0):
         return (pos, self.bpl, self.data[pos:pos+self.bpl])
@@ -165,7 +250,7 @@ class HexView(QAbstractScrollArea):
         return QPoint(px, py)
 
     def pxCoordToCursor(self, coord):
-        column, row = self.pxToCharCoords(coord.x(), coord.y())
+        column, row = self.pxToCharCoords(coord.x()+self.charWidth/2, coord.y())
         if column >= self.data_start and column < self.code_start:
             rel_column = column-self.data_start
             line_index = rel_column - (rel_column / 3)
@@ -192,15 +277,15 @@ class HexView(QAbstractScrollArea):
         hex_cx += cur.nibble
         hex_point = self.charToPxCoords(hex_cx, hex_cy)
         hex_rect = QRect(hex_point, QSize(
-                           self.charWidth, self.charHeight))
+                           2, self.charHeight))
         return hex_rect
 
 
     def cursorToAsciiRect(self, cur):
         ascii_cx, ascii_cy = self.indexToAsciiCharCoords(cur.address)
-        ascii_point = self.charToPxCoords(ascii_cx, ascii_cy)
+        ascii_point = self.charToPxCoords(ascii_cx-1, ascii_cy)
         ascii_rect = QRect(ascii_point, QSize(
-                           self.charWidth, self.charHeight))
+                           2, self.charHeight))
         return ascii_rect
 
     def charAtCursor(self, cursor):
@@ -210,16 +295,24 @@ class HexView(QAbstractScrollArea):
         return (hex_char, code_char)
 
     # ====================  Event Handling  ==============================
+    def cursorMove(self):
+        x, y = self.indexToAsciiCharCoords(self.cursor.address)
+        if y > self.visibleLines() - 4:
+            self.verticalScrollBar().setValue(self.verticalScrollBar().value() + y - self.visibleLines() + 4)
+        if y < 4:
+            self.verticalScrollBar().setValue(self.verticalScrollBar().value() + y - 4)
+
+
     def mousePressEvent(self, event):
         cur = self.pxCoordToCursor(event.pos())
-        if self.selection.active:
-            self.selection.active = False
-            self.viewport().update()
         if cur is not None:
+            if self.selection.active:
+                self.selection.active = False
+                self.selection.start = self.selection.end = cur.address
+                self.viewport().update()
             self.blink = False
             self.viewport().update(self.cursorRect())
             self.cursor = cur
-            self.cursorChanged.emit()
 
 
     def mouseMoveEvent(self, event):
@@ -237,7 +330,6 @@ class HexView(QAbstractScrollArea):
         if cur is not None:
             self.cursor = cur
             self.viewport().update(self.cursorRect())
-            self.cursorChanged.emit()
 
 
 
@@ -286,17 +378,42 @@ class HexView(QAbstractScrollArea):
         byte = "{:02x}".format(ord(self.data[addr]))
         size = QSize(self.charWidth*3, self.charHeight)
         rect = QRect(topleft, size)
-        if self.selection.active and self.selection.contains(addr):
-            painter.fillRect(rect, self.selection.color)
-            painter.setPen(self.palette().color(QPalette.HighlightedText))
-            painter.drawText(bottomleft, byte)
-            painter.setPen(self.palette().color(QPalette.WindowText))
 
+        for sel in [self.selection] + self.highlights:
+            if sel.active and sel.contains(addr):
+                painter.fillRect(rect, sel.color)
+                painter.setPen(self.palette().color(QPalette.HighlightedText))
+                painter.drawText(bottomleft, byte)
+                painter.setPen(self.palette().color(QPalette.WindowText))
+                break
         else:
             if row % 2 == 0:
                 painter.fillRect(rect, self.palette().color(QPalette.AlternateBase))
             painter.setPen(self.palette().color(QPalette.WindowText))
             painter.drawText(bottomleft, byte)
+
+
+    def paintAscii(self, painter, row, column):
+        addr = self.pos + row * self.bpl + column
+        topleft = self.charToPxCoords(column + self.code_start, row)
+        bottomleft = topleft + QPoint(0, self.charHeight-self.magic_font_offset)
+        byte = self.toAscii(self.data[addr])
+        size = QSize(self.charWidth, self.charHeight)
+        rect = QRect(topleft, size)
+
+        for sel in [self.selection] + self.highlights:
+            if sel.active and sel.contains(addr):
+                painter.fillRect(rect, sel.color)
+                painter.setPen(self.palette().color(QPalette.HighlightedText))
+                painter.drawText(bottomleft, byte)
+                painter.setPen(self.palette().color(QPalette.WindowText))
+                break
+        else:
+            if row % 2 == 0:
+                painter.fillRect(rect, self.palette().color(QPalette.AlternateBase))
+            painter.setPen(self.palette().color(QPalette.WindowText))
+            painter.drawText(bottomleft, byte)
+
 
 
     def paintEvent(self, event):
@@ -311,10 +428,6 @@ class HexView(QAbstractScrollArea):
         if event.rect() == self.cursorRect():
             if self.blink:
                 painter.fillRect(self.cursorRect(), Qt.black)
-                painter.setPen(Qt.white)
-            painter.drawText(self.cursorRect().bottomLeft().x(),
-                             self.cursorRect().bottomLeft().y() - self.magic_font_offset+1,
-                             self.charAtCursor(self.cursor)[0])
             self.viewport().update(self.cursorRect2())
 
             return
@@ -322,10 +435,6 @@ class HexView(QAbstractScrollArea):
         if event.rect() == self.cursorRect2():
             if self.blink:
                 painter.fillRect(self.cursorRect2(), Qt.black)
-                painter.setPen(Qt.white)
-            painter.drawText(self.cursorRect2().bottomLeft().x(),
-                             self.cursorRect2().bottomLeft().y() - self.magic_font_offset+1,
-                             self.charAtCursor(self.cursor)[1])
             return
 
 
@@ -381,10 +490,12 @@ class HexView(QAbstractScrollArea):
             # hex data
             for j, byte in enumerate(data):
                 self.paintHex(painter, i, j)
+                self.paintAscii(painter, i, j)
                 #painter.drawText(data_start + j*charw3, (i+1)*charh, "{:02x}".format(ord(byte)))
 
             # ascii data
-            painter.drawText(code_start, (i+1)*charh, ascii)
+            #for j, char in enumerate(data):
+            #painter.drawText(code_start, (i+1)*charh, ascii)
         painter.setPen(Qt.gray)
         painter.drawLine(data_start-charw, 0, data_start-charw, self.height())
         painter.drawLine(code_start-charw, 0, code_start-charw, self.height())
@@ -392,20 +503,47 @@ class HexView(QAbstractScrollArea):
         if self.blink and self.cursorRect().top() < self.height() and self.cursorRect().bottom() > 0:
             painter.fillRect(self.cursorRect(), Qt.black)
             painter.fillRect(self.cursorRect2(), Qt.black)
-            painter.setPen(Qt.white)
-            painter.drawText(self.cursorRect().bottomLeft().x(),
-                             self.cursorRect().bottomLeft().y() - self.magic_font_offset+1,
-                             self.charAtCursor(self.cursor)[0])
-            painter.drawText(self.cursorRect2().bottomLeft().x(),
-                             self.cursorRect2().bottomLeft().y() - self.magic_font_offset+1,
-                             self.charAtCursor(self.cursor)[1])
-        print "painting took: ", time.time()-start, "s"
+        duration = time.time()-start
+        if duration > 0.02:
+            print "painting took: ", duration, 's'
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        mod = event.modifiers()
+        text = event.text()
+        hexalpha = "0123456789abcdef"
+        if key == Qt.Key_Right:
+            if mod & Qt.ShiftModifier:
+                if not self.selection.active:
+                    self.selection.start = self.cursor.address
+                    self.selection.active = True
+                self.selection.end = self.cursor.address
+            self.cursor.right()
+        elif key == Qt.Key_Left:
+            self.cursor.left()
+        elif key == Qt.Key_Up:
+            self.cursor.rewind(self.bpl)
+        elif key == Qt.Key_Down:
+            self.cursor.forward(self.bpl)
+        elif key in [Qt.Key_Shift, Qt.Key_Control, Qt.Key_Alt]:
+            pass
+        elif text in hexalpha:
+            oldbyte = ord(self.data[self.cursor.address])
+            if self.cursor.nibble == 1:
+                byte = (oldbyte & 0xf0) | hexalpha.index(text)
+            else:
+                byte = (oldbyte & 0x0f) | (hexalpha.index(text) << 4)
+            self.data[self.cursor.address] = chr(byte)
+            self.cursor.right()
+
+        self.viewport().update()
+
 
 class Analyzer(QLabel):
     def __init__(self, parent = None, hexview = None):
         super(Analyzer, self).__init__(parent)
         self.hexview = hexview
-        self.hexview.cursorChanged.connect(self.read_numbers)
+        self.hexview.cursor.changed.connect(self.read_numbers)
         self.hexview.selectionChanged.connect(self.read_numbers)
         self.string = ""
 
@@ -414,6 +552,62 @@ class Analyzer(QLabel):
                                       len(self.hexview.selection))
         self.setText(self.string)
 
+class Parser(QWidget):
+    def __init__(self, hv=None, parent=None):
+        super(Parser, self).__init__(parent)
+        self.layout = QGridLayout()
+        self.setLayout(self.layout)
+        self.font = QFont("Courier", 10)
+
+        self.te = QTextEdit()
+        self.te.text = self.te.toPlainText
+        self.te.setText = self.te.setPlainText
+        self.te.setFont(self.font)
+        #self.te.setMaximumWidth(360)
+        self.layout.addWidget(self.te, 0, 0)
+
+        self.result = QTextEdit()
+        self.layout.addWidget(self.result, 1, 0)
+        self.hv = hv
+        self.hv.cursor.changed.connect(self.eval)
+
+    def reset(self):
+        self.hv.highlights = []
+        self.hv.viewport().update()
+
+    def foo(self, x):
+        try:
+            y = ("\n" + self.te.text()).index("\n" + x)
+        except:
+            print x
+            raise
+        return y
+
+    def eval(self):
+        try:
+            ns = {}
+            exec(compile("from construct import *\n" + self.te.text(), '<none>', 'exec'), ns)
+            results = []
+            import construct
+            keys = sorted([x for x in ns.keys() if x not in dir(construct) and (not x.startswith('_'))],
+                          key=self.foo)
+            for name in keys:
+                cons = ns[name]
+                try:
+                    parsed = cons.parse(self.hv.data[self.hv.cursor.address:])
+                except:
+                    parsed = "<parse error>"
+                results.append("{}: {}".format(cons.name, parsed))
+            self.result.setPlainText("\n".join(results))
+
+
+#            self.hv.viewport().update()
+        except Exception as e:
+            print e
+
+
+
+
 
 if __name__ == '__main__':
     app = QApplication([])
@@ -421,9 +615,39 @@ if __name__ == '__main__':
     l = QGridLayout()
     w.setLayout(l)
     h = HexView()
+    h.highlights.append(Selection(10,20))
     a = Analyzer(hexview=h)
+    p = Parser(h)
+    p.te.setText("""foo = Union("default data types",
+    ULInt8("uint8"),
+    ULInt16("uint16"),
+    ULInt32("uint32"),
+    ULInt64("uint64"),
+    SLInt8("sint8"),
+    SLInt16("sint16"),
+    SLInt32("sint32"),
+    SLInt64("sint64"),
+    LFloat32("float"),
+    LFloat64("double"),
+)
+bar = Union("default data types (big endian)",
+    UBInt8("uint8"),
+    UBInt16("uint16"),
+    UBInt32("uint32"),
+    UBInt64("uint64"),
+    SBInt8("sint8"),
+    SBInt16("sint16"),
+    SBInt32("sint32"),
+    SBInt64("sint64"),
+    BFloat32("float"),
+    BFloat64("double"),
+)
+""")
     l.addWidget(h, 0, 0)
     l.addWidget(a, 1, 0)
+    l.addWidget(p, 0, 1)
+    l.setColumnStretch(1, 1)
+    l.setColumnStretch(0, 1)
     w.setGeometry(32,32,800,600)
     w.show()
     app.exec_()
