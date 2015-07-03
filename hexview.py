@@ -556,7 +556,15 @@ class StructEditor(QWidget):
     def __init__(self, hv=None, parent=None):
         super(StructEditor, self).__init__(parent)
 
+class Delegate(QItemDelegate):
+    def __init__(self):
+        super(Delegate, self).__init__()
+        self.validator = QIntValidator()
 
+    def setModelData(self, editor, model, index):
+        editor = QLineEdit(editor)
+        editor.setValidator(self.validator)
+        super(Delegate, self).setModelData(editor, model, index)
 
 
 class HexEditor(QMainWindow):
@@ -588,7 +596,12 @@ class HexEditor(QMainWindow):
 
 
         # make struct explorer widget
-        self.structexplorer = QTextEdit()
+        self.structexplorer = s = QTreeWidget()
+        s.setColumnCount(3)
+        s.setHeaderLabels(["Name","Value","Color"])
+        s.setItemsExpandable(True)
+        self.d = Delegate()
+        s.setItemDelegateForColumn(1, self.d)
 
         self.dock2 = QDockWidget()
         self.dock2.setWindowTitle("Struct Explorer")
@@ -613,6 +626,8 @@ class HexEditor(QMainWindow):
 
     def eval(self):
         try:
+            self.structexplorer.clear()
+            self.items = []
             ns = {}
             exec(compile("from construct import *\n" + self.structeditor.text(), '<none>', 'exec'), ns)
             results = []
@@ -625,8 +640,23 @@ class HexEditor(QMainWindow):
                     parsed = cons.parse(self.hexview.data[self.hexview.cursor.address:])
                 except:
                     parsed = "<parse error>"
-                results.append("{}: {}".format(cons.name, parsed))
-            self.structexplorer.setPlainText("\n".join(results))
+                if isinstance(parsed, construct.lib.container.Container):
+                    self.items.append(QTreeWidgetItem(self.structexplorer,
+                                                      [cons.name,
+                                                       'Container',
+                                                       "none"]))
+                    parent = self.items[-1]
+                    parent.setExpanded(True)
+                    for k, v in parsed.iteritems():
+                        it = QTreeWidgetItem(parent, [k, str(v), 'none'])
+                        it.setFlags(it.flags() | Qt.ItemIsEditable)
+                        self.items.append(it)
+                else:
+                    it = QTreeWidgetItem(self.structexplorer,
+                                                      [cons.name,
+                                                       str(parsed),
+                                                       "none"])
+                    self.items.append(it)
 
 
 #            self.hexview.viewport().update()
@@ -647,7 +677,7 @@ class HexEditor(QMainWindow):
     LFloat32("float"),
     LFloat64("double"),
 )
-bar = Union("default data types (big endian)",
+bar = Union("data types (big endian)",
     UBInt8("uint8"),
     UBInt16("uint16"),
     UBInt32("uint32"),
@@ -660,6 +690,7 @@ bar = Union("default data types (big endian)",
     BFloat64("double"),
 )
     """)
+        self.eval()
 
 
 
