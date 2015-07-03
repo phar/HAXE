@@ -552,32 +552,60 @@ class Analyzer(QLabel):
                                       len(self.hexview.selection))
         self.setText(self.string)
 
-class Parser(QWidget):
+class StructEditor(QWidget):
     def __init__(self, hv=None, parent=None):
-        super(Parser, self).__init__(parent)
-        self.layout = QGridLayout()
-        self.setLayout(self.layout)
+        super(StructEditor, self).__init__(parent)
+
+
+
+
+class HexEditor(QMainWindow):
+    def __init__(self):
+        super(HexEditor, self).__init__()
+
+        self.hexview = HexView()
+        self.setCentralWidget(self.hexview)
+
+        a = Analyzer(hexview=self.hexview)
         self.font = QFont("Courier", 10)
 
-        self.te = QTextEdit()
-        self.te.text = self.te.toPlainText
-        self.te.setText = self.te.setPlainText
-        self.te.setFont(self.font)
-        #self.te.setMaximumWidth(360)
-        self.layout.addWidget(self.te, 0, 0)
 
-        self.result = QTextEdit()
-        self.layout.addWidget(self.result, 1, 0)
-        self.hv = hv
-        self.hv.cursor.changed.connect(self.eval)
+
+        # make struct editor widget
+        self.structeditor = QTextEdit()
+        # qscintilla compatibility
+        self.structeditor.text = self.structeditor.toPlainText
+        self.structeditor.setText = self.structeditor.setPlainText
+
+        self.structeditor.setFont(self.font)
+
+        self.dock1 = QDockWidget()
+        self.dock1.setWindowTitle("Struct Editor")
+        self.dock1.setWidget(self.structeditor)
+        self.dock1.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock1)
+
+
+
+        # make struct explorer widget
+        self.structexplorer = QTextEdit()
+
+        self.dock2 = QDockWidget()
+        self.dock2.setWindowTitle("Struct Explorer")
+        self.dock2.setWidget(self.structexplorer)
+        self.dock2.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.dock2)
+
+        self.hexview.cursor.changed.connect(self.eval)
+        self.set_example_data()
 
     def reset(self):
-        self.hv.highlights = []
-        self.hv.viewport().update()
+        self.hexview.highlights = []
+        self.hexview.viewport().update()
 
     def foo(self, x):
         try:
-            y = ("\n" + self.te.text()).index("\n" + x)
+            y = ("\n" + self.structeditor.text()).index("\n" + x)
         except:
             print x
             raise
@@ -586,39 +614,28 @@ class Parser(QWidget):
     def eval(self):
         try:
             ns = {}
-            exec(compile("from construct import *\n" + self.te.text(), '<none>', 'exec'), ns)
+            exec(compile("from construct import *\n" + self.structeditor.text(), '<none>', 'exec'), ns)
             results = []
             import construct
-            keys = sorted([x for x in ns.keys() if x not in dir(construct) and (not x.startswith('_'))],
+            keys = sorted([x for x, v in ns.iteritems() if isinstance(v, construct.Construct) and x not in dir(construct) and (not x.startswith('_'))],
                           key=self.foo)
             for name in keys:
                 cons = ns[name]
                 try:
-                    parsed = cons.parse(self.hv.data[self.hv.cursor.address:])
+                    parsed = cons.parse(self.hexview.data[self.hexview.cursor.address:])
                 except:
                     parsed = "<parse error>"
                 results.append("{}: {}".format(cons.name, parsed))
-            self.result.setPlainText("\n".join(results))
+            self.structexplorer.setPlainText("\n".join(results))
 
 
-#            self.hv.viewport().update()
+#            self.hexview.viewport().update()
         except Exception as e:
             print e
 
-
-
-
-
-if __name__ == '__main__':
-    app = QApplication([])
-    w = QWidget()
-    l = QGridLayout()
-    w.setLayout(l)
-    h = HexView()
-    h.highlights.append(Selection(10,20))
-    a = Analyzer(hexview=h)
-    p = Parser(h)
-    p.te.setText("""foo = Union("default data types",
+    def set_example_data(self):
+        self.hexview.highlights.append(Selection(10,20))
+        self.structeditor.setText("""foo = Union("default data types",
     ULInt8("uint8"),
     ULInt16("uint16"),
     ULInt32("uint32"),
@@ -642,12 +659,13 @@ bar = Union("default data types (big endian)",
     BFloat32("float"),
     BFloat64("double"),
 )
-""")
-    l.addWidget(h, 0, 0)
-    l.addWidget(a, 1, 0)
-    l.addWidget(p, 0, 1)
-    l.setColumnStretch(1, 1)
-    l.setColumnStretch(0, 1)
-    w.setGeometry(32,32,800,600)
-    w.show()
+    """)
+
+
+
+
+if __name__ == '__main__':
+    app = QApplication([])
+    h = HexEditor()
+    h.show()
     app.exec_()
