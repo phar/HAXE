@@ -16,12 +16,15 @@
    - also paste as?
 ** TODO calculate checksum / decrypt / encrypt / transform
    - uuencode / base64 / rot13 / xor
-** TODO diff files
+** TODO diff files and regions
+   - beyondcompare-like context menu: "select left side to compare"...
 ** TODO scripting
    - with ipython integration
 ** TODO file explorer
 ** TODO disassembler
    - see pure python disassemblers from vivisect
+   - also include assembler?
+   - maybe even search / replace for asm?
 ** TODO regex builder?
 ** TODO bookmarks / favourites
 ** TODO tabbed interface for multiple open files
@@ -29,13 +32,24 @@
 ** TODO import / export
    - intel hex (with sparse support)
    - ...
-** TODO view options
-   - bytes per line
-   - separators / grouping
 ** TODO undo stack
 ** TODO rectangle selection mode?
-* bugs
+** TODO bitmap view
+** TODO Jump to address for values that are also valid 32bit addresses
+** TODO multiple views for same file
+** TODO view as hex/oct/dec/bin?
+** TODO tag selection as in wxHexEditor
+* user interface
 ** selection
+** display
+   - make everything configurable
+     - font
+     - address view (hex / dec / oct / off, length, ...)
+     - data view (hex / dec / oct / bin, grouping, separator lines, bytes per line, ...)
+     - ascii view (
+** motion
+   - tab to switch bewteen ascii and hex view?
+   - goto dock
 * for histogram
 #+BEGIN_SRC python
 import numpy
@@ -47,6 +61,7 @@ array = numpy.ndarray.__new__(numpy.ndarray,
                               offset=0,
                               strides=(1,),
                               order='C')
+hist(array, bins=256, range=(0,256))
 #+END_SRC
 * entropy
 #+BEGIN_SRC python

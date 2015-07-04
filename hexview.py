@@ -36,11 +36,47 @@ from PySide.QtGui import *
 from PySide.QtCore import *
 #from PyQt4.Qsci import *
 
+
+from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.qt.inprocess import QtInProcessKernelManager
+from IPython.lib import guisupport
+from IPython.core.magic import register_line_magic
+from IPython import get_ipython
+
+
+
 # keep this PySide and PyQt compatible
 try:
     Signal = pyqtSignal
 except:
     pass
+
+
+class IPythonWidget(RichIPythonWidget):
+    def __init__(self, parent=None, run='', **kwargs):
+        super(self.__class__, self).__init__()
+        self.app = app = guisupport.get_app_qt4()
+        self.kernel_manager = kernel_manager = QtInProcessKernelManager()
+        try:
+            kernel_manager.start_kernel()
+        except:
+            return
+
+
+        self.kernel = kernel = kernel_manager.kernel
+        kernel.gui = 'qt4'
+        kernel.shell.push(kwargs)
+
+
+        self.kernel_client = kernel_client = kernel_manager.client()
+        kernel_client.start_channels()
+
+        def stop():
+            self.hide()
+            return
+        kernel.shell.run_cell(run)
+        self.exit_requested.connect(stop)
+
 
 class Cursor(QObject):
     changed = Signal()
@@ -179,7 +215,8 @@ class HexView(QAbstractScrollArea):
         self.cursorTimer.timeout.connect(self.updateCursor)
         self.cursorTimer.setInterval(500)
         self.cursorTimer.start()
-
+        self.setMinimumWidth((self.code_start + self.bpl + 5) * self.charWidth)
+        self.setMaximumWidth((self.code_start + self.bpl + 5) * self.charWidth)
         self.adjust()
 
     @property
@@ -564,9 +601,9 @@ class Delegate(QItemDelegate):
         super(Delegate, self).setModelData(editor, model, index)
 
 
-class SearchDialog(QDialog):
+class SearchDialog(QWidget):
     def __init__(self, hexview=None, parent=None):
-        super(SearchDialog, self).__init__(parent, Qt.Dialog | Qt.Window | Qt.WindowStaysOnTopHint )
+        super(SearchDialog, self).__init__(parent)
         self.hexview = hexview
         self.lyt = QGridLayout()
         self.setLayout(self.lyt)
@@ -620,6 +657,8 @@ class HexEditor(QMainWindow):
 
 
     def createDocks(self):
+        self.setDockOptions(self.dockOptions() | QMainWindow.AllowNestedDocks)
+        allowed_positions = Qt.AllDockWidgetAreas
         # make struct editor widget
         self.structeditor = QTextEdit()
         # qscintilla compatibility
@@ -631,7 +670,7 @@ class HexEditor(QMainWindow):
         self.dock1 = QDockWidget()
         self.dock1.setWindowTitle("Struct Editor")
         self.dock1.setWidget(self.structeditor)
-        self.dock1.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.dock1.setAllowedAreas(allowed_positions)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock1)
 
 
@@ -647,10 +686,49 @@ class HexEditor(QMainWindow):
         self.dock2 = QDockWidget()
         self.dock2.setWindowTitle("Struct Explorer")
         self.dock2.setWidget(self.structexplorer)
-        self.dock2.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.dock2.setAllowedAreas(allowed_positions)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock2)
 
         self.hexview.cursor.changed.connect(self.eval)
+
+        self.structeditor.setMinimumWidth(300)
+        self.structexplorer.setMinimumWidth(300)
+
+
+        self.ipython = IPythonWidget(run='''
+import matplotlib
+%matplotlib inline
+from pylab import *
+from PySide.QtCore import *
+from PySide.QtGui import *
+from construct import *
+from binascii import *
+
+data = main.hexview.data
+a  = np.ndarray.__new__(np.ndarray,
+        shape=(len(data),),
+        dtype=np.uint8,
+        buffer=data,
+        offset=0,
+        strides=(1,),
+        order='C')
+
+def histogram():
+    hist(a, bins=256, range=(0,256))
+
+''',main=self)
+        self.ipython.setMinimumWidth(500)
+        self.dock3 = QDockWidget()
+        self.dock3.setWindowTitle("IPython")
+        self.dock3.setWidget(self.ipython)
+        self.dock3.setAllowedAreas(allowed_positions)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.dock3)
+
+
+        self.dock1.setObjectName("structedit")
+        self.dock2.setObjectName("structexp")
+        self.dock3.setObjectName("ipython")
+
 
     def open_file(self):
         self.filename = QFileDialog.getOpenFileName(self, "Open File...")[0]
@@ -676,12 +754,27 @@ class HexEditor(QMainWindow):
         self.act_search.setStatusTip("Search current buffer for a string")
         self.act_search.triggered.connect(self.search)
 
+        self.ta = QAction("Struct &Editor", self)
+        self.ta.setCheckable(True)
+        self.ta.setChecked(True)
+        self.ta.toggled.connect(self.toggle_structedit)
 
     def createMenus(self):
         self.filemenu = self.menuBar().addMenu("&File")
         self.filemenu.addAction(self.act_open)
         self.filemenu.addAction(self.act_quit)
         self.filemenu.addAction(self.act_search)
+
+        self.viewmenu = self.menuBar().addMenu("&View")
+
+        self.viewmenu.addAction(self.ta)
+
+    def toggle_structedit(self):
+        if self.structeditor.isVisible():
+            self.structeditor.setVisible(False)
+        else:
+            self.structeditor.setVisible(True)
+
 
     def search(self):
         self.dia = SearchDialog(hexview = self.hexview)
@@ -743,6 +836,14 @@ class HexEditor(QMainWindow):
 #            self.hexview.viewport().update()
         except Exception as e:
             print e
+
+    def closeEvent(self, event):
+
+        settings = QSettings("csarn", "best hex editor")
+        settings.setValue("geometry", self.saveGeometry())
+        settings.setValue("windowState", self.saveState())
+        QMainWindow.closeEvent(self, event)
+
 
     def set_example_data(self):
         self.hexview.highlights.append(Selection(10,20))
