@@ -14,6 +14,15 @@
 #     You should have received a copy of the GNU General Public License along
 #     with this program; if not, write to the Free Software Foundation, Inc.,
 #     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+import time
+import mmap
+import re
+import os
+import collections
+from binascii import *
+from math import *
+
 import sip
 sip.setapi('QDate', 2)
 sip.setapi('QDateTime', 2)
@@ -26,14 +35,8 @@ sip.setapi('QVariant', 2)
 from PySide.QtGui import *
 from PySide.QtCore import *
 #from PyQt4.Qsci import *
-from binascii import *
-import time
-import mmap
-from math import *
-import re
-import os
-import collections
 
+# keep this PySide and PyQt compatible
 try:
     Signal = pyqtSignal
 except:
@@ -611,7 +614,7 @@ class HexEditor(QMainWindow):
         painter.fillRect(0,0,64,64,Qt.green)
         painter.setPen(QColor(192,0,192))
         painter.setFont(QFont("Courier", 64))
-        painter.drawText(6,58,"H")
+        painter.drawText(6,57,"H")
         self.icon = QIcon(self.pixmap)
         self.setWindowIcon(self.icon)
 

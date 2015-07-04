@@ -1,3 +1,41 @@
+* missing features
+** TODO rich status bar information
+   - progress bar for long operations (search, parse, ...)
+   - insert / overwrite mode,  read-write / read-only, charset,
+   - file length / selection length / cursor position
+   - value at cursor in dec / hex / bin
+   - ...
+** TODO better search dialog
+   - ascii / hex / numbers / number ranges / regex
+   - "find all" option
+   - select matching range
+   - replace option
+   - maybe include hexview widget for search term input?
+** TODO copy as...
+   - ascii / hex / c / python ...
+   - also paste as?
+** TODO calculate checksum / decrypt / encrypt / transform
+   - uuencode / base64 / rot13 / xor
+** TODO diff files
+** TODO scripting
+   - with ipython integration
+** TODO file explorer
+** TODO disassembler
+   - see pure python disassemblers from vivisect
+** TODO regex builder?
+** TODO bookmarks / favourites
+** TODO tabbed interface for multiple open files
+** TODO open disk / process
+** TODO import / export
+   - intel hex (with sparse support)
+   - ...
+** TODO view options
+   - bytes per line
+   - separators / grouping
+** TODO undo stack
+** TODO rectangle selection mode?
+* bugs
+** selection
 * for histogram
 #+BEGIN_SRC python
 import numpy
@@ -24,5 +62,6 @@ for count in byte_counts:
     # p is the probability of seeing this byte in the file, as a floating-
     # point number
     p = 1.0 * count / total
-    entropy -= p * math.log(p, 2)
+    entropy -= p * math.log(p, 2
+)
 #+END_SRC
