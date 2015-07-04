@@ -10,3 +10,19 @@ array = numpy.ndarray.__new__(numpy.ndarray,
                               strides=(1,),
                               order='C')
 #+END_SRC
+* entropy
+#+BEGIN_SRC python
+import math
+
+entropy = 0
+
+for count in byte_counts:
+    # If no bytes of this value were seen in the value, it doesn't affect
+    # the entropy of the file.
+    if count == 0:
+        continue
+    # p is the probability of seeing this byte in the file, as a floating-
+    # point number
+    p = 1.0 * count / total
+    entropy -= p * math.log(p, 2)
+#+END_SRC

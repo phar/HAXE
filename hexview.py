@@ -603,6 +603,17 @@ class HexEditor(QMainWindow):
         self.createMenus()
         self.createDocks()
         self.set_example_data()
+        self.drawIcon()
+
+    def drawIcon(self):
+        self.pixmap = QPixmap(64,64)
+        painter = QPainter(self.pixmap)
+        painter.fillRect(0,0,64,64,Qt.green)
+        painter.setPen(QColor(192,0,192))
+        painter.setFont(QFont("Courier", 64))
+        painter.drawText(6,58,"H")
+        self.icon = QIcon(self.pixmap)
+        self.setWindowIcon(self.icon)
 
 
     def createDocks(self):
