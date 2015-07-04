@@ -639,9 +639,9 @@ class HexEditor(QMainWindow):
         self.indicator = QLabel("Overwrite")
         self.statusBar().showMessage("yay")
         self.statusBar().addPermanentWidget(self.indicator)
+        self.createDocks()
         self.createActions()
         self.createMenus()
-        self.createDocks()
         self.set_example_data()
         self.drawIcon()
 
@@ -754,10 +754,9 @@ def histogram():
         self.act_search.setStatusTip("Search current buffer for a string")
         self.act_search.triggered.connect(self.search)
 
-        self.ta = QAction("Struct &Editor", self)
-        self.ta.setCheckable(True)
-        self.ta.setChecked(True)
-        self.ta.toggled.connect(self.toggle_structedit)
+        self.ta_sed = self.dock1.toggleViewAction()
+        self.ta_sexp = self.dock2.toggleViewAction()
+        self.ta_ipy = self.dock3.toggleViewAction()
 
     def createMenus(self):
         self.filemenu = self.menuBar().addMenu("&File")
@@ -767,7 +766,9 @@ def histogram():
 
         self.viewmenu = self.menuBar().addMenu("&View")
 
-        self.viewmenu.addAction(self.ta)
+        self.viewmenu.addAction(self.ta_sed)
+        self.viewmenu.addAction(self.ta_sexp)
+        self.viewmenu.addAction(self.ta_ipy)
 
     def toggle_structedit(self):
         if self.structeditor.isVisible():
