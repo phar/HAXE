@@ -237,6 +237,10 @@ class HexView(QAbstractScrollArea):
         self.verticalScrollBar().setRange(0, self.numLines() - self.visibleLines() + 1)
         self.verticalScrollBar().setPageStep(self.visibleLines())
 
+    def goto(self, address):
+        self.cursor.nibble = 0
+        self.cursor.address = address
+
     # =====================  Coordinate Juggling  ============================
 
     def pxToCharCoords(self, px, py):
@@ -540,18 +544,6 @@ class HexView(QAbstractScrollArea):
         self.viewport().update()
 
 
-class Analyzer(QLabel):
-    def __init__(self, parent = None, hexview = None):
-        super(Analyzer, self).__init__(parent)
-        self.hexview = hexview
-        self.hexview.cursor.changed.connect(self.read_numbers)
-        self.hexview.selectionChanged.connect(self.read_numbers)
-        self.string = ""
-
-    def read_numbers(self):
-        self.string = "{}\n{}".format(ord(self.hexview.getBytes()),
-                                      len(self.hexview.selection))
-        self.setText(self.string)
 
 class StructEditor(QWidget):
     def __init__(self, hv=None, parent=None):
@@ -569,18 +561,51 @@ class Delegate(QItemDelegate):
         super(Delegate, self).setModelData(editor, model, index)
 
 
+class SearchDialog(QDialog):
+    def __init__(self, hexview=None, parent=None):
+        super(SearchDialog, self).__init__(parent, Qt.Dialog | Qt.Window | Qt.WindowStaysOnTopHint )
+        self.hexview = hexview
+        self.lyt = QGridLayout()
+        self.setLayout(self.lyt)
+
+        self.searchline = QLineEdit()
+        self.pb_search = QPushButton("Search")
+        self.lyt.addWidget(self.searchline, 0, 0)
+        self.lyt.addWidget(self.pb_search, 0, 1)
+
+
+        self.pb_search.clicked.connect(self.do_search)
+
+    def do_search(self):
+        phrase = self.searchline.text()
+        index = self.hexview.data.find(phrase, self.hexview.cursor.address)
+        print index
+        if index >= 0:
+            self.hexview.goto(index)
+        self.close()
+
+
+
+
+
 class HexEditor(QMainWindow):
     def __init__(self):
         super(HexEditor, self).__init__()
 
+        self.setWindowTitle("Best Hex Editor")
         self.hexview = HexView()
         self.setCentralWidget(self.hexview)
-
-        a = Analyzer(hexview=self.hexview)
         self.font = QFont("Courier", 10)
+        self.indicator = QLabel("Overwrite")
+        self.statusBar().showMessage("yay")
+        self.statusBar().addPermanentWidget(self.indicator)
+        self.createActions()
+        self.createMenus()
+        self.createDocks()
+        self.set_example_data()
 
 
-
+    def createDocks(self):
         # make struct editor widget
         self.structeditor = QTextEdit()
         # qscintilla compatibility
@@ -612,9 +637,6 @@ class HexEditor(QMainWindow):
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock2)
 
         self.hexview.cursor.changed.connect(self.eval)
-        self.set_example_data()
-        self.createActions()
-        self.createMenus()
 
     def open_file(self):
         self.filename = QFileDialog.getOpenFileName(self, "Open File...")[0]
@@ -632,15 +654,28 @@ class HexEditor(QMainWindow):
 
         self.act_quit = QAction("&Quit", self)
         self.act_quit.setShortcuts(QKeySequence.Quit)
-        self.act_quit.setStatusTip("Quit file")
+        self.act_quit.setStatusTip("Quit Best Hex Editor")
         self.act_quit.triggered.connect(self.close)
 
+        self.act_search = QAction("&Search", self)
+        self.act_search.setShortcuts(QKeySequence.Find)
+        self.act_search.setStatusTip("Search current buffer for a string")
+        self.act_search.triggered.connect(self.search)
 
 
     def createMenus(self):
         self.filemenu = self.menuBar().addMenu("&File")
         self.filemenu.addAction(self.act_open)
         self.filemenu.addAction(self.act_quit)
+        self.filemenu.addAction(self.act_search)
+
+    def search(self):
+        self.dia = SearchDialog(hexview = self.hexview)
+        self.dia.show()
+        self.dia.raise_()
+        self.dia.activateWindow()
+
+
 
     def reset(self):
         self.hexview.highlights = []

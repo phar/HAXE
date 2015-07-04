@@ -1,0 +1,12 @@
+* for histogram
+#+BEGIN_SRC python
+import numpy
+# data is an mmap object
+array = numpy.ndarray.__new__(numpy.ndarray,
+                              shape=(len(data),),
+                              dtype=numpy.uint8,
+                              buffer=data,
+                              offset=0,
+                              strides=(1,),
+                              order='C')
+#+END_SRC
