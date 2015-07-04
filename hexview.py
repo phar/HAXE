@@ -31,6 +31,7 @@ import time
 import mmap
 from math import *
 import re
+import os
 import collections
 
 try:
@@ -562,6 +563,7 @@ class Delegate(QItemDelegate):
         self.validator = QIntValidator()
 
     def setModelData(self, editor, model, index):
+        print editor, model, index
         editor = QLineEdit(editor)
         editor.setValidator(self.validator)
         super(Delegate, self).setModelData(editor, model, index)
@@ -611,6 +613,34 @@ class HexEditor(QMainWindow):
 
         self.hexview.cursor.changed.connect(self.eval)
         self.set_example_data()
+        self.createActions()
+        self.createMenus()
+
+    def open_file(self):
+        self.filename = QFileDialog.getOpenFileName(self, "Open File...")[0]
+        #print self.filename
+        if self.filename:
+            size = os.stat(self.filename).st_size
+            self.hexview.data = mmap.mmap(-1, size)
+            self.hexview.data[:] = open(self.filename, 'rb').read()
+
+    def createActions(self):
+        self.act_open = QAction("&Open", self)
+        self.act_open.setShortcuts(QKeySequence.Open)
+        self.act_open.setStatusTip("Open file")
+        self.act_open.triggered.connect(self.open_file)
+
+        self.act_quit = QAction("&Quit", self)
+        self.act_quit.setShortcuts(QKeySequence.Quit)
+        self.act_quit.setStatusTip("Quit file")
+        self.act_quit.triggered.connect(self.close)
+
+
+
+    def createMenus(self):
+        self.filemenu = self.menuBar().addMenu("&File")
+        self.filemenu.addAction(self.act_open)
+        self.filemenu.addAction(self.act_quit)
 
     def reset(self):
         self.hexview.highlights = []
@@ -657,6 +687,8 @@ class HexEditor(QMainWindow):
                                                        str(parsed),
                                                        "none"])
                     self.items.append(it)
+            for i in range(3):
+                self.structexplorer.resizeColumnToContents(i)
 
 
 #            self.hexview.viewport().update()
