@@ -32,24 +32,55 @@
 ** TODO import / export
    - intel hex (with sparse support)
    - ...
-** TODO undo stack
+** TODO undo tree like emacs
+   - maybe use graphview widget for undo tree display?
 ** TODO rectangle selection mode?
 ** TODO bitmap view
 ** TODO Jump to address for values that are also valid 32bit addresses
 ** TODO multiple views for same file
 ** TODO view as hex/oct/dec/bin?
 ** TODO tag selection as in wxHexEditor
+** TODO keep sparse space at the end
+   - automatically growing as it fills up?
+   - will help displaying a new (empty) buffer
 * user interface
 ** selection
+   - boxes around selection or parsed structs? so that content can be color coded
 ** display
    - make everything configurable
      - font
      - address view (hex / dec / oct / off, length, ...)
      - data view (hex / dec / oct / bin, grouping, separator lines, bytes per line, ...)
      - ascii view (
+   - display for sparse areas (grey dots?)
 ** motion
    - tab to switch bewteen ascii and hex view?
    - goto dock
+* misc
+** look at python libs for binary parsing
+   - pyelftools
+   - pefile
+   - ...
+** dependencies
+#+BEGIN_SRC dot :file depgraph.png :cmdline -Tpng
+digraph {
+        node [ shape="record"];
+        highlight [label="{ highlight |start | end | box | bg| fg }"];
+   selection -> cursor [label="start / end position"];
+   hexview -> data_model;
+   struct_exp -> data_model;
+   struct_exp -> struct_edit [label="content"];
+   struct_exp -> cursor;
+   statusbar -> cursor;
+   statusbar -> selection;
+   statusbar -> hexview [label="size / mode / ..."];
+   hexview -> highlight;
+}
+#+END_SRC
+
+#+RESULTS:
+[[file:depgraph.png]]
+
 * for histogram
 #+BEGIN_SRC python
 import numpy
