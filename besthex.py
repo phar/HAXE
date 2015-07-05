@@ -178,10 +178,10 @@ class Selection(QObject):
         self._end = max(value, self.start)
         self._start = min(value, self.start)
 
-class HexView(QAbstractScrollArea):
+class HexWidget(QAbstractScrollArea):
     selectionChanged = Signal()
-    def __init__(self, parent=None, data=open("hexview.py").read()):
-        super(HexView, self).__init__(parent)
+    def __init__(self, parent=None, data=open("besthex.py").read()):
+        super(HexWidget, self).__init__(parent)
         self.data = mmap.mmap(-1, len(data))
         self.data[:] = data
         # font stuff
@@ -602,9 +602,9 @@ class Delegate(QItemDelegate):
 
 
 class SearchDialog(QWidget):
-    def __init__(self, hexview=None, parent=None):
+    def __init__(self, hexwidget=None, parent=None):
         super(SearchDialog, self).__init__(parent)
-        self.hexview = hexview
+        self.hexwidget = hexwidget
         self.lyt = QGridLayout()
         self.setLayout(self.lyt)
 
@@ -618,10 +618,10 @@ class SearchDialog(QWidget):
 
     def do_search(self):
         phrase = self.searchline.text()
-        index = self.hexview.data.find(phrase, self.hexview.cursor.address)
+        index = self.hexwidget.data.find(phrase, self.hexwidget.cursor.address)
         print index
         if index >= 0:
-            self.hexview.goto(index)
+            self.hexwidget.goto(index)
         self.close()
 
 
@@ -633,8 +633,8 @@ class HexEditor(QMainWindow):
         super(HexEditor, self).__init__()
 
         self.setWindowTitle("Best Hex Editor")
-        self.hexview = HexView()
-        self.setCentralWidget(self.hexview)
+        self.hexwidget = HexWidget()
+        self.setCentralWidget(self.hexwidget)
         self.font = QFont("Courier", 10)
         self.indicator = QLabel("Overwrite")
         self.statusBar().showMessage("yay")
@@ -689,7 +689,7 @@ class HexEditor(QMainWindow):
         self.dock2.setAllowedAreas(allowed_positions)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock2)
 
-        self.hexview.cursor.changed.connect(self.eval)
+        self.hexwidget.cursor.changed.connect(self.eval)
 
         self.structeditor.setMinimumWidth(300)
         self.structexplorer.setMinimumWidth(300)
@@ -704,7 +704,7 @@ from PySide.QtGui import *
 from construct import *
 from binascii import *
 
-data = main.hexview.data
+data = main.hexwidget.data
 a  = np.ndarray.__new__(np.ndarray,
         shape=(len(data),),
         dtype=np.uint8,
@@ -735,8 +735,8 @@ def histogram():
         #print self.filename
         if self.filename:
             size = os.stat(self.filename).st_size
-            self.hexview.data = mmap.mmap(-1, size)
-            self.hexview.data[:] = open(self.filename, 'rb').read()
+            self.hexwidget.data = mmap.mmap(-1, size)
+            self.hexwidget.data[:] = open(self.filename, 'rb').read()
 
     def createActions(self):
         self.act_open = QAction("&Open", self)
@@ -778,7 +778,7 @@ def histogram():
 
 
     def search(self):
-        self.dia = SearchDialog(hexview = self.hexview)
+        self.dia = SearchDialog(hexwidget = self.hexwidget)
         self.dia.show()
         self.dia.raise_()
         self.dia.activateWindow()
@@ -786,8 +786,8 @@ def histogram():
 
 
     def reset(self):
-        self.hexview.highlights = []
-        self.hexview.viewport().update()
+        self.hexwidget.highlights = []
+        self.hexwidget.viewport().update()
 
     def foo(self, x):
         try:
@@ -810,7 +810,7 @@ def histogram():
             for name in keys:
                 cons = ns[name]
                 try:
-                    parsed = cons.parse(self.hexview.data[self.hexview.cursor.address:])
+                    parsed = cons.parse(self.hexwidget.data[self.hexwidget.cursor.address:])
                 except:
                     parsed = "<parse error>"
                 if isinstance(parsed, construct.lib.container.Container):
@@ -834,7 +834,7 @@ def histogram():
                 self.structexplorer.resizeColumnToContents(i)
 
 
-#            self.hexview.viewport().update()
+#            self.hexwidget.viewport().update()
         except Exception as e:
             print e
 
@@ -847,7 +847,7 @@ def histogram():
 
 
     def set_example_data(self):
-        self.hexview.highlights.append(Selection(10,20))
+        self.hexwidget.highlights.append(Selection(10,20))
         self.structeditor.setText("""foo = Union("default data types",
     ULInt8("uint8"),
     ULInt16("uint16"),

@@ -8,9 +8,13 @@
 ** TODO better search dialog
    - ascii / hex / numbers / number ranges / regex
    - "find all" option
-   - select matching range
+   - give region to search in (selection, start+length, start+end, whole buffer)
+   - select matching bytes
    - replace option
    - maybe include hexview widget for search term input?
+   - distribution map for search results?
+   - highlight search results
+   - save result regions as selection
 ** TODO copy as...
    - ascii / hex / c / python ...
    - also paste as?
@@ -28,7 +32,9 @@
 ** TODO regex builder?
 ** TODO bookmarks / favourites
 ** TODO tabbed interface for multiple open files
-** TODO open disk / process
+** TODO open disk / process / partial files
+   - specify offset & length when opening a file
+   - add choice to mmap the file instead of reading it into ram
 ** TODO import / export
    - intel hex (with sparse support)
    - ...
@@ -45,6 +51,7 @@
    - will help displaying a new (empty) buffer
 * user interface
 ** selection
+   - selection possibility on right side
    - boxes around selection or parsed structs? so that content can be color coded
 ** display
    - make everything configurable
@@ -59,9 +66,26 @@
 * misc
 ** look at python libs for binary parsing
    - pyelftools
+     is actually construct based
    - pefile
+     uses 'struct'
    - ...
 ** dependencies
+#+BEGIN_SRC python
+deps = {
+    'statusbar': ['cursor','data at cursor','selection','hexview mode','hexview buffer size'],
+    'struct editor': [],
+    'struct explorer': ['data','cursor','hexview replace','hexview create highlight','struct editor content',
+                        ],
+    'bitmap view': ['data','cursor','selection','hexview visible region'],
+    'file explorer': ['hexeditor load file','hexeditor list open files'],
+    'undo tree': ['hexview change notification'],
+    'scripting': ['access to all objects...'],
+    'search/replace': ['hexview find bytes', 'hexview replace'],
+    'search results': ['hexview jump to location', 'hexview set selection','hexview create highlight'],
+    'diff':['hexview list open files','hexview list selections'],
+}
+#+END_SRC
 #+BEGIN_SRC dot :file depgraph.png :cmdline -Tpng
 digraph {
         node [ shape="record"];
@@ -97,6 +121,9 @@ hist(array, bins=256, range=(0,256))
 * entropy
 #+BEGIN_SRC python
 import math
+import numpy as np
+
+byte_counts = np.bincount(array)
 
 entropy = 0
 
@@ -108,6 +135,7 @@ for count in byte_counts:
     # p is the probability of seeing this byte in the file, as a floating-
     # point number
     p = 1.0 * count / total
-    entropy -= p * math.log(p, 2
-)
+    entropy -= p * math.log(p, 2)
 #+END_SRC
+* for codecs
+for non-printable characters: use codecs.register_error to install an error handler that replaces non-printables by "."
