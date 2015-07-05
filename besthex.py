@@ -180,11 +180,15 @@ class Selection(QObject):
 
 class HexWidget(QAbstractScrollArea):
     selectionChanged = Signal()
-    def __init__(self, parent=None, data=open("besthex.py").read()):
+    def __init__(self, parent=None, filename="besthex.py", size=1024):
         super(HexWidget, self).__init__(parent)
-        self.data = mmap.mmap(-1, len(data))
-        self.data[:] = data
-        # font stuff
+        if filename:
+            self.filename = filename
+            self.data = mmap.mmap(-1, os.stat(filename).st_size)
+            self.data[:] = open(filename, 'rb').read()
+        else:
+            self.data = mmap.mmap(-1, size)
+            self.filename = "<buffer>"
         self.setFont(QFont("Courier", 10))
         self.charWidth = self.fontMetrics().width("2")
         self.charHeight = self.fontMetrics().height()
@@ -634,8 +638,9 @@ class HexEditor(QMainWindow):
 
         self.setWindowTitle("Best Hex Editor")
         self.tabs = QTabWidget(self)
-        self.hexwidget = HexWidget()
-        self.tabs.addTab(self.hexwidget, "besthex.py")
+        self.hexwidgets = [HexWidget()]
+        for w in self.hexwidgets:
+            self.tabs.addTab(w, w.filename)
         self.tabs.setDocumentMode(True)
         self.tabs.setTabsClosable(True)
         self.setCentralWidget(self.tabs)
@@ -693,7 +698,8 @@ class HexEditor(QMainWindow):
         self.dock2.setAllowedAreas(allowed_positions)
         self.addDockWidget(Qt.RightDockWidgetArea, self.dock2)
 
-        self.hexwidget.cursor.changed.connect(self.eval)
+
+        self.hexwidgets[0].cursor.changed.connect(self.eval)
 
         self.structeditor.setMinimumWidth(300)
         self.structexplorer.setMinimumWidth(300)
@@ -708,7 +714,7 @@ from PySide.QtGui import *
 from construct import *
 from binascii import *
 
-data = main.hexwidget.data
+data = main.hexwidgets[0].data
 a  = np.ndarray.__new__(np.ndarray,
         shape=(len(data),),
         dtype=np.uint8,
@@ -735,12 +741,12 @@ def histogram():
 
 
     def open_file(self):
-        self.filename = QFileDialog.getOpenFileName(self, "Open File...")[0]
+        filename = QFileDialog.getOpenFileName(self, "Open File...")[0]
         #print self.filename
-        if self.filename:
-            size = os.stat(self.filename).st_size
-            self.hexwidget.data = mmap.mmap(-1, size)
-            self.hexwidget.data[:] = open(self.filename, 'rb').read()
+        if filename:
+            w = HexWidget(filename=filename)
+            self.hexwidgets.append(w)
+            self.tabs.addTab(w, w.filename)
 
 
     def save_file_as(self):
@@ -772,8 +778,11 @@ def histogram():
         self.act_search.triggered.connect(self.search)
 
         self.ta_sed = self.dock1.toggleViewAction()
+        self.ta_sed.setShortcut(QKeySequence("Alt+S"))
         self.ta_sexp = self.dock2.toggleViewAction()
+        self.ta_sexp.setShortcut(QKeySequence("Alt+X"))
         self.ta_ipy = self.dock3.toggleViewAction()
+        self.ta_ipy.setShortcut(QKeySequence("Alt+P"))
 
     def createMenus(self):
         self.filemenu = self.menuBar().addMenu("&File")
@@ -796,16 +805,12 @@ def histogram():
 
 
     def search(self):
-        self.dia = SearchDialog(hexwidget = self.hexwidget)
+        self.dia = SearchDialog(hexwidget = self.hexwidgets[0])
         self.dia.show()
         self.dia.raise_()
         self.dia.activateWindow()
 
 
-
-    def reset(self):
-        self.hexwidget.highlights = []
-        self.hexwidget.viewport().update()
 
     def foo(self, x):
         try:
@@ -828,7 +833,7 @@ def histogram():
             for name in keys:
                 cons = ns[name]
                 try:
-                    parsed = cons.parse(self.hexwidget.data[self.hexwidget.cursor.address:])
+                    parsed = cons.parse(self.hexwidgets[0].data[self.hexwidgets[0].cursor.address:])
                 except:
                     parsed = "<parse error>"
                 if isinstance(parsed, construct.lib.container.Container):
@@ -865,7 +870,7 @@ def histogram():
 
 
     def set_example_data(self):
-        self.hexwidget.highlights.append(Selection(10,20))
+        self.hexwidgets[0].highlights.append(Selection(10,20))
         self.structeditor.setText("""foo = Union("default data types",
     ULInt8("uint8"),
     ULInt16("uint16"),
