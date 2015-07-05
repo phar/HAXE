@@ -216,7 +216,7 @@ class HexWidget(QAbstractScrollArea):
         self.cursorTimer.setInterval(500)
         self.cursorTimer.start()
         self.setMinimumWidth((self.code_start + self.bpl + 5) * self.charWidth)
-        self.setMaximumWidth((self.code_start + self.bpl + 5) * self.charWidth)
+        #self.setMaximumWidth((self.code_start + self.bpl + 5) * self.charWidth)
         self.adjust()
 
     @property
@@ -633,8 +633,12 @@ class HexEditor(QMainWindow):
         super(HexEditor, self).__init__()
 
         self.setWindowTitle("Best Hex Editor")
+        self.tabs = QTabWidget(self)
         self.hexwidget = HexWidget()
-        self.setCentralWidget(self.hexwidget)
+        self.tabs.addTab(self.hexwidget, "besthex.py")
+        self.tabs.setDocumentMode(True)
+        self.tabs.setTabsClosable(True)
+        self.setCentralWidget(self.tabs)
         self.font = QFont("Courier", 10)
         self.indicator = QLabel("Overwrite")
         self.statusBar().showMessage("yay")
@@ -738,11 +742,24 @@ def histogram():
             self.hexwidget.data = mmap.mmap(-1, size)
             self.hexwidget.data[:] = open(self.filename, 'rb').read()
 
+
+    def save_file_as(self):
+        self.filename = QFileDialog.getSaveFileName(self, "Save File as...")[0]
+        if self.filename:
+            self.statusBar().showMessage("Saving...")
+            open(self.filename, 'wb').write(self.hexwidget.data)
+            self.statusBar().showMessage("done.")
+
     def createActions(self):
         self.act_open = QAction("&Open", self)
         self.act_open.setShortcuts(QKeySequence.Open)
         self.act_open.setStatusTip("Open file")
         self.act_open.triggered.connect(self.open_file)
+
+        self.act_saveas = QAction("&Save as...", self)
+        self.act_saveas.setShortcuts(QKeySequence.SaveAs)
+        self.act_saveas.setStatusTip("Save file as...")
+        self.act_saveas.triggered.connect(self.save_file_as)
 
         self.act_quit = QAction("&Quit", self)
         self.act_quit.setShortcuts(QKeySequence.Quit)
@@ -761,6 +778,7 @@ def histogram():
     def createMenus(self):
         self.filemenu = self.menuBar().addMenu("&File")
         self.filemenu.addAction(self.act_open)
+        self.filemenu.addAction(self.act_saveas)
         self.filemenu.addAction(self.act_quit)
         self.filemenu.addAction(self.act_search)
 
