@@ -40,10 +40,10 @@ from PySide.QtCore import *
 
 
 # own submodules
-from .hexwidget import *
-from .ipythonwidget import *
-from .cursor import *
-from .docks import *
+from hexwidget import *
+from ipythonwidget import *
+from cursor import *
+from docks import *
 
 class Delegate(QItemDelegate):
     def __init__(self):
