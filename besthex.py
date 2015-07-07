@@ -44,6 +44,7 @@ from hexwidget import *
 from ipythonwidget import *
 from cursor import *
 from docks import *
+from mmapslice import *
 
 class Delegate(QItemDelegate):
     def __init__(self):
@@ -89,13 +90,13 @@ class HexEditor(QMainWindow):
         super(HexEditor, self).__init__()
 
         self.setWindowTitle("Best Hex Editor")
-        self.tabs = QTabWidget(self)
-        self.hexwidgets = [HexWidget()]
-        for w in self.hexwidgets:
-            self.tabs.addTab(w, w.filename)
-        self.tabs.setDocumentMode(True)
-        self.tabs.setTabsClosable(True)
-        self.setCentralWidget(self.tabs)
+        self.hexwidgets = []
+        self.central = QMainWindow()
+        self.central.setWindowFlags(Qt.Widget)
+        self.central.setDockOptions(self.central.dockOptions()|QMainWindow.AllowNestedDocks)
+        self.tabs = []
+        self.open_file("besthex.py")
+        self.setCentralWidget(self.central)
         self.font = QFont("Courier", 10)
         self.indicator = QLabel("Overwrite")
         self.statusBar().showMessage("yay")
@@ -176,7 +177,7 @@ def histogram():
     hist(a, bins=256, range=(0,256))
 
 ''',main=self)
-        self.ipython.setMinimumWidth(500)
+        self.ipython.setMinimumWidth(300)
         self.dock3 = QDockWidget()
         self.dock3.setWindowTitle("IPython")
         self.dock3.setWidget(self.ipython)
@@ -189,13 +190,18 @@ def histogram():
         self.dock3.setObjectName("ipython")
 
 
-    def open_file(self):
-        filename = QFileDialog.getOpenFileName(self, "Open File...")[0]
+    def open_file(self, filename=None):
+        if filename is None:
+            filename = QFileDialog.getOpenFileName(self, "Open File...")[0]
         #print self.filename
         if filename:
             w = HexWidget(filename=filename)
             self.hexwidgets.append(w)
-            self.tabs.addTab(w, w.filename)
+            self.tabs.append(QDockWidget())
+            self.tabs[-1].setWindowTitle(w.filename)
+            self.tabs[-1].setWidget(w)
+            self.tabs[-1].setAllowedAreas(Qt.AllDockWidgetAreas)
+            self.central.addDockWidget(Qt.RightDockWidgetArea, self.tabs[-1])
 
 
     def save_file_as(self):

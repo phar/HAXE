@@ -49,6 +49,7 @@
 ** TODO keep sparse space at the end
    - automatically growing as it fills up?
    - will help displaying a new (empty) buffer
+** TODO allow syncrhonized scrolling in multiple buffers
 * user interface
 ** selection
    - selection possibility on right side

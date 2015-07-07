@@ -29,7 +29,7 @@ class HexWidget(QAbstractScrollArea):
         self.viewport().setCursor(Qt.IBeamCursor)
         # constants
         self.addr_width = 8
-        self.bpl = 16
+        self.bpl = 8
         self.addr_start = 1
         self.gap2 = 2
         self.gap3 = 2
@@ -51,7 +51,7 @@ class HexWidget(QAbstractScrollArea):
         self.cursorTimer.timeout.connect(self.updateCursor)
         self.cursorTimer.setInterval(500)
         self.cursorTimer.start()
-        self.setMinimumWidth((self.code_start + self.bpl + 5) * self.charWidth)
+        #self.setMinimumWidth((self.code_start + self.bpl + 5) * self.charWidth)
         #self.setMaximumWidth((self.code_start + self.bpl + 5) * self.charWidth)
         self.adjust()
 
