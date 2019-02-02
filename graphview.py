@@ -15,8 +15,12 @@
 #     with this program; if not, write to the Free Software Foundation, Inc.,
 #     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-from PySide.QtCore import *
-from PySide.QtGui import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+
+
+#from PySide.QtCore import *
+#from PySide.QtGui import *
 from math import *
 from Queue import PriorityQueue
 

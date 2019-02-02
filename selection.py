@@ -1,4 +1,7 @@
-from PySide.QtCore import *
+#from PySide.QtCore import *
+#from PyQt5 import QtGui,QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
 
 class Selection(QObject):
     def __init__(self, start=0, end=0, active=True, color=Qt.green):

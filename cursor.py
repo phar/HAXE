@@ -1,7 +1,13 @@
-from PySide.QtCore import *
+#from PySide.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5 import QtCore
+#from PyQt5.QtCore import pyqtSignal, QObject
+from PyQt5.QtWidgets import QMainWindow, QApplication
+#from PyQt5.QtCore import Qt
 
 class Cursor(QObject):
-    changed = Signal()
+    changed = QtCore.pyqtSignal()
 
     def __init__(self, address=0, nibble=0):
         super(Cursor, self).__init__()

@@ -34,9 +34,12 @@ sip.setapi('QTime', 2)
 sip.setapi('QUrl', 2)
 sip.setapi('QVariant', 2)
 
-from PySide.QtGui import *
-from PySide.QtCore import *
+#from PySide.QtGui import *
+#from PySide.QtCore import *
 #from PyQt4.Qsci import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
 
 
 # own submodules
@@ -52,7 +55,7 @@ class Delegate(QItemDelegate):
         self.validator = QIntValidator()
 
     def setModelData(self, editor, model, index):
-        print editor, model, index
+        print (editor, model, index)
         editor = QLineEdit(editor)
         editor.setValidator(self.validator)
         super(Delegate, self).setModelData(editor, model, index)
@@ -76,7 +79,7 @@ class SearchDialog(QWidget):
     def do_search(self):
         phrase = self.searchline.text()
         index = self.hexwidget.data.find(phrase, self.hexwidget.cursor.address)
-        print index
+        print (index)
         if index >= 0:
             self.hexwidget.goto(index)
         self.close()
@@ -271,7 +274,7 @@ def histogram():
         try:
             y = ("\n" + self.structeditor.text()).index("\n" + x)
         except:
-            print x
+            print( x)
             raise
         return y
 
@@ -314,7 +317,7 @@ def histogram():
 
 #            self.hexwidget.viewport().update()
         except Exception as e:
-            print e
+            print (e)
 
     def closeEvent(self, event):
 

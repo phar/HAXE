@@ -115,4 +115,4 @@ class MmapSlice(object):
 if __name__ == '__main__':
     buf = "asfd"
     s = MmapSlice(buf, 2)
-    print s[:]
+    print (s[:])
