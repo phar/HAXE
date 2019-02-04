@@ -17,10 +17,6 @@
 
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-
-
-#from PySide.QtCore import *
-#from PySide.QtGui import *
 from math import *
 from Queue import PriorityQueue
 
@@ -520,7 +516,7 @@ class Ida(QWidget):
     def layout_graph(self):
         pass
 
-    def populate(self):
+	def populate(self): # ambitious my friend.. i like how you think..
         self.nodes = nodes = []
         self.edges = edges = []
         scene = self.scene
@@ -541,10 +537,12 @@ class Ida(QWidget):
             scene.addItem(e)
 
 
-app = QApplication([])
-i = Ida()
-i.show()
-app.exec_()
+
+if __name__ == '__main__':
+	app = QApplication([])
+	i = Ida()
+	i.show()
+	app.exec_()
 
 
 """

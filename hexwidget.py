@@ -6,12 +6,9 @@ import time
 
 from cursor import *
 from selection import *
-#from PySide.QtGui import *
-#from PySide.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
-#from PyQt5.QtCore.pyqtSignal import *
 from PyQt5 import QtCore
 
 
@@ -21,8 +18,8 @@ class HexWidget(QAbstractScrollArea):
 		super(HexWidget, self).__init__(parent)
 		if filename:
 			self.filename = filename
-			self.data = mmap.mmap(-1, os.stat(filename).st_size)
-			self.data[:] = open(filename, 'rb').read()
+			self.data = mmap.mmap(-1, os.stat(self.filename).st_size)
+			self.data[:] = open(self.filename, 'rb').read()
 		else:
 			self.data = mmap.mmap(-1, size)
 			self.filename = "<buffer>"
@@ -72,17 +69,14 @@ class HexWidget(QAbstractScrollArea):
 		return (pos, self.bpl, self.data[pos:pos+self.bpl])
 
 	def toAscii(self, string):
-#		return "".join([x if ord(chr(x) >= 33 and ord(chr(x)) <= 126 else "." for x in string])
-##	        return "".join([x if x >= 33 and x <= 126 else "." for x in string])
-		print(string)
-#		return "".join([chr(x) if ord(x) >= 33 and ord(x) <= 126 else "." for x in string.decode("utf-8") ])
-		return b"fixme"
+		return  "".join([chr(x) if x >= 33 and x <= 126 else "." for x in string])
 
 	def getLines(self, pos=0):
 		while pos < len(self.data)-self.bpl:
 			yield (pos, self.bpl, self.toAscii(self.data[pos:pos+self.bpl]))
 			pos += self.bpl
-		yield (pos, len(self.data)-pos, self.toAscii(self.data[pos:]))
+		yield (pos, len(self.data)-pos, self.toAscii([self.data[pos:]]))
+	#		yield (pos, len(self.data)-pos, "")
 
 	def getBytes(self, count=1):
 		return self.data[self.cursor.address:self.cursor.address+count]
@@ -287,7 +281,7 @@ class HexWidget(QAbstractScrollArea):
 		addr = self.pos + row * self.bpl + column
 		topleft = self.charToPxCoords(column + self.code_start, row)
 		bottomleft = topleft + QPoint(0, self.charHeight-self.magic_font_offset)
-		byte = self.toAscii(self.data[addr])
+		byte = self.toAscii(bytearray([self.data[addr]]))
 		size = QSize(self.charWidth, self.charHeight)
 		rect = QRect(topleft, size)
 
@@ -295,15 +289,14 @@ class HexWidget(QAbstractScrollArea):
 			if sel.active and sel.contains(addr):
 				painter.fillRect(rect, sel.color)
 				painter.setPen(self.palette().color(QPalette.HighlightedText))
-				painter.drawText(bottomleft, byte.decode("utf-8") )
+				painter.drawText(bottomleft, byte )
 				painter.setPen(self.palette().color(QPalette.WindowText))
 				break
 		else:
 			if row % 2 == 0:
 				painter.fillRect(rect, self.palette().color(QPalette.AlternateBase))
 			painter.setPen(self.palette().color(QPalette.WindowText))
-			print (byte)
-			painter.drawText(bottomleft, byte.decode("utf-8") )
+			painter.drawText(bottomleft, byte )
 
 
 
@@ -419,12 +412,12 @@ class HexWidget(QAbstractScrollArea):
 		elif key in [Qt.Key_Shift, Qt.Key_Control, Qt.Key_Alt]:
 			pass
 		elif text in hexalpha:
-			oldbyte = ord(self.data[self.cursor.address])
+			oldbyte = self.data[self.cursor.address]
 			if self.cursor.nibble == 1:
 				byte = (oldbyte & 0xf0) | hexalpha.index(text)
 			else:
 				byte = (oldbyte & 0x0f) | (hexalpha.index(text) << 4)
-			self.data[self.cursor.address] = chr(byte)
+			self.data[int(self.cursor.address)] = byte
 			self.cursor.right()
 
 		self.viewport().update()
