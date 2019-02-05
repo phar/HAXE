@@ -83,8 +83,9 @@ class HexEditor(QMainWindow):
 		self.central = QMainWindow()
 		self.central.setWindowFlags(Qt.Widget)
 		self.central.setDockOptions(self.central.dockOptions()|QMainWindow.AllowNestedDocks)
-		self.tabs = []
+		self.tabs = {}
 		self.openFiles = {}
+# 		self.
 		self.open_file(args.filename)
 		self.setCentralWidget(self.central)
 		self.font = QFont("Courier", 10)
@@ -196,13 +197,13 @@ def histogram():
 		#print self.filename
 		if filename:
 # 			w = HexWidget(filename=filename)
-			self.openFiles[filename] =  HexWidget(filename=filename)
+			self.openFiles[filename] =  HexWidget(filename=filename)			
 			self.hexwidgets.append(self.openFiles[filename])
-			self.tabs.append(QDockWidget())
-			self.tabs[-1].setWindowTitle(self.openFiles[filename].filename)
-			self.tabs[-1].setWidget(self.openFiles[filename])
-			self.tabs[-1].setAllowedAreas(Qt.AllDockWidgetAreas)
-			self.central.addDockWidget(Qt.RightDockWidgetArea, self.tabs[-1])
+			self.tabs[filename] = QDockWidget()
+			self.tabs[filename].setWindowTitle(self.openFiles[filename].filename)
+			self.tabs[filename].setWidget(self.openFiles[filename])
+			self.tabs[filename].setAllowedAreas(Qt.AllDockWidgetAreas)
+			self.central.addDockWidget(Qt.RightDockWidgetArea, self.tabs[filename])
 		else:
 			pass #i dont know what to do with this
 		
@@ -210,15 +211,26 @@ def histogram():
 		self.filename = QFileDialog.getSaveFileName(self, "Save File as...")[0]
 		if self.filename:
 			self.statusBar().showMessage("Saving...")
-			open(self.filename, 'wb').write(self.hexwidget.data)
+			open(self.filename, 'wb').write(self.hexwidgets[0].data)
 			self.statusBar().showMessage("done.")
 
 	def save_file(self):
 #		self.filename = QFileDialog.getSaveFileName(self, "Save File as...")[0]
 #		if self.filename:
 		self.statusBar().showMessage("Saving...")
-		open(self.filename, 'wb').write(self.hexwidget.data)
-		self.statusBar().showMessage("done.")
+		try:
+			open(self.hexwidgets[0].filename, 'wb').write(self.hexwidgets[0].data)
+			self.statusBar().showMessage("wrote %s done." % self.hexwidgets[0].filename)
+		except:
+			msg = QMessageBox()
+			msg.setIcon(QMessageBox.Critical)
+			msg.setText("Save Failed.")
+			msg.setInformativeText("This is probably because you dont have permissions to write to the file.")
+			msg.setWindowTitle("Critical Error")
+			msg.setStandardButtons(QMessageBox.Ok)
+			self.statusBar().showMessage("save failed.")
+			retval = msg.exec_()		
+		
 
 
 	def createActions(self):
