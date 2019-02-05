@@ -1,6 +1,5 @@
 import os
 
-
 class MmapSlice(object):
     """create a proxy object for a mmap that views
     only part of the mmap buffer, given by offset and length.

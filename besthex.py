@@ -59,8 +59,7 @@ class SearchDialog(QWidget):
         self.pb_search = QPushButton("Search")
         self.lyt.addWidget(self.searchline, 0, 0)
         self.lyt.addWidget(self.pb_search, 0, 1)
-
-
+        
         self.pb_search.clicked.connect(self.do_search)
 
     def do_search(self):
@@ -76,7 +75,7 @@ class SearchDialog(QWidget):
 
 
 class HexEditor(QMainWindow):
-	def __init__(self,filename=None):
+	def __init__(self,args):
 		super(HexEditor, self).__init__()
 
 		self.setWindowTitle("Best Hex Editor")
@@ -85,7 +84,8 @@ class HexEditor(QMainWindow):
 		self.central.setWindowFlags(Qt.Widget)
 		self.central.setDockOptions(self.central.dockOptions()|QMainWindow.AllowNestedDocks)
 		self.tabs = []
-		self.open_file(filename)
+		self.openFiles = {}
+		self.open_file(args.filename)
 		self.setCentralWidget(self.central)
 		self.font = QFont("Courier", 10)
 		self.indicator = QLabel("Overwrite")
@@ -123,6 +123,7 @@ class HexEditor(QMainWindow):
 		self.dock1.setWindowTitle("Struct Editor")
 		self.dock1.setWidget(self.structeditor)
 		self.dock1.setAllowedAreas(allowed_positions)
+		self.dock1.hide()
 		self.addDockWidget(Qt.RightDockWidgetArea, self.dock1)
 
 
@@ -136,11 +137,16 @@ class HexEditor(QMainWindow):
 		self.dock2.setWindowTitle("Struct Explorer")
 		self.dock2.setWidget(self.structexplorer)
 		self.dock2.setAllowedAreas(allowed_positions)
+		self.dock2.hide()
+
 		self.addDockWidget(Qt.RightDockWidgetArea, self.dock2)
 
 
 		self.hexwidgets[0].cursor.changed.connect(self.eval)
+		self.hexwidgets[0].cursor.changed.connect(self.eval)
 
+		
+		
 		self.structeditor.setMinimumWidth(300)
 		self.structexplorer.setMinimumWidth(300)
 
@@ -179,23 +185,27 @@ def histogram():
 		self.dock1.setObjectName("structedit")
 		self.dock2.setObjectName("structexp")
 		self.dock3.setObjectName("ipython")
+		self.dock3.hide()
 
-
+		
+		
 	def open_file(self, filename=None):
-		print(filename)
+# 		print(filename)
 		if filename in [None, False]:
 			filename = QFileDialog.getOpenFileName(self, "Open File...")[0]
 		#print self.filename
-		elif filename:
-			w = HexWidget(filename=filename)
-			self.hexwidgets.append(w)
+		if filename:
+# 			w = HexWidget(filename=filename)
+			self.openFiles[filename] =  HexWidget(filename=filename)
+			self.hexwidgets.append(self.openFiles[filename])
 			self.tabs.append(QDockWidget())
-			self.tabs[-1].setWindowTitle(w.filename)
-			self.tabs[-1].setWidget(w)
+			self.tabs[-1].setWindowTitle(self.openFiles[filename].filename)
+			self.tabs[-1].setWidget(self.openFiles[filename])
 			self.tabs[-1].setAllowedAreas(Qt.AllDockWidgetAreas)
 			self.central.addDockWidget(Qt.RightDockWidgetArea, self.tabs[-1])
-
-
+		else:
+			pass #i dont know what to do with this
+		
 	def save_file_as(self):
 		self.filename = QFileDialog.getSaveFileName(self, "Save File as...")[0]
 		if self.filename:
@@ -203,13 +213,26 @@ def histogram():
 			open(self.filename, 'wb').write(self.hexwidget.data)
 			self.statusBar().showMessage("done.")
 
+	def save_file(self):
+#		self.filename = QFileDialog.getSaveFileName(self, "Save File as...")[0]
+#		if self.filename:
+		self.statusBar().showMessage("Saving...")
+		open(self.filename, 'wb').write(self.hexwidget.data)
+		self.statusBar().showMessage("done.")
+
+
 	def createActions(self):
 		self.act_open = QAction("&Open", self)
 		self.act_open.setShortcuts(QKeySequence.Open)
 		self.act_open.setStatusTip("Open file")
 		self.act_open.triggered.connect(self.open_file)
 
-		self.act_saveas = QAction("&Save as...", self)
+		self.act_save = QAction("&Save ...", self)
+		self.act_save.setShortcuts(QKeySequence.Save)
+		self.act_save.setStatusTip("Save file...")
+		self.act_save.triggered.connect(self.save_file)
+		
+		self.act_saveas = QAction("Save as...", self)
 		self.act_saveas.setShortcuts(QKeySequence.SaveAs)
 		self.act_saveas.setStatusTip("Save file as...")
 		self.act_saveas.triggered.connect(self.save_file_as)
@@ -234,6 +257,7 @@ def histogram():
 	def createMenus(self):
 		self.filemenu = self.menuBar().addMenu("&File")
 		self.filemenu.addAction(self.act_open)
+		self.filemenu.addAction(self.act_save)
 		self.filemenu.addAction(self.act_saveas)
 		self.filemenu.addAction(self.act_quit)
 		self.filemenu.addAction(self.act_search)
@@ -270,43 +294,43 @@ def histogram():
 	def eval(self):
 		try:
 			self.structexplorer.clear()
+			self.hexwidgets[0].clearHilights()
 			self.items = []
 			ns = {}
+# 			print(self.structeditor.text())
 			exec(compile("from construct import *\n" + self.structeditor.text(), '<none>', 'exec'), ns)
 			results = []
 			import construct
-			keys = sorted([x for x, v in ns.iteritems() if isinstance(v, construct.Construct) and x not in dir(construct) and (not x.startswith('_'))],
-						  key=self.foo)
-			for name in keys:
+			for name in sorted([x for x, v in ns.items() if isinstance(v, construct.Construct) and (x not in dir(construct)) ], key=self.foo):
 				cons = ns[name]
 				try:
 					parsed = cons.parse(self.hexwidgets[0].data[self.hexwidgets[0].cursor.address:])
 				except:
 					parsed = "<parse error>"
-				if isinstance(parsed, construct.lib.container.Container):
-					self.items.append(QTreeWidgetItem(self.structexplorer,
-													  [cons.name,
-													   'Container',
-													   "none"]))
+					
+				if isinstance(parsed, construct.Container):
+					self.items.append(QTreeWidgetItem(self.structexplorer, [cons.name,'Container',"none"]))
 					parent = self.items[-1]
 					parent.setExpanded(True)
-					for k, v in parsed.iteritems():
-						it = QTreeWidgetItem(parent, [k, str(v), 'none'])
-						it.setFlags(it.flags() | Qt.ItemIsEditable)
-						self.items.append(it)
+					offt =  self.hexwidgets[0].cursor.address
+					for i in cons.subcons:
+						self.hexwidgets[0].addHilight(offt,offt+i.sizeof()-1)
+						offt+=i.sizeof()						
+
+					for k, v in parsed.items():
+						if not k.startswith('_'):
+							it = QTreeWidgetItem(parent, [k, str(v), "0x%x" % v, 'none'])
+							it.setFlags(it.flags() | Qt.ItemIsEditable)
+							self.items.append(it)
 				else:
-					it = QTreeWidgetItem(self.structexplorer,
-													  [cons.name,
-													   str(parsed),
-													   "none"])
+					it = QTreeWidgetItem(self.structexplorer,[cons.name, str(parsed),"none"])
 					self.items.append(it)
-			for i in range(3):
+			for i in range(4):
 				self.structexplorer.resizeColumnToContents(i)
 
-
-	#            self.hexwidget.viewport().update()
+			self.hexwidgets[0].viewport().update()
 		except Exception as e:
-			print (e)
+			print ("except",e)
 
 	def closeEvent(self, event):
 
@@ -315,33 +339,14 @@ def histogram():
 		settings.setValue("windowState", self.saveState())
 		QMainWindow.closeEvent(self, event)
 
-
 	def set_example_data(self):
-		self.hexwidgets[0].highlights.append(Selection(10,20))
-		self.structeditor.setText("""foo = Union("default data types",
-    ULInt8("uint8"),
-    ULInt16("uint16"),
-    ULInt32("uint32"),
-    ULInt64("uint64"),
-    SLInt8("sint8"),
-    SLInt16("sint16"),
-    SLInt32("sint32"),
-    SLInt64("sint64"),
-    LFloat32("float"),
-    LFloat64("double"),
-)
-bar = Union("data types (big endian)",
-    UBInt8("uint8"),
-    UBInt16("uint16"),
-    UBInt32("uint32"),
-    UBInt64("uint64"),
-    SBInt8("sint8"),
-    SBInt16("sint16"),
-    SBInt32("sint32"),
-    SBInt64("sint64"),
-    BFloat32("float"),
-    BFloat64("double"),
-)
+#		self.hexwidgets[0].highlights.append(Selection(10,20))
+		self.structeditor.setText("""foo = Struct(
+    "foo" / Int16ul,
+    "bar" / Int32ul,
+    "baz" / Int64ul
+    )
+    
     """)
 		self.eval()
 
@@ -362,6 +367,6 @@ if __name__ == '__main__':
 		print("verbosity turned on")
 
 	print(args.filename)
-	h = HexEditor(filename=args.filename)
+	h = HexEditor(args)
 	h.show()
 	app.exec_()
