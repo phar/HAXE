@@ -55,9 +55,9 @@ COLOR_PALETTE = [
 
 class HexWidget(QAbstractScrollArea):
 	selectionChanged = QtCore.pyqtSignal()
-	def __init__(self, parent=None, filename="besthex.py", size=1024, font="Courier", fontsize=12):
+	def __init__(self, parent=None, filename=None, size=1024, font="Courier", fontsize=12):
 		super(HexWidget, self).__init__(parent)
-		if filename:
+		if filename != None:
 			self.filename = filename
 			self.data = mmap.mmap(-1, os.stat(self.filename).st_size)
 			self.data[:] = open(self.filename, 'rb').read()

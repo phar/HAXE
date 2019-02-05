@@ -111,8 +111,7 @@ class SearchDialog(QWidget):
 class HexEditor(QMainWindow):
 	def __init__(self,args):
 		super(HexEditor, self).__init__()
-
-		self.setWindowTitle("Best Hex Editor")
+		self.setWindowTitle("HAxe Hex Editor")
 		self.hexwidgets = []
 		self.central = QMainWindow()
 		self.central.setWindowFlags(Qt.Widget)
@@ -325,7 +324,7 @@ def histogram():
 
 		self.act_quit = QAction("&Quit", self)
 		self.act_quit.setShortcuts(QKeySequence.Quit)
-		self.act_quit.setStatusTip("Quit Best Hex Editor")
+		self.act_quit.setStatusTip("Quit HAxe")
 		self.act_quit.triggered.connect(self.close)
 
 		self.act_search = QAction("&Search", self)
@@ -422,7 +421,7 @@ def histogram():
 
 	def closeEvent(self, event):
 
-		settings = QSettings("csarn", "best hex editor")
+		settings = QSettings("phar", "haxe hex editor")
 		settings.setValue("geometry", self.saveGeometry())
 		settings.setValue("windowState", self.saveState())
 		QMainWindow.closeEvent(self, event)
