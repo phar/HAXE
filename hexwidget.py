@@ -55,7 +55,7 @@ COLOR_PALETTE = [
 
 class HexWidget(QAbstractScrollArea):
 	selectionChanged = QtCore.pyqtSignal()
-	def __init__(self, parent=None, filename="besthex.py", size=1024):
+	def __init__(self, parent=None, filename="besthex.py", size=1024, font="Courier", fontsize=12):
 		super(HexWidget, self).__init__(parent)
 		if filename:
 			self.filename = filename
@@ -64,9 +64,12 @@ class HexWidget(QAbstractScrollArea):
 		else:
 			self.data = mmap.mmap(-1, size)
 			self.filename = "<buffer>"
-		
+
+		self.debug = False		
 		self.Modified = False
-		self.setFont(QFont("Courier", 10))
+		self.font = font
+		self.fontsize = fontsize
+		self.setFont(QFont(self.font, self.fontsize))
 		self.charWidth = self.fontMetrics().width("2")
 		self.charHeight = self.fontMetrics().height()
 		self.magic_font_offset = 4
@@ -138,7 +141,7 @@ class HexWidget(QAbstractScrollArea):
 		while pos < len(self.data)-self.bpl:
 			yield (pos, self.bpl, self.toAscii(self.data[pos:pos+self.bpl]))
 			pos += self.bpl
-		yield (pos, len(self.data)-pos, self.toAscii([self.data[pos:]]))
+		yield (pos, len(self.data)-pos, self.toAscii(self.data[pos:]))
 
 	def getBytes(self, count=1):
 		return self.data[self.cursor.address:self.cursor.address+count]
@@ -292,11 +295,10 @@ class HexWidget(QAbstractScrollArea):
 #		if(self.totalCharsPerLine() / self.charWidth)
 #		if ((width/self.charWidth)/self.totalCharsPerLine()):
 #			self.bpl =
-		print((width / self.charWidth) - self.totalCharsPerLine())#(self.getAddressFormatLen() + self.getDataLength(self.bpl) + self.gap2 + self.gap3  + self.gap4 + self.getDataLength(self.bpl)))
-
+# 		print((width / self.charWidth) - self.totalCharsPerLine())#(self.getAddressFormatLen() + self.getDataLength(self.bpl) + self.gap2 + self.gap3  + self.gap4 + self.getDataLength(self.bpl)))
+		pass
 	
 	def resizeEvent(self, event):
-		print(event)
 		self.widthToBPL(event.size().width())
 		self.adjust()
 
@@ -475,7 +477,7 @@ class HexWidget(QAbstractScrollArea):
 			painter.fillRect(self.cursorRect(), Qt.black)
 			painter.fillRect(self.cursorRect2(), Qt.black)
 		duration = time.time()-start
-		if duration > 0.02:
+		if duration > 0.02 and self.debug == 1:
 			print ("painting took: ", duration, 's')
 
 	def getAddressFormat(self):

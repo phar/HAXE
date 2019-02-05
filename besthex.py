@@ -21,13 +21,16 @@ import mmap
 import re
 import os
 import collections
+import numpy as np
 from binascii import *
 from math import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 import argparse
-
+from matplotlib.pyplot import *
+import binwalk
+# # %matplotlib inline
 
 # own submodules
 from hexwidget import *
@@ -49,26 +52,57 @@ class Delegate(QItemDelegate):
 
 
 class SearchDialog(QWidget):
-    def __init__(self, hexwidget=None, parent=None):
-        super(SearchDialog, self).__init__(parent)
-        self.hexwidget = hexwidget
-        self.lyt = QGridLayout()
-        self.setLayout(self.lyt)
+	def __init__(self, hexwidget=None, parent=None):
+		super(SearchDialog, self).__init__(parent)
+		self.hexwidget = hexwidget
+		self.lyt = QGridLayout()
+		self.setLayout(self.lyt)
 
-        self.searchline = QLineEdit()
-        self.pb_search = QPushButton("Search")
-        self.lyt.addWidget(self.searchline, 0, 0)
-        self.lyt.addWidget(self.pb_search, 0, 1)
-        
-        self.pb_search.clicked.connect(self.do_search)
+		self.searchline = QLineEdit()
+		self.pb_search = QPushButton("Search")
+		self.search_a = QRadioButton("ASCII")
+		self.search_a.setChecked(True)
+		self.search_chex = QRadioButton("C Hex")
+		self.search_hex = QRadioButton("Hex String")
+		self.search_reg = QRadioButton("RegEx")
 
-    def do_search(self):
-        phrase = self.searchline.text()
-        index = self.hexwidget.data.find(phrase, self.hexwidget.cursor.address)
-        print (index)
-        if index >= 0:
-            self.hexwidget.goto(index)
-        self.close()
+		self.lyt.addWidget(self.searchline, 0, 0,1,3)
+		self.lyt.addWidget(self.search_a, 1, 0)
+		self.lyt.addWidget(self.search_hex, 1, 1)
+		self.lyt.addWidget(self.search_reg, 1, 2)
+
+
+		self.lyt.addWidget(self.pb_search, 2, 2)
+
+		self.pb_search.clicked.connect(self.do_search)
+
+	def do_search(self):
+		phrase = self.searchline.text()
+		if self.search_a.isChecked():
+			index = self.hexwidget.data.find(phrase.encode('utf-8'), self.hexwidget.cursor.address)
+		elif self.search_chex.isChecked():
+			pass
+		elif self.search_hex.isChecked():
+			phrase = self.searchline.text().decode("hex").encode('utf-8')
+			index = self.hexwidget.data.find(phrase.encode('utf-8'), self.hexwidget.cursor.address)
+		
+		elif self.search_reg.isChecked():
+			pass			
+		
+		if index >= 0:
+			self.hexwidget.goto(index)
+# 			self.statusBar().showMessage("found at offset 0x%08x" % index)
+		else:
+			msg = QMessageBox()
+			msg.setIcon(QMessageBox.Informational)
+			msg.setText("Search String was not found")
+			msg.setInformativeText("Search string not found.")
+			msg.setWindowTitle("Not found")
+			msg.setStandardButtons(QMessageBox.Ok)
+# 			self.statusBar().showMessage("search string not found")
+			retval = msg.exec_()		
+		
+		self.close()
 
 
 
@@ -117,6 +151,9 @@ class HexEditor(QMainWindow):
 		# qscintilla compatibility
 		self.structeditor.text = self.structeditor.toPlainText
 		self.structeditor.setText = self.structeditor.setPlainText
+		self.structeditor.setStyleSheet("background-color: rgb(255, 232, 232);")#red
+# 		self.structeditor.setStyleSheet("background-color: rgb(242, 255, 232);")#green
+		
 
 		self.structeditor.setFont(self.font)
 
@@ -153,7 +190,7 @@ class HexEditor(QMainWindow):
 
 
 		self.ipython = IPythonWidget(run='''
-import matplotlib
+# import matplotlib
 %matplotlib inline
 from pylab import *
 from PyQt5.QtGui import *
@@ -161,15 +198,19 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from construct import *
 from binascii import *
+import binwalk
+import numpy as np
 
-data = main.hexwidgets[0].data
-a  = np.ndarray.__new__(np.ndarray,
-        shape=(len(data),),
-        dtype=np.uint8,
-        buffer=data,
-        offset=0,
-        strides=(1,),
-        order='C')
+api = main
+
+#data = main.hexwidgets[0].data
+#a  = np.ndarray.__new__(np.ndarray,
+#        shape=(len(data),),
+#        dtype=np.uint8,
+#        buffer=data,
+#        offset=0,
+#        strides=(1,),
+#        order='C')
 
 def histogram():
     hist(a, bins=256, range=(0,256))
@@ -189,7 +230,40 @@ def histogram():
 		self.dock3.hide()
 
 		
+	def listOpenFiles(self):
+		return [x for x,y in self.openFiles.items()]
+
+	def getBytes(self,file,range=(0,None)):
+		(start,stop) = range
+		if stop == None:
+			stop == len(self.openFiles[file].data)
+		return self.openFiles[file].data[start:stop] 
+
+	def getSelectedRange(self,file):
+		return self.openFiles[file].selection.getRange()
+	
+	def getSelectedBytes(self,file):
+		(start,stop) = self.getSelectedRange(file)
+		return self.openFiles[file].data[start:stop] 
+
+	def patchBytes(self,file,range=(0,None), patch=b'', padchar=b'\x00'):
+		(start,stop) = range
+		if stop == None:
+			return False
+		self.openFiles[file].data[start:stop] = patch.ljust((stop-start),padchar)
+		return True
 		
+	def histogram(self,file,range=(0,None)): #why is this so slow
+		(start,stop) = range
+		a  = np.ndarray.__new__(np.ndarray,
+		   shape=(len(self.openFiles[file].data[start:stop]),),
+		   dtype=np.uint8,
+		   buffer=self.openFiles[file].data[start:stop],
+		   offset=0,
+		   strides=(1,),
+		   order='C')
+		hist(a, bins=256, range=(0,256), histtype='step')
+				
 	def open_file(self, filename=None):
 # 		print(filename)
 		if filename in [None, False]:
@@ -197,7 +271,7 @@ def histogram():
 		#print self.filename
 		if filename:
 # 			w = HexWidget(filename=filename)
-			self.openFiles[filename] =  HexWidget(filename=filename)			
+			self.openFiles[filename] =  HexWidget(self, filename=filename)			
 			self.hexwidgets.append(self.openFiles[filename])
 			self.tabs[filename] = QDockWidget()
 			self.tabs[filename].setWindowTitle(self.openFiles[filename].filename)
@@ -316,6 +390,7 @@ def histogram():
 			for name in sorted([x for x, v in ns.items() if isinstance(v, construct.Construct) and (x not in dir(construct)) ], key=self.foo):
 				cons = ns[name]
 				try:
+					self.structeditor.setStyleSheet("background-color: rgb(242, 255, 232);")#green
 					parsed = cons.parse(self.hexwidgets[0].data[self.hexwidgets[0].cursor.address:])
 				except:
 					parsed = "<parse error>"
@@ -342,6 +417,7 @@ def histogram():
 
 			self.hexwidgets[0].viewport().update()
 		except Exception as e:
+			self.structeditor.setStyleSheet("background-color: rgb(255, 232, 232);")#red
 			print ("except",e)
 
 	def closeEvent(self, event):
@@ -378,7 +454,6 @@ if __name__ == '__main__':
 	if args.verbose:
 		print("verbosity turned on")
 
-	print(args.filename)
 	h = HexEditor(args)
 	h.show()
 	app.exec_()

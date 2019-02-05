@@ -11,6 +11,9 @@ class Selection(QObject):
 	def __len__(self):
 		return self._end - self._start
 
+	def getRange(self):
+		return (self._start, self._end)
+		
 	def contains(self, address):
 		return address >= self._start and address <= self._end
 
