@@ -1,4 +1,18 @@
+# mike here.. i like where you were going with this, and will adopt a lot of your todo list..
+#its ambitious.. but i also need a tool that works from day to day so we'll see what happens
+
+#todo, structure explorer should field should allow for field entry
+to replace the parsed structure values
+
+
 * missing features
+
+
+** TODO calculate checksums/SHA/MD5
+TODO  decrypt / encrypt / uuencode / base64 / rot13 / xor / zip 
+   
+   
+
 ** TODO rich status bar information
    - progress bar for long operations (search, parse, ...)
    - insert / overwrite mode,  read-write / read-only, charset,
@@ -18,8 +32,6 @@
 ** TODO copy as...
    - ascii / hex / c / python ...
    - also paste as?
-** TODO calculate checksum / decrypt / encrypt / transform
-   - uuencode / base64 / rot13 / xor
 ** TODO diff files and regions
    - beyondcompare-like context menu: "select left side to compare"...
 ** TODO scripting
