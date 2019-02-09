@@ -29,6 +29,8 @@ from math import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
+import string
+import construct
 
 import argparse
 from matplotlib.pyplot import *
@@ -51,6 +53,22 @@ CLIPBOARD_MODE_CHEX				=4
 CLIPBOARD_MODE_CHEX_ISPRINT		=5
 CLIPBOARD_MODE_HEX_STRING		=6
 
+
+
+
+CLIPBOARD_CONVERT_TO = {
+	CLIPBOARD_MODE_RAW : ("RAW", lambda x : bytearray([y if chr(y) in string.printable else 0x20 for y in x])),
+	CLIPBOARD_MODE_CHEX : ("C-Hex",lambda x : "".join(["\\x%02x" % y for y in x])),
+	CLIPBOARD_MODE_HEX_STRING : ("Hex string",lambda x : " ".join(["%02x" % y for y in x])),
+}
+
+CLIPBOARD_CONVERT_FROM = {
+	CLIPBOARD_MODE_RAW : ("RAW",lambda x : bytearray([y for y in x])),
+	CLIPBOARD_MODE_CHEX_ISPRINT : ("C-Hex",lambda x: bytearray([y for y in x.decode('unicode_escape')])),
+	CLIPBOARD_MODE_HEX_STRING : ("Hex string",  lambda x : bytearray([int(y,16) for y in x.split()])),
+}
+
+
 class Delegate(QItemDelegate):
     def __init__(self):
         super(Delegate, self).__init__()
@@ -69,7 +87,7 @@ class SearchDialog(QWidget):
 		self.lyt = QGridLayout()
 		self.setLayout(self.lyt)
 		self.api = api
-		self.filename = self.api.getActiveFocus()
+		self.filename = self.getActiveFocus()
 		self.searchline = QLineEdit()
 		self.pb_search = QPushButton("Search")
 		self.search_a = QRadioButton("ASCII")
@@ -90,17 +108,17 @@ class SearchDialog(QWidget):
 
 	def do_search(self):
 		phrase = self.searchline.text()
-		if self.search_a.isChecked():
-			index = self.api.openFiles[self.filename].data.find(phrase.encode('utf-8'),  self.api.openFiles[self.filename].cursor.address)
-		elif self.search_chex.isChecked():
-			pass
-		elif self.search_hex.isChecked():
-			phrase = self.searchline.text().decode("hex").encode('utf-8')
-			index = self.api.openFiles[self.filename].data.find(phrase.encode('utf-8'), self.api.openFiles[self.filename].cursor.address)
-		
-		elif self.search_reg.isChecked():
-			pass			
-		
+# 		if self.search_a.isChecked():
+# 			index = self.api.openFiles[self.filename].data.find(phrase.encode('utf-8'),  self.api.openFiles[self.filename].cursor.address)
+# 		elif self.search_chex.isChecked():
+# 			pass
+# 		elif self.search_hex.isChecked():
+# 			phrase = self.searchline.text().decode("hex").encode('utf-8')
+# 			index = self.api.openFiles[self.filename].data.find(phrase.encode('utf-8'), self.api.openFiles[self.filename].cursor.address)
+# 		
+# 		elif self.search_reg.isChecked():
+# 			pass			
+# 		
 		if index >= 0:
 			self.api.openFiles[self.filename].goto(index)
 # 			self.statusBar().showMessage("found at offset 0x%08x" % index)
@@ -119,14 +137,32 @@ class SearchDialog(QWidget):
 
 class HaxeAPI(QObject):
 	activeWindowChanged = pyqtSignal(object)
+	structChanged = pyqtSignal(object)
+	structStatusChanged = pyqtSignal(object)
 	def __init__(self, parent):
 		super(HaxeAPI, self).__init__(parent)
-
+		self.activefocusfilename = None
 		self.openFiles = {}
 		self.hexdocks = {}
 		self.qtparent = parent
 		self.copy_mode = CLIPBOARD_MODE_RAW
 		self.paste_mode = CLIPBOARD_MODE_RAW
+		self.structfile = None
+		self.structbuff = ""
+		self.structs = {}
+		
+	def getCopyMode(self):
+		return self.copy_mode
+		
+	def getPasteMode(self):
+		self.paste_mode
+
+	def getCopyModeFn(self):
+		return CLIPBOARD_CONVERT_TO[self.copy_mode][1]
+		
+	def getPasteModeFn(self):
+		return CLIPBOARD_CONVERT_FROM[self.paste_mode][1]
+
 		
 	def isActiveWindow(self,filename):
 		return self.activefocusfilename == filename
@@ -196,56 +232,6 @@ class HaxeAPI(QObject):
 			
 	def log(self, logmsg):
 		self.qtparent.statusBar().showMessage(logmsg) 
-	
-	def eval(self,filename):
-		try:
-			self.qtparent.structexplorer.clear()
-			self.openFiles[filename].clearHilights()
-			self.items = []
-			ns = {}
-# 			print(self.structeditor.text())
-			exec(compile("from construct import *\n" + self.qtparent.structeditor.text(), '<none>', 'exec'), ns)
-			results = []
-			import construct
-			for name in sorted([x for x, v in ns.items() if isinstance(v, construct.Construct) and (x not in dir(construct)) ], key=self.foo):
-				cons = ns[name]
-				try:
-					self.qtparent.structeditor.setStyleSheet("background-color: rgb(242, 255, 232);")#green
-					parsed = cons.parse(self.openFiles[filename][self.openFiles[filename].cursor.address:])
-				except:
-					parsed = "<parse error>"
-					
-				if isinstance(parsed, construct.Container):
-					self.items.append(QTreeWidgetItem(self.qtparent.structexplorer, [cons.name,'Container',"none"]))
-					parent = self.items[-1]
-					parent.setExpanded(True)
-					offt =  self.openFiles[filename].cursor.address
-					for i in cons.subcons:
-						self.openFiles[filename].addHilight(offt,offt+i.sizeof()-1)
-						offt+=i.sizeof()						
-
-					for k, v in parsed.items():
-						if not k.startswith('_'):
-							it = QTreeWidgetItem(parent, [k, str(v), "0x%x" % v, 'none'])
-							it.setFlags(it.flags() | Qt.ItemIsEditable)
-							self.items.append(it)
-				else:
-					it = QTreeWidgetItem(self.qtparent.structexplorer,[cons.name, str(parsed),"none"])
-					self.items.append(it)
-			for i in range(4):
-				self.qtparent.structexplorer.resizeColumnToContents(i)
-
-			self.openFiles[filename].viewport().update()
-		except Exception as e:
-			self.qtparent.structeditor.setStyleSheet("background-color: rgb(255, 232, 232);")#red
-			print ("except",e)
-
-	def closeEvent(self, event):
-
-		settings = QSettings("phar", "haxe hex editor")
-		settings.setValue("geometry", self.saveGeometry())
-		settings.setValue("windowState", self.saveState())
-		QMainWindow.closeEvent(self, event)
 
 
 	def foo(self, x): #fixme
@@ -255,6 +241,65 @@ class HaxeAPI(QObject):
 			print( x)
 			raise
 		return y
+		
+	def getStructList(self):
+		return [x for x,y in self.structs.items()]
+			
+	def evalStructFile(self):
+# 		try:
+			self.qtparent.structexplorer.clear()
+# 			self.openFiles[self.getActiveFocus()].clearHilights()
+			self.items = []
+			ns = {}
+# 			print(self.structeditor.text())
+			exec(compile("from construct import *\n" + self.qtparent.structeditor.text(), '<none>', 'exec'), ns)
+			results = []
+# 			import construct
+			self.structs = {}
+			for name in sorted([x for x, v in ns.items() if isinstance(v, construct.Construct) and (x not in dir(construct)) ], key=self.foo):
+				cons = ns[name]
+				self.structs[name] = cons
+				try:
+					self.qtparent.structeditor.setStyleSheet("background-color: rgb(242, 255, 232);")#green
+# 					parsed = cons.parse(self.openFiles[self.getActiveFocus()][self.openFiles[self.getActiveFocus()].cursor.address:])
+				except:
+					parsed = "<parse error>"
+					
+# 			print(structs)
+					
+# 				if isinstance(parsed, construct.Container):
+# 					self.items.append(QTreeWidgetItem(self.qtparent.structexplorer, [cons.name,'Container',"none"]))
+# 					parent = self.items[-1]
+# 					parent.setExpanded(True)
+# 					offt =  self.openFiles[self.getActiveFocus()].cursor.address
+# 					for i in cons.subcons:
+# 						self.openFiles[self.getActiveFocus()].addHilight(offt,offt+i.sizeof()-1)
+# 						offt+=i.sizeof()						
+# 
+# 					for k, v in parsed.items():
+# 						if not k.startswith('_'):
+# 							it = QTreeWidgetItem(parent, [k, str(v), "0x%x" % v, 'none'])
+# 							it.setFlags(it.flags() | Qt.ItemIsEditable)
+# 							self.items.append(it)
+# 				else:
+# 					it = QTreeWidgetItem(self.qtparent.structexplorer,[cons.name, str(parsed),"none"])
+# 					self.items.append(it)
+# 			for i in range(4):
+# 				self.qtparent.structexplorer.resizeColumnToContents(i)
+
+# 			self.openFiles[self.getActiveFocus()].viewport().update()
+# 		except Exception as e:
+# 			self.qtparent.structeditor.setStyleSheet("background-color: rgb(255, 232, 232);")#red
+# 			print ("except",e)
+
+	def closeEvent(self, event):
+
+		settings = QSettings("phar", "haxe hex editor")
+		settings.setValue("geometry", self.saveGeometry())
+		settings.setValue("windowState", self.saveState())
+		QMainWindow.closeEvent(self, event)
+
+
 	
 	def getActiveFocus(self):
 		return self.activefocusfilename
@@ -270,14 +315,26 @@ class HaxeAPI(QObject):
 	def setPasteMode(self,mode):
 		self.paste_mode = mode	
 	
+	def loadStructFile(self, filename="demostruct.txt"):
+		f = open(filename)
+		self.structfile = filename
+		self.structbuff = f.read()
+		self.evalStructFile()
+		self.structChanged.emit(filename)
+
+	def saveStructFile(self,filename):
+		f = open(filename)
+		f.write(self.structbuff)
+		f.close()
 
 	
 
 class HaxEditor(QMainWindow):
-	def __init__(self,args):
+	def __init__(self):
 		super(HaxEditor, self).__init__()
 		self.setWindowTitle("HAxe Hex Editor")
 		self.api = HaxeAPI(self);
+ 
 		self.central = QMainWindow()
 		self.central.setWindowFlags(Qt.Widget)
 		self.central.setDockOptions(self.central.dockOptions()|QMainWindow.AllowNestedDocks)
@@ -289,8 +346,11 @@ class HaxEditor(QMainWindow):
 		self.createDocks()
 		self.createActions()
 		self.createMenus()
-		self.set_example_data()
 		self.drawIcon()
+		self.api.structChanged.connect(self.structChanged);
+	
+	def structChanged(self):
+			self.structeditor.setText(self.api.structbuff)			
 		
 		
 	def newHexDock(self, filebuff):
@@ -328,20 +388,21 @@ class HaxEditor(QMainWindow):
 		tb = self.addToolBar("Toolbar")
 		l = QLabel("Clipboard Copy:")
 		self.cb = QComboBox()
-		self.cb.addItem("RAW",CLIPBOARD_MODE_RAW)	
-		self.cb.addItem("ASCII(isprint())",CLIPBOARD_MODE_ASCII_ISPRINT)	
-		self.cb.addItem("ASCII(only)",CLIPBOARD_MODE_ASCII_ONLY)	
-		self.cb.addItem("C-Hex",CLIPBOARD_MODE_CHEX)	
-		self.cb.addItem("C-Hex-!isprint()",CLIPBOARD_MODE_CHEX_ISPRINT)	
+		for v,nf in CLIPBOARD_CONVERT_TO.items():
+			print(nf)
+			(n,f) = nf
+			self.cb.addItem(n,v)	
+				
 		tb.addWidget(l)
 		tb.addWidget(self.cb)
 		self.cb.currentIndexChanged.connect(self.copy_mode)
 
 		l = QLabel("Paste Mode:")
 		self.pm = QComboBox()
-		self.pm.addItem("C-Hex",CLIPBOARD_MODE_CHEX)	
-		self.pm.addItem("Hex string",CLIPBOARD_MODE_HEX_STRING)	
-		self.pm.addItem("RAW",CLIPBOARD_MODE_RAW)	
+		for v,nf in CLIPBOARD_CONVERT_FROM.items():
+			(n,f) = nf
+			self.pm.addItem(n,v)	
+
 		tb.addWidget(l)
 		tb.addWidget(self.pm)
 		self.pm.currentIndexChanged.connect(self.paste_mode)
@@ -499,15 +560,10 @@ print("Help() for help.")
 	def save_file_as(self):
 		pass
 
-	def set_example_data(self):
-		self.structeditor.setText("""foo = Struct(
-    "foo" / Int16ul,
-    "bar" / Int32ul,
-    "baz" / Int64ul
-    )
-    
-    """)
-# 		self.eval()
+# 	def set_example_data(self):
+# 		f = open("demostruct.txt")
+# 		self.structeditor.setText(f.read())
+# 		self.api.eval()
 
 
 
@@ -525,6 +581,9 @@ if __name__ == '__main__':
 	if args.verbose:
 		print("verbosity turned on")
 
-	h = HaxEditor(args)
+
+	h = HaxEditor()
+	h.api.loadStructFile()
 	h.show()
+	h.api.evalStructFile()
 	app.exec_()

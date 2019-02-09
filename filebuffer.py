@@ -1,31 +1,61 @@
-FILEMODE_READONLY =  1
-FILEMODE_OVERWRITE = 2
 import os
 import mmap
 
 class FileBuffer(object):
-	def __init__(self,filename):
+	def __init__(self,filename,largefile=False):
 		self.readonly = True
 		self.modified = False
-		self.mode = FILEMODE_READONLY;
+		self.mode = 'overwrite';
 		self.editlist = []
 		self.editindex = 0
 		self.bufferlen = 0
+		self.largdocumentmode = largefile
+		self.filename = filename
 		
 		if filename != None:
-			self.filename = filename
-			self.datafd = os.open(self.filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
-			self.data = mmap.mmap(self.datafd, os.stat(self.filename).st_size)
+			self.filestat = os.stat(self.filename)
+			if self.largdocumentmode:
+				self.datafd = os.open(self.filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
+				self.data = mmap.mmap(self.datafd, os.stat(self.filename).st_size)
+			else:
+				self.datafd = os.open(self.filename, os.O_RDWR | os.O_SYNC | os.O_CREAT)
+				self.data = bytearray(os.read(self.datafd,self.filestat.st_size))
 		else:
-			self.data = mmap.mmap(-1, size)
-			self.filename = "<buffer>"	
+			self.data = []
+			self.filename = None
 		
 		self.bufferlen = len(self.data)		
 
-	def addEdit(self, addr, edit):
-		if self[addr] != edit:
-			self.editlist.append((addr, self[addr], edit))
-			self.editindex += 1
+	def addEdit(self, selection, edit):
+		self.editlist.append((selection.start, self[selection.start:selection.end], edit))
+		if not self.largdocumentmode:
+			if  (not isinstance(edit,int)):
+				print(edit)
+				if (len(edit) > 1):
+					if not self.largdocumentmode:	
+						if selection.end != None:
+							self.data = self.data[:selection.start] + edit + self.data[selection.end:]	
+						else:
+							self.data = self.data[:selection.start] + edit + self.data[selection.start:]	
+						self.bufferlen = len(self.data)
+# 					print("yep",type(edit))
+			else:
+				self.data[selection.start] = edit
+		self.editindex += 1
+
+# 	def __setitem__(self, key):
+# 		if isinstance(key, slice):
+# 			if key.stop == None:
+# 				stop = self.bufferlen
+# 			else:
+# 				stop = key.stop
+# 			
+# 			if key.start == None:
+# 				start = 0
+# 			else:
+# 				start = key.start
+
+
 
 	def __len__(self):
 		return self.bufferlen
@@ -44,15 +74,18 @@ class FileBuffer(object):
 
 			t =  bytearray(self.data[start:stop])
 			ar =  range(start,stop)
-			for (a,c,e) in self.editlist[:self.editindex]:
-				if a in ar:
-					t[a-start] = e
+			va = start
+			if self.largdocumentmode:
+				for (a,c,e) in self.editlist[:self.editindex]:
+					if a in ar:
+						t[a-start] = e
 			return t[:key.step]
 			
 		t = self.data[key]
-		for (a,c,e) in self.editlist[:self.editindex]:
-			if (a-key) == 0:
-				t = e		
+		if self.largdocumentmode:
+			for (a,c,e) in self.editlist[:self.editindex]:
+				if (a-key) == 0:
+					t = e		
 		return t
 
 	def readOnly(self, tf):
@@ -68,11 +101,14 @@ class FileBuffer(object):
 			self.modified == False
 		
 	def saveFile(self):
-		print("save")
 		ar =  range(0,self.bufferlen)
 		for (a,c,e) in self.editlist[:self.editindex]:
 			if a in ar:
 				self.data[a] = e
+		if not self.largdocumentmode:
+			os.lseek(self.datafd,0,os.SEEK_SET)
+			os.write(self.datafd,self.data)
+			os.fsync(self.datafd)
 		self.editlist = []
 		self.editindex = 0
 		

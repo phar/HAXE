@@ -21,7 +21,7 @@ class Cursor(QObject):
 # 	@address.setter
 	def setAddress(self, value):
 		self._address = int(value)
-		self.cursor._nibble = 0
+		self._nibble = 0
 		self.changed.emit()
 
 # 	@property

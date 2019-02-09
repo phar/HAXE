@@ -2,20 +2,27 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 class Selection(QObject):
-	def __init__(self, start=0, end=0, active=True, color=Qt.green):
-		self._start = min(start, end)
-		self._end = max(start, end)
+	def __init__(self, start=None, end=None, active=True, color=Qt.green):
+		super(Selection, self).__init__()
+		self._start = start
+		self._end = end
 		self.active = active
 		self.color = color
 
+	def __repr__(self):	
+		return ("Selection(%s,%s)" % (self._start, self._end))
+
 	def __len__(self):
-		return self._end - self._start
+		if  (self._end == None) or  (self._start == None):
+			return 0		
+		else:
+			return self._end - self._start
 
 	def getRange(self):
 		return (self._start, self._end)
 		
 	def contains(self, address):
-		return address >= self._start and address <= self._end
+		return address in range(self._start,  self._end)
 
 	# enforce that start <= end
 	@property

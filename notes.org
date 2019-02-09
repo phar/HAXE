@@ -5,12 +5,17 @@
 to replace the parsed structure values
 
 
+change hilight cololor between ascii and hex sides depending on which selection is active
+highlights after insert and deletion need to be corrected
+confirm safe
+confirm large file mode
+plugin scripts
+structure at location
+
 * missing features
 
 
-** TODO calculate checksums/SHA/MD5
-TODO  decrypt / encrypt / uuencode / base64 / rot13 / xor / zip 
-   
+
    
 
 ** TODO rich status bar information
