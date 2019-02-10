@@ -81,59 +81,6 @@ class Delegate(QItemDelegate):
         super(Delegate, self).setModelData(editor, model, index)
 
 
-class SearchDialog(QWidget):
-	def __init__(self, api, parent=None):
-		super(SearchDialog, self).__init__(parent)
-		self.lyt = QGridLayout()
-		self.setLayout(self.lyt)
-		self.api = api
-		self.filename = self.getActiveFocus()
-		self.searchline = QLineEdit()
-		self.pb_search = QPushButton("Search")
-		self.search_a = QRadioButton("ASCII")
-		self.search_a.setChecked(True)
-		self.search_chex = QRadioButton("C Hex")
-		self.search_hex = QRadioButton("Hex String")
-		self.search_reg = QRadioButton("RegEx")
-
-		self.lyt.addWidget(self.searchline, 0, 0,1,3)
-		self.lyt.addWidget(self.search_a, 1, 0)
-		self.lyt.addWidget(self.search_hex, 1, 1)
-		self.lyt.addWidget(self.search_reg, 1, 2)
-
-
-		self.lyt.addWidget(self.pb_search, 2, 2)
-
-		self.pb_search.clicked.connect(self.do_search)
-
-	def do_search(self):
-		phrase = self.searchline.text()
-# 		if self.search_a.isChecked():
-# 			index = self.api.openFiles[self.filename].data.find(phrase.encode('utf-8'),  self.api.openFiles[self.filename].cursor.address)
-# 		elif self.search_chex.isChecked():
-# 			pass
-# 		elif self.search_hex.isChecked():
-# 			phrase = self.searchline.text().decode("hex").encode('utf-8')
-# 			index = self.api.openFiles[self.filename].data.find(phrase.encode('utf-8'), self.api.openFiles[self.filename].cursor.address)
-# 		
-# 		elif self.search_reg.isChecked():
-# 			pass			
-# 		
-		if index >= 0:
-			self.api.openFiles[self.filename].goto(index)
-# 			self.statusBar().showMessage("found at offset 0x%08x" % index)
-		else:
-			msg = QMessageBox()
-			msg.setIcon(QMessageBox.Information)
-			msg.setText("Search String was not found")
-			msg.setInformativeText("Search string not found.")
-			msg.setWindowTitle("Not found")
-			msg.setStandardButtons(QMessageBox.Ok)
-# 			self.statusBar().showMessage("search string not found")
-			retval = msg.exec_()		
-		
-		self.close()
-
 
 class HaxeAPI(QObject):
 	activeWindowChanged = pyqtSignal(object)
@@ -236,7 +183,7 @@ class HaxeAPI(QObject):
 
 	def foo(self, x): #fixme
 		try:
-			y = ("\n" + self.qtparent.structeditor.text()).index("\n" + x)
+			y = ("\n" + self.structbuff).index("\n" + x)
 		except:
 			print( x)
 			raise
@@ -246,51 +193,14 @@ class HaxeAPI(QObject):
 		return [x for x,y in self.structs.items()]
 			
 	def evalStructFile(self):
-# 		try:
-			self.qtparent.structexplorer.clear()
-# 			self.openFiles[self.getActiveFocus()].clearHilights()
-			self.items = []
-			ns = {}
-# 			print(self.structeditor.text())
-			exec(compile("from construct import *\n" + self.qtparent.structeditor.text(), '<none>', 'exec'), ns)
-			results = []
-# 			import construct
-			self.structs = {}
-			for name in sorted([x for x, v in ns.items() if isinstance(v, construct.Construct) and (x not in dir(construct)) ], key=self.foo):
-				cons = ns[name]
-				self.structs[name] = cons
-				try:
-					self.qtparent.structeditor.setStyleSheet("background-color: rgb(242, 255, 232);")#green
-# 					parsed = cons.parse(self.openFiles[self.getActiveFocus()][self.openFiles[self.getActiveFocus()].cursor.address:])
-				except:
-					parsed = "<parse error>"
-					
-# 			print(structs)
-					
-# 				if isinstance(parsed, construct.Container):
-# 					self.items.append(QTreeWidgetItem(self.qtparent.structexplorer, [cons.name,'Container',"none"]))
-# 					parent = self.items[-1]
-# 					parent.setExpanded(True)
-# 					offt =  self.openFiles[self.getActiveFocus()].cursor.address
-# 					for i in cons.subcons:
-# 						self.openFiles[self.getActiveFocus()].addHilight(offt,offt+i.sizeof()-1)
-# 						offt+=i.sizeof()						
-# 
-# 					for k, v in parsed.items():
-# 						if not k.startswith('_'):
-# 							it = QTreeWidgetItem(parent, [k, str(v), "0x%x" % v, 'none'])
-# 							it.setFlags(it.flags() | Qt.ItemIsEditable)
-# 							self.items.append(it)
-# 				else:
-# 					it = QTreeWidgetItem(self.qtparent.structexplorer,[cons.name, str(parsed),"none"])
-# 					self.items.append(it)
-# 			for i in range(4):
-# 				self.qtparent.structexplorer.resizeColumnToContents(i)
-
-# 			self.openFiles[self.getActiveFocus()].viewport().update()
-# 		except Exception as e:
-# 			self.qtparent.structeditor.setStyleSheet("background-color: rgb(255, 232, 232);")#red
-# 			print ("except",e)
+		self.items = []
+		ns = {}
+		exec(compile("from construct import *\n" + self.structbuff, '<none>', 'exec'), ns)
+		results = []
+		self.structs = {}
+		for name in sorted([x for x, v in ns.items() if isinstance(v, construct.Construct) and (x not in dir(construct)) ], key=self.foo):
+			cons = ns[name]
+			self.structs[name] = cons
 
 	def closeEvent(self, event):
 
@@ -334,24 +244,45 @@ class HaxEditor(QMainWindow):
 		super(HaxEditor, self).__init__()
 		self.setWindowTitle("HAxe Hex Editor")
 		self.api = HaxeAPI(self);
- 
+
 		self.central = QMainWindow()
 		self.central.setWindowFlags(Qt.Widget)
 		self.central.setDockOptions(self.central.dockOptions()|QMainWindow.AllowNestedDocks)
 		self.tabs = []
-		self.open_file(args.filename)
 		self.setCentralWidget(self.central)
+		
 		self.font = QFont("Courier", 10)
 		self.createToolbar()
-		self.createDocks()
+		self.docks = {}
 		self.createActions()
 		self.createMenus()
+
+		self.loadiPythonEnvironment("ipython.env")
+
+		(name, dock, window, action, shortcut) = self.createDock(self.structExplorerWindow)
+		self.docks[name] = {'dock':dock, 'window':window,'action':action,'shortcut':shortcut}				
+		self.viewmenu.addAction(self.docks[name]['action'])
+		
+		(name, dock, window, action, shortcut) = self.createDock(self.structEditorWindow)
+		self.docks[name] = {'dock':dock, 'window':window,'action':action,'shortcut':shortcut}		
+		self.viewmenu.addAction(self.docks[name]['action'])
+		
+		(name, dock, window, action, shortcut) = self.createDock(self.iPuthonWindow)
+		self.docks[name] = {'dock':dock, 'window':window,'action':action,'shortcut':shortcut}		
+		self.viewmenu.addAction(self.docks[name]['action'])
+		
+	
+		
 		self.drawIcon()
 		self.api.structChanged.connect(self.structChanged);
 	
+		self.open_file(args.filename)
+
+	
+	
 	def structChanged(self):
-			self.structeditor.setText(self.api.structbuff)			
-		
+# 		self.structeditor.setText(self.api.structbuff)			
+		pass		
 		
 	def newHexDock(self, filebuff):
 		tab = QDockWidget()
@@ -367,6 +298,7 @@ class HaxEditor(QMainWindow):
 			filename = QFileDialog.getOpenFileName(self, "Open File...")[0]
 		if filename:
 			hw = self.api.openFile(filename)
+# 			self.cursor
 			self.newHexDock(self.api.openFiles[filename])		
 		else:
 			pass #i dont know what to do with this
@@ -413,76 +345,51 @@ class HaxEditor(QMainWindow):
 	def paste_mode(self,arg):
 		self.api.setPasteMode(arg)
 
-	def createDocks(self):
+
+	def structEditorWindow(self):
+		structeditor = QTextEdit()
+		# qscintilla compatibility
+		structeditor.text = structeditor.toPlainText
+		structeditor.setText = structeditor.setPlainText
+		structeditor.setStyleSheet("background-color: rgb(255, 232, 232);")#red
+		structeditor.setFont(self.font)
+		structeditor.setMinimumWidth(300)
+		
+		return ("Struct Editor","Alt+S",structeditor)
+			
+	def structExplorerWindow(self):
+		structexplorer = QTreeWidget()
+		structexplorer.setColumnCount(3)
+		structexplorer.setMinimumWidth(300)
+		
+		return ("Struct Explorer", "Alt+X", structexplorer)
+
+	def loadiPythonEnvironment(self, filename="ipython.env"):
+		f = open(filename)
+		self.ipythonenv = f.read()
+		f.close()
+
+	def iPuthonWindow(self):
+		
+		ipython = IPythonWidget(run=self.ipythonenv,main=self)
+		ipython.setMinimumWidth(300)
+		return  ("IPython","Alt+P",ipython)
+		
+	def createDock(self, widgetfunc):
 		self.setDockOptions(self.dockOptions() | QMainWindow.AllowNestedDocks)
 		allowed_positions = Qt.AllDockWidgetAreas
-		# make struct editor widget
-		self.structeditor = QTextEdit()
-		# qscintilla compatibility
-		self.structeditor.text = self.structeditor.toPlainText
-		self.structeditor.setText = self.structeditor.setPlainText
-		self.structeditor.setStyleSheet("background-color: rgb(255, 232, 232);")#red
 		
-		self.structeditor.setFont(self.font)
+		(title, shortcut, window) = widgetfunc()
+		dock1 = QDockWidget()
+		dock1.setWindowTitle(title)
+		dock1.setWidget(window)
+		dock1.setAllowedAreas(allowed_positions)
+		dock1.hide()
 
-		self.dock1 = QDockWidget()
-		self.dock1.setWindowTitle("Struct Editor")
-		self.dock1.setWidget(self.structeditor)
-		self.dock1.setAllowedAreas(allowed_positions)
-		self.dock1.hide()
-		self.addDockWidget(Qt.RightDockWidgetArea, self.dock1)
-
-		# make struct explorer widget
-		self.structexplorer = s = QTreeWidget()
-		s.setColumnCount(3)
-		self.d = Delegate()
-
-		self.dock2 = QDockWidget()
-		self.dock2.setWindowTitle("Struct Explorer")
-		self.dock2.setWidget(self.structexplorer)
-		self.dock2.setAllowedAreas(allowed_positions)
-		self.dock2.hide()
-
-		self.addDockWidget(Qt.RightDockWidgetArea, self.dock2)
-		
-		self.structeditor.setMinimumWidth(300)
-		self.structexplorer.setMinimumWidth(300)
-
-
-		self.ipython = IPythonWidget(run='''
-# import matplotlib
-%matplotlib inline
-from pylab import *
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from construct import *
-from binascii import *
-import binwalk
-import inspect
-import numpy as np
-
-api = main.api
-
-def Help():
-	x = [x[0] for x in inspect.getmembers(api, predicate=inspect.ismethod)]
-	for a in x:
-		print("%s()" %a)
-
-print("Help() for help.")
-
-''',main=self)
-		self.ipython.setMinimumWidth(300)
-		self.dock3 = QDockWidget()
-		self.dock3.setWindowTitle("IPython")
-		self.dock3.setWidget(self.ipython)
-		self.dock3.setAllowedAreas(allowed_positions)
-		self.addDockWidget(Qt.LeftDockWidgetArea, self.dock3)
-
-		self.dock1.setObjectName("structedit")
-		self.dock2.setObjectName("structexp")
-		self.dock3.setObjectName("ipython")
-		self.dock3.hide()
+		self.addDockWidget(Qt.RightDockWidgetArea, dock1)		
+		ed = dock1.toggleViewAction()
+		ed.setShortcut(QKeySequence(shortcut))
+		return (title,dock1,window,ed,shortcut)
 
 	def createActions(self):
 		self.act_open = QAction("&Open", self)
@@ -510,17 +417,12 @@ print("Help() for help.")
 		self.act_quit.setStatusTip("Quit HAxe")
 		self.act_quit.triggered.connect(self.close)
 
-		self.act_search = QAction("&Search", self)
-		self.act_search.setShortcuts(QKeySequence.Find)
-		self.act_search.setStatusTip("Search current buffer for a string")
-		self.act_search.triggered.connect(self.search)
+# 		self.act_search = QAction("&Search", self)
+# 		self.act_search.setShortcuts(QKeySequence.Find)
+# 		self.act_search.setStatusTip("Search current buffer for a string")
+# 		self.act_search.triggered.connect(self.search)
 
-		self.ta_sed = self.dock1.toggleViewAction()
-		self.ta_sed.setShortcut(QKeySequence("Alt+S"))
-		self.ta_sexp = self.dock2.toggleViewAction()
-		self.ta_sexp.setShortcut(QKeySequence("Alt+X"))
-		self.ta_ipy = self.dock3.toggleViewAction()
-		self.ta_ipy.setShortcut(QKeySequence("Alt+P"))
+
 
 	def revert_file(self):
 		pass
@@ -532,13 +434,9 @@ print("Help() for help.")
 		self.filemenu.addAction(self.act_revert)
 		self.filemenu.addAction(self.act_saveas)
 		self.filemenu.addAction(self.act_quit)
-		self.filemenu.addAction(self.act_search)
-
+# 		self.filemenu.addAction(self.act_search)
 		self.viewmenu = self.menuBar().addMenu("&View")
 
-		self.viewmenu.addAction(self.ta_sed)
-		self.viewmenu.addAction(self.ta_sexp)
-		self.viewmenu.addAction(self.ta_ipy)
 
 	def toggle_structedit(self):
 		if self.structeditor.isVisible():
@@ -546,11 +444,7 @@ print("Help() for help.")
 		else:
 			self.structeditor.setVisible(True)
 
-	def search(self):
-		self.dia = SearchDialog(self.api)
-		self.dia.show()
-		self.dia.raise_()
-		self.dia.activateWindow()
+
 
 
 	def save_file(self):
@@ -559,12 +453,6 @@ print("Help() for help.")
 
 	def save_file_as(self):
 		pass
-
-# 	def set_example_data(self):
-# 		f = open("demostruct.txt")
-# 		self.structeditor.setText(f.read())
-# 		self.api.eval()
-
 
 
 

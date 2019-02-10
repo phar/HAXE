@@ -6,12 +6,12 @@ to replace the parsed structure values
 
 
 change hilight cololor between ascii and hex sides depending on which selection is active
-highlights after insert and deletion need to be corrected
 confirm safe
 confirm large file mode
 plugin scripts
 structure at location
-
+re-add virtical lines in hex view
+structure @ address
 * missing features
 
 
@@ -34,18 +34,11 @@ structure at location
    - distribution map for search results?
    - highlight search results
    - save result regions as selection
-** TODO copy as...
-   - ascii / hex / c / python ...
-   - also paste as?
 ** TODO diff files and regions
    - beyondcompare-like context menu: "select left side to compare"...
-** TODO scripting
-   - with ipython integration
+
 ** TODO file explorer
-** TODO disassembler
-   - see pure python disassemblers from vivisect
-   - also include assembler?
-   - maybe even search / replace for asm?
+
 ** TODO regex builder?
 ** TODO bookmarks / favourites
 ** TODO tabbed interface for multiple open files
@@ -58,102 +51,45 @@ structure at location
 ** TODO undo tree like emacs
    - maybe use graphview widget for undo tree display?
 ** TODO rectangle selection mode?
+
 ** TODO bitmap view
-** TODO Jump to address for values that are also valid 32bit addresses
-** TODO multiple views for same file
+
+** TODO Jump to address for values that are also valid 32bit addresses - started
+
+** TODO multiple views for same file - i can kind of support this now.. not sure how it will work out workflow wise
+
 ** TODO view as hex/oct/dec/bin?
-** TODO tag selection as in wxHexEditor
+
+
 ** TODO keep sparse space at the end
    - automatically growing as it fills up?
    - will help displaying a new (empty) buffer
-** TODO allow syncrhonized scrolling in multiple buffers
+   
+** TODO allow syncrhonized scrolling in multiple buffers - good idea added a checkbox to sync checked windows
+
 * user interface
 ** selection
    - selection possibility on right side
    - boxes around selection or parsed structs? so that content can be color coded
+   
 ** display
    - make everything configurable
      - font
      - address view (hex / dec / oct / off, length, ...)
      - data view (hex / dec / oct / bin, grouping, separator lines, bytes per line, ...)
      - ascii view (
-   - display for sparse areas (grey dots?)
-** motion
-   - tab to switch bewteen ascii and hex view?
-   - goto dock
-* misc
-** look at python libs for binary parsing
+
+
+
+#probably wont do the ones below these, its python, you dan do them yourself with the API
+** TODO disassembler
+   - see pure python disassemblers from vivisect
+   - also include assembler?
+   - maybe even search / replace for asm?
+   
+   ** look at python libs for binary parsing
    - pyelftools
      is actually construct based
    - pefile
      uses 'struct'
    - ...
-** dependencies
-#+BEGIN_SRC python
-deps = {
-    'statusbar': ['cursor','data at cursor','selection','hexview mode','hexview buffer size'],
-    'struct editor': [],
-    'struct explorer': ['data','cursor','hexview replace','hexview create highlight','struct editor content',
-                        ],
-    'bitmap view': ['data','cursor','selection','hexview visible region'],
-    'file explorer': ['hexeditor load file','hexeditor list open files'],
-    'undo tree': ['hexview change notification'],
-    'scripting': ['access to all objects...'],
-    'search/replace': ['hexview find bytes', 'hexview replace'],
-    'search results': ['hexview jump to location', 'hexview set selection','hexview create highlight'],
-    'diff':['hexview list open files','hexview list selections'],
-}
-#+END_SRC
-#+BEGIN_SRC dot :file depgraph.png :cmdline -Tpng
-digraph {
-        node [ shape="record"];
-        highlight [label="{ highlight |start | end | box | bg| fg }"];
-   selection -> cursor [label="start / end position"];
-   hexview -> data_model;
-   struct_exp -> data_model;
-   struct_exp -> struct_edit [label="content"];
-   struct_exp -> cursor;
-   statusbar -> cursor;
-   statusbar -> selection;
-   statusbar -> hexview [label="size / mode / ..."];
-   hexview -> highlight;
-}
-#+END_SRC
-
-#+RESULTS:
-[[file:depgraph.png]]
-
-* for histogram
-#+BEGIN_SRC python
-import numpy
-# data is an mmap object
-array = numpy.ndarray.__new__(numpy.ndarray,
-                              shape=(len(data),),
-                              dtype=numpy.uint8,
-                              buffer=data,
-                              offset=0,
-                              strides=(1,),
-                              order='C')
-hist(array, bins=256, range=(0,256))
-#+END_SRC
-* entropy
-#+BEGIN_SRC python
-import math
-import numpy as np
-
-byte_counts = np.bincount(array)
-
-entropy = 0
-
-for count in byte_counts:
-    # If no bytes of this value were seen in the value, it doesn't affect
-    # the entropy of the file.
-    if count == 0:
-        continue
-    # p is the probability of seeing this byte in the file, as a floating-
-    # point number
-    p = 1.0 * count / total
-    entropy -= p * math.log(p, 2)
-#+END_SRC
-* for codecs
-for non-printable characters: use codecs.register_error to install an error handler that replaces non-printables by "."

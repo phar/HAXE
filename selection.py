@@ -4,8 +4,16 @@ from PyQt5.QtCore import *
 class Selection(QObject):
 	def __init__(self, start=None, end=None, active=True, color=Qt.green):
 		super(Selection, self).__init__()
-		self._start = start
-		self._end = end
+		if end == None:
+			end = start
+
+		if start <=  end :
+			self._start = int(start)
+			self._end = int(end)
+		else:
+			self._start = int(end)
+			self._end = int(start)
+		
 		self.active = active
 		self.color = color
 
@@ -22,7 +30,7 @@ class Selection(QObject):
 		return (self._start, self._end)
 		
 	def contains(self, address):
-		return address in range(self._start,  self._end)
+		return int(address) in range(self._start,  self._end)
 
 	# enforce that start <= end
 	@property
@@ -32,7 +40,7 @@ class Selection(QObject):
 	@start.setter
 	def start(self, value):
 		if not self.active:
-			self._start = self._end = value
+			self._start = self._end = int(value)
 			return
 		self._start = min(value, self.end)
 		self._end = max(value, self.end)
@@ -44,7 +52,7 @@ class Selection(QObject):
 	@end.setter
 	def end(self, value):
 		if not self.active:
-			self._start = self._end = value
+			self._start = self._end = int(value)
 			return
 		self._end = max(value, self.start)
 		self._start = min(value, self.start)

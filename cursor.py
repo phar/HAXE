@@ -3,15 +3,47 @@ from PyQt5.QtCore import *
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMainWindow, QApplication
 import math
+from selection import *
 
 class Cursor(QObject):
 	changed = QtCore.pyqtSignal()
+	selectionChanged  = QtCore.pyqtSignal(object)
 
-	def __init__(self, address=0, nibble=0):
+	def __init__(self, parent, address=0, nibble=0):
 		super(Cursor, self).__init__()
+		self.parent = parent
+		self._selection = Selection(0,None,active=False, color=self.parent.palette().color(QPalette.HighlightedText))
 		self._address = int(address)
 		self._nibble = nibble
+		self.blink = False
+		
 
+# 		self.bpl = bpl
+
+	def updateCursor(self):
+		self.blink = not self.blink
+		self.parent.viewport().update(self.parent.cursorRectHex())
+		
+	def startCursor(self,interval=500):
+		# cursor blinking timer
+		self.cursorTimer = QTimer()
+		self.cursorBlinkInterval = interval
+		self.cursorTimer.timeout.connect(self.updateCursor)
+		self.cursorTimer.setInterval(interval)
+		self.cursorTimer.start()
+						
+	def getSelection(self):
+		self._selection.color =self.parent.palette().color(QPalette.Highlight)
+		return self._selection
+		
+	def setSelection(self,selection):
+		self._selection = selection
+		self._selection.active = True
+		self.selectionChanged.emit(selection)		
+
+	def clearSelect(self):
+		self.setSelection(Selection(self._address))		
+		
 # 	@property
 	def getAddress(self, address=None):
 		if address != None:

@@ -4,12 +4,12 @@
 <dict>
 	<key>HierarchyData</key>
 	<array>
-		<string>7BF942F9-8EE0-4B6D-BE9C-F1E02D47F25A</string>
 		<string>4CDF2848-E4AF-4E82-8E53-CCA06F284116</string>
+		<string>49BC3668-98DC-4FAD-AE22-B75FFCFC2E98</string>
 		<string>62429240-2067-44AF-83DB-8A8DFE9F71B3</string>
 		<string>88246C1D-8CE9-4DE6-9DFF-1212E2CA3B65</string>
 		<string>175963B1-F3E3-41E8-A575-C5713D32DBF4</string>
-		<string>D841D205-0E5B-43B3-B20C-05AD792EF491</string>
+		<string>53E630FF-33F0-47B9-9DF0-1CECA1203A12</string>
 		<string>FBBFBD06-B898-444B-A7EC-7F50284BCEE3</string>
 		<string>24502B61-0DF9-478A-B814-7487EF7D8C0B</string>
 		<string>7F1DDA83-2A1F-447E-A6E6-18A4EB5F09E9</string>
@@ -218,6 +218,54 @@
 			<key>UserOverrideItemName</key>
 			<true/>
 		</dict>
+		<key>49BC3668-98DC-4FAD-AE22-B75FFCFC2E98</key>
+		<dict>
+			<key>ItemData</key>
+			<dict>
+				<key>BookmarkData</key>
+				<data>
+				Ym9va9gCAAAAAAQQMAAAAHloDRzo86aewo4MxvewX5Gf
+				kPFC9J3sbSgpRBEzt/ZevAEAAAQAAAADAwAAAAgAKAUA
+				AAABAQAAVXNlcnMAAAAEAAAAAQEAAHBoYXIJAAAAAQEA
+				AHF0aGV4ZWRpdAAAAAwAAAABAQAAZ3JhcGh2aWV3LnB5
+				EAAAAAEGAAAQAAAAIAAAACwAAABAAAAACAAAAAQDAABO
+				aQYAAAAAAAgAAAAEAwAAd8kGAAAAAAAIAAAABAMAAII/
+				KgICAAAACAAAAAQDAADKPyoCAgAAABAAAAABBgAAbAAA
+				AHwAAACMAAAAnAAAAAgAAAAABAAAQcEDHbyf+ZQYAAAA
+				AQIAAAEAAAAAAAAADwAAAAAAAAAAAAAAAAAAAAAAAAAB
+				BQAABAAAAAMDAAABAAAACAAAAAQDAAACAAAAAAAAAAQA
+				AAADAwAA9QEAAAgAAAABCQAAZmlsZTovLy8IAAAAAQEA
+				AFVudGl0bGVkCAAAAAQDAAAAsGBudAAAAAgAAAAABAAA
+				Qb/ifpIAAAAkAAAAAQEAADI5QjczRTM5LUNFODQtMzU1
+				Ny1BMzU0LTQyQTA2OUU4NkJBMxgAAAABAgAAgQAAAAEA
+				AADvEwAAAQAAAAAAAAAAAAAAAQAAAAEBAAAvAAAA5AAA
+				AP7///8BAAAAAAAAABIAAAAEEAAAVAAAAAAAAAAFEAAA
+				rAAAAAAAAAAQEAAA1AAAAAAAAABAEAAAxAAAAAAAAABV
+				EAAA/AAAAAAAAABWEAAA9AAAAAAAAAACIAAAsAEAAAAA
+				AAAFIAAAJAEAAAAAAAAQIAAANAEAAAAAAAARIAAAZAEA
+				AAAAAAASIAAARAEAAAAAAAATIAAAVAEAAAAAAAAgIAAA
+				kAEAAAAAAAAwIAAA9AAAAAAAAAABwAAACAEAAAAAAAAR
+				wAAAIAAAAAAAAAASwAAAGAEAAAAAAAAQ0AAABAAAAAAA
+				AAA=
+				</data>
+				<key>FileURL</key>
+				<string>file:///Users/phar/qthexedit/graphview.py</string>
+				<key>HasSecurityScope</key>
+				<true/>
+				<key>RelativePath</key>
+				<string>./graphview.py</string>
+				<key>TypeID</key>
+				<string>_CFileLocator</string>
+				<key>Version</key>
+				<integer>1</integer>
+			</dict>
+			<key>ItemName</key>
+			<string>graphview.py</string>
+			<key>ItemType</key>
+			<string>FileReference</string>
+			<key>UserOverrideItemName</key>
+			<true/>
+		</dict>
 		<key>4CDF2848-E4AF-4E82-8E53-CCA06F284116</key>
 		<dict>
 			<key>ItemData</key>
@@ -261,6 +309,53 @@
 			</dict>
 			<key>ItemName</key>
 			<string>hexwidget.py</string>
+			<key>ItemType</key>
+			<string>FileReference</string>
+			<key>UserOverrideItemName</key>
+			<true/>
+		</dict>
+		<key>53E630FF-33F0-47B9-9DF0-1CECA1203A12</key>
+		<dict>
+			<key>ItemData</key>
+			<dict>
+				<key>BookmarkData</key>
+				<data>
+				Ym9va8wCAAAAAAQQMAAAAE1hDlGe4zLkJ4GcC0c+6Vnf
+				iFhmc9LUjE/YuCfisGjxsAEAAAQAAAADAwAAAAgAKAUA
+				AAABAQAAVXNlcnMAAAAEAAAAAQEAAHBoYXIEAAAAAQEA
+				AEhBWEUIAAAAAQEAAHNldHVwLnB5EAAAAAEGAAAQAAAA
+				IAAAACwAAAA4AAAACAAAAAQDAABOaQYAAAAAAAgAAAAE
+				AwAAd8kGAAAAAAAIAAAABAMAAG+qLQICAAAACAAAAAQD
+				AADeWDACAgAAABAAAAABBgAAYAAAAHAAAACAAAAAkAAA
+				AAgAAAAABAAAQcEGZxX8f2wYAAAAAQIAAAEAAAAAAAAA
+				DwAAAAAAAAAAAAAAAAAAAAAAAAABBQAABAAAAAMDAAAB
+				AAAACAAAAAQDAAACAAAAAAAAAAQAAAADAwAA9QEAAAgA
+				AAABCQAAZmlsZTovLy8IAAAAAQEAAFVudGl0bGVkCAAA
+				AAQDAAAAsGBudAAAAAgAAAAABAAAQb/ifpIAAAAkAAAA
+				AQEAADI5QjczRTM5LUNFODQtMzU1Ny1BMzU0LTQyQTA2
+				OUU4NkJBMxgAAAABAgAAgQAAAAEAAADvEwAAAQAAAAAA
+				AAAAAAAAAQAAAAEBAAAvAAAA5AAAAP7///8BAAAAAAAA
+				ABIAAAAEEAAASAAAAAAAAAAFEAAAoAAAAAAAAAAQEAAA
+				yAAAAAAAAABAEAAAuAAAAAAAAABVEAAA8AAAAAAAAABW
+				EAAA6AAAAAAAAAACIAAApAEAAAAAAAAFIAAAGAEAAAAA
+				AAAQIAAAKAEAAAAAAAARIAAAWAEAAAAAAAASIAAAOAEA
+				AAAAAAATIAAASAEAAAAAAAAgIAAAhAEAAAAAAAAwIAAA
+				6AAAAAAAAAABwAAA/AAAAAAAAAARwAAAIAAAAAAAAAAS
+				wAAADAEAAAAAAAAQ0AAABAAAAAAAAAA=
+				</data>
+				<key>FileURL</key>
+				<string>file:///Users/phar/HAXE/setup.py</string>
+				<key>HasSecurityScope</key>
+				<true/>
+				<key>RelativePath</key>
+				<string>./setup.py</string>
+				<key>TypeID</key>
+				<string>_CFileLocator</string>
+				<key>Version</key>
+				<integer>1</integer>
+			</dict>
+			<key>ItemName</key>
+			<string>setup.py</string>
 			<key>ItemType</key>
 			<string>FileReference</string>
 			<key>UserOverrideItemName</key>
@@ -319,54 +414,6 @@
 			</dict>
 			<key>ItemName</key>
 			<string>LICENSE</string>
-			<key>ItemType</key>
-			<string>FileReference</string>
-			<key>UserOverrideItemName</key>
-			<true/>
-		</dict>
-		<key>7BF942F9-8EE0-4B6D-BE9C-F1E02D47F25A</key>
-		<dict>
-			<key>ItemData</key>
-			<dict>
-				<key>BookmarkData</key>
-				<data>
-				Ym9va9gCAAAAAAQQMAAAAHloDRzo86aewo4MxvewX5Gf
-				kPFC9J3sbSgpRBEzt/ZevAEAAAQAAAADAwAAAAgAKAUA
-				AAABAQAAVXNlcnMAAAAEAAAAAQEAAHBoYXIJAAAAAQEA
-				AHF0aGV4ZWRpdAAAAAwAAAABAQAAZ3JhcGh2aWV3LnB5
-				EAAAAAEGAAAQAAAAIAAAACwAAABAAAAACAAAAAQDAABO
-				aQYAAAAAAAgAAAAEAwAAd8kGAAAAAAAIAAAABAMAAII/
-				KgICAAAACAAAAAQDAADKPyoCAgAAABAAAAABBgAAbAAA
-				AHwAAACMAAAAnAAAAAgAAAAABAAAQcEDHbyf+ZQYAAAA
-				AQIAAAEAAAAAAAAADwAAAAAAAAAAAAAAAAAAAAAAAAAB
-				BQAABAAAAAMDAAABAAAACAAAAAQDAAACAAAAAAAAAAQA
-				AAADAwAA9QEAAAgAAAABCQAAZmlsZTovLy8IAAAAAQEA
-				AFVudGl0bGVkCAAAAAQDAAAAsGBudAAAAAgAAAAABAAA
-				Qb/ifpIAAAAkAAAAAQEAADI5QjczRTM5LUNFODQtMzU1
-				Ny1BMzU0LTQyQTA2OUU4NkJBMxgAAAABAgAAgQAAAAEA
-				AADvEwAAAQAAAAAAAAAAAAAAAQAAAAEBAAAvAAAA5AAA
-				AP7///8BAAAAAAAAABIAAAAEEAAAVAAAAAAAAAAFEAAA
-				rAAAAAAAAAAQEAAA1AAAAAAAAABAEAAAxAAAAAAAAABV
-				EAAA/AAAAAAAAABWEAAA9AAAAAAAAAACIAAAsAEAAAAA
-				AAAFIAAAJAEAAAAAAAAQIAAANAEAAAAAAAARIAAAZAEA
-				AAAAAAASIAAARAEAAAAAAAATIAAAVAEAAAAAAAAgIAAA
-				kAEAAAAAAAAwIAAA9AAAAAAAAAABwAAACAEAAAAAAAAR
-				wAAAIAAAAAAAAAASwAAAGAEAAAAAAAAQ0AAABAAAAAAA
-				AAA=
-				</data>
-				<key>FileURL</key>
-				<string>file:///Users/phar/qthexedit/graphview.py</string>
-				<key>HasSecurityScope</key>
-				<true/>
-				<key>RelativePath</key>
-				<string>./graphview.py</string>
-				<key>TypeID</key>
-				<string>_CFileLocator</string>
-				<key>Version</key>
-				<integer>1</integer>
-			</dict>
-			<key>ItemName</key>
-			<string>graphview.py</string>
 			<key>ItemType</key>
 			<string>FileReference</string>
 			<key>UserOverrideItemName</key>
@@ -512,53 +559,6 @@
 			</dict>
 			<key>ItemName</key>
 			<string>__init__.py</string>
-			<key>ItemType</key>
-			<string>FileReference</string>
-			<key>UserOverrideItemName</key>
-			<true/>
-		</dict>
-		<key>D841D205-0E5B-43B3-B20C-05AD792EF491</key>
-		<dict>
-			<key>ItemData</key>
-			<dict>
-				<key>BookmarkData</key>
-				<data>
-				Ym9va8wCAAAAAAQQMAAAAE1hDlGe4zLkJ4GcC0c+6Vnf
-				iFhmc9LUjE/YuCfisGjxsAEAAAQAAAADAwAAAAgAKAUA
-				AAABAQAAVXNlcnMAAAAEAAAAAQEAAHBoYXIEAAAAAQEA
-				AEhBWEUIAAAAAQEAAHNldHVwLnB5EAAAAAEGAAAQAAAA
-				IAAAACwAAAA4AAAACAAAAAQDAABOaQYAAAAAAAgAAAAE
-				AwAAd8kGAAAAAAAIAAAABAMAAG+qLQICAAAACAAAAAQD
-				AADeWDACAgAAABAAAAABBgAAYAAAAHAAAACAAAAAkAAA
-				AAgAAAAABAAAQcEGZxX8f2wYAAAAAQIAAAEAAAAAAAAA
-				DwAAAAAAAAAAAAAAAAAAAAAAAAABBQAABAAAAAMDAAAB
-				AAAACAAAAAQDAAACAAAAAAAAAAQAAAADAwAA9QEAAAgA
-				AAABCQAAZmlsZTovLy8IAAAAAQEAAFVudGl0bGVkCAAA
-				AAQDAAAAsGBudAAAAAgAAAAABAAAQb/ifpIAAAAkAAAA
-				AQEAADI5QjczRTM5LUNFODQtMzU1Ny1BMzU0LTQyQTA2
-				OUU4NkJBMxgAAAABAgAAgQAAAAEAAADvEwAAAQAAAAAA
-				AAAAAAAAAQAAAAEBAAAvAAAA5AAAAP7///8BAAAAAAAA
-				ABIAAAAEEAAASAAAAAAAAAAFEAAAoAAAAAAAAAAQEAAA
-				yAAAAAAAAABAEAAAuAAAAAAAAABVEAAA8AAAAAAAAABW
-				EAAA6AAAAAAAAAACIAAApAEAAAAAAAAFIAAAGAEAAAAA
-				AAAQIAAAKAEAAAAAAAARIAAAWAEAAAAAAAASIAAAOAEA
-				AAAAAAATIAAASAEAAAAAAAAgIAAAhAEAAAAAAAAwIAAA
-				6AAAAAAAAAABwAAA/AAAAAAAAAARwAAAIAAAAAAAAAAS
-				wAAADAEAAAAAAAAQ0AAABAAAAAAAAAA=
-				</data>
-				<key>FileURL</key>
-				<string>file:///Users/phar/HAXE/setup.py</string>
-				<key>HasSecurityScope</key>
-				<true/>
-				<key>RelativePath</key>
-				<string>./setup.py</string>
-				<key>TypeID</key>
-				<string>_CFileLocator</string>
-				<key>Version</key>
-				<integer>1</integer>
-			</dict>
-			<key>ItemName</key>
-			<string>setup.py</string>
 			<key>ItemType</key>
 			<string>FileReference</string>
 			<key>UserOverrideItemName</key>
