@@ -24,13 +24,16 @@ import collections
 import numpy as np
 import inspect
 import logging
+import glob
 from binascii import *
 from math import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 import string
+import importlib
 import construct
+from encodings.aliases import aliases
 
 import argparse
 from matplotlib.pyplot import *
@@ -97,6 +100,25 @@ class HaxeAPI(QObject):
 		self.structfile = None
 		self.structbuff = ""
 		self.structs = {}
+		self.modules = {}
+		self.reloadPlugins()
+		
+		
+	def reloadPlugins(self):
+		self.modules = {}
+		fl = glob.glob(os.path.join("plugins","*.py"))
+		for f in fl:
+			a = importlib.import_module(".".join(os.path.split(".".join(f.split(".")[:-1]))))	
+			for cn in dir(a):
+				c  = getattr(a,cn)
+				if inspect.isclass(c):
+					is_plugin_class = False
+					for base in c.__bases__:
+						if (base.__name__ == 'HexPlugin'):
+							is_plugin_class = True
+					if is_plugin_class:
+						print("found plugin class \"%s\"" % cn)
+						self.modules[cn] = c	
 		
 	def getCopyMode(self):
 		return self.copy_mode
@@ -318,7 +340,7 @@ class HaxEditor(QMainWindow):
 
 	def createToolbar(self):
 		tb = self.addToolBar("Toolbar")
-		l = QLabel("Clipboard Copy:")
+		l = QLabel("Copy Mode:")
 		self.cb = QComboBox()
 		for v,nf in CLIPBOARD_CONVERT_TO.items():
 			print(nf)
@@ -334,9 +356,20 @@ class HaxEditor(QMainWindow):
 		for v,nf in CLIPBOARD_CONVERT_FROM.items():
 			(n,f) = nf
 			self.pm.addItem(n,v)	
-
+			
 		tb.addWidget(l)
 		tb.addWidget(self.pm)
+
+		l = QLabel("Text Encoding:")
+		self.enc = QComboBox()
+# 		for v,nf in aliases.items():
+		self.enc.addItems(aliases)	
+			
+		self.enc.setCurrentIndex(self.enc.findText('utf8', QtCore.Qt.MatchFixedString))			
+		tb.addWidget(l)
+		tb.addWidget(self.enc)
+
+
 		self.pm.currentIndexChanged.connect(self.paste_mode)
 
 	def copy_mode(self,arg):
@@ -458,6 +491,7 @@ class HaxEditor(QMainWindow):
 
 if __name__ == '__main__':
 	app = QApplication([])
+	
 
 	parser = argparse.ArgumentParser()
 

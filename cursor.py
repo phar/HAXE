@@ -62,9 +62,6 @@ class Cursor(QObject):
 		self._selection.active = True
 		self.changed.emit(self._selection)		
 
-# 	def clearSelect(self):
-# 		self.setSelection(Selection(self._address))		
-# 		
 # 	@property
 	def getAddress(self):
 		return self._selection.start

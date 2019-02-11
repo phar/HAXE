@@ -208,17 +208,20 @@ class HexDialog(QMainWindow):
 		else:
 			self.isActiveWindow = False
 
-	def cut(self,tup):
-		print("cut!")		
-	
-			
-	def delete(self,tup):
+	def cut(self,selection):
+		print("cut!")	
+		self.copy(selection)	
+		self.delete(selection)
+				
+	def delete(self,selection):
 		print("delete!")		
-		
+		self.hexWidget.viewport().update()
+	
 	def edit(self,tup):
 		(selection,edit) = tup
 		self.filebuff.addEdit(selection,edit)
-		
+		self.hexWidget.viewport().update()
+
 	def paste(self,selection):
 		print("paste!")		
 		cb = QApplication.clipboard()
@@ -258,8 +261,12 @@ class HexWidget(QAbstractScrollArea):
 		self.debug = False		
 		self.filebuff = fileobj	
 		self.parent = parent
-		self.fontsize = fontsize
-		self.font = font
+		self.cursorBlinkInterval = None
+		self.cursorTimer = None
+		self.fontsize = None
+		self.font = None
+		self.charWidth = 0
+		self.charHeight = 0
 		self.fontsize = fontsize
 		self.addressformat = "{:x}"
 		self.hexcharformat = "{:02x} "
@@ -275,24 +282,24 @@ class HexWidget(QAbstractScrollArea):
 		self.pos = 0
 		self.magic_font_offset = 4
 		self.backgroundStripes = True
+		
 		self.cursor = Cursor(self, 0,0)
-		self.cursor.changed.connect(self.select_changed)
-		self.cursorBlinkInterval = None
-		self.cursorTimer = None
+		self.setWidgetFont("Courier",12)
+		
+		self.cursor.changed.connect(self.selectionChanged.emit)
+		self.cursor.changed.connect(self.cursorMove)		
+		self.cursor.startCursor(500)
+		self.horizontalScrollBar().setEnabled(False);
+		self.adjust()
 
+	def setWidgetFont(self,font="Courier",size=12):
+		self.font = font
+		self.fontsize = size
 		self.setFont(QFont(self.font, self.fontsize))
+		
 		self.charWidth = self.fontMetrics().width("2")
 		self.charHeight = self.fontMetrics().height()
 
-# 		self.viewport().setCursor(Qt.IBeamCursor)
-
-		self.cursor.changed.connect(self.cursorMove)		
-		self.adjust()
-		self.cursor.startCursor(500)
-		self.horizontalScrollBar().setEnabled(False);
-
-	def select_changed(self,selection):
-		self.selectionChanged.emit(selection)
 		
 	def toggleAddressFormat(self):
 		if 	self.addressformat == "{:d}":
@@ -324,11 +331,11 @@ class HexWidget(QAbstractScrollArea):
 	def addr_start(self):
 		return 1
 
-	def data_start(self):
+	def hex_start(self):
 		return self.addr_start() + self.getAddressFormatLen() + self.gap2
 	
-	def code_start(self):
-		return self.data_start() + self.getDataLength() + self.gap3
+	def ascii_start(self):
+		return self.hex_start() + self.getHexLength() + self.gap3
 
 	def getLine(self, pos=0):
 		return (pos, self.bpl, self.filebuff[pos:pos+self.bpl])
@@ -363,7 +370,7 @@ class HexWidget(QAbstractScrollArea):
 		return int(ceil(float(self.viewport().height())/self.charHeight))
 
 	def totalCharsPerLine(self):
-		return  self.getAddressFormatLen()  + self.gap2 + self.getDataLength() + self.gap3 + self.getCodeLength() + self.gap4
+		return  self.getAddressFormatLen()  + self.gap2 + self.getHexLength() + self.gap3 + self.bpl + self.gap4
 
 	def adjust(self):
 		self.horizontalScrollBar().setRange(0, self.totalCharsPerLine() - self.visibleColumns() + 1)
@@ -394,13 +401,13 @@ class HexWidget(QAbstractScrollArea):
 
 	def pxCoordToAddr(self, coord):
 		column, row = self.pxToCharCoords(coord.x(), coord.y())
-		if column >= self.data_start() and column < self.code_start():
-			rel_column = (column-self.data_start() / 2)
+		if column >= self.hex_start() and column < self.ascii_start():
+			rel_column = (column-self.hex_start() / 2)
 			line_index = rel_column - (rel_column / self.getHexCharFormatLen())
 			addr = self.pos + line_index/2 + row * self.bpl
 			return  addr
-		elif column >=  self.code_start():
-			rel_column = column-self.code_start() 
+		elif column >=  self.ascii_start():
+			rel_column = column-self.ascii_start() 
 			addr = self.pos + rel_column + row * self.bpl
 			return  addr
 
@@ -409,14 +416,14 @@ class HexWidget(QAbstractScrollArea):
 		cy = int(rel_index / self.bpl) 
 		line_index = rel_index % self.bpl
 		rel_column = line_index * self.getHexCharFormatLen()
-		cx = rel_column + self.data_start()
+		cx = rel_column + self.hex_start()
 		return (cx, cy)
 
 	def indexToAsciiCharCoords(self, index):
 		rel_index = index - self.pos
 		cy = int(rel_index / self.bpl)
 		line_index = rel_index % self.bpl
-		cx = line_index + self.code_start()
+		cx = line_index + self.ascii_start()
 		return (cx, cy)
 
 	def cursorToHexRect(self, cur):
@@ -435,10 +442,10 @@ class HexWidget(QAbstractScrollArea):
 		return ascii_rect
 
 	def charAtCursor(self, cursor):
-		code_char = self.filebuff[cursor.getAddress()]
-		hexcode = self.hexcharformat.strip().format(ord(code_char))
+		ascii_char = self.filebuff[cursor.getAddress()]
+		hexcode = self.hexcharformat.strip().format(ord(ascii_char))
 		hex_char = hexcode[cursor.getNibble()]
-		return (hex_char, code_char)
+		return (hex_char, ascii_char)
 
 	# ====================  Event Handling  ==============================
 
@@ -447,7 +454,8 @@ class HexWidget(QAbstractScrollArea):
 		if((event.pos().x()/self.charWidth) < (self.getAddressFormatLen() + self.gap2)):
 			self.ActiveView = 'addr'
 			self.toggleAddressFormat()
-		elif ((self.getAddressFormatLen() + self.gap2 + self.getDataLength())  > (event.pos().x()/self.charWidth) > (self.getAddressFormatLen() + self.gap2)):
+			self.viewport().update()
+		elif ((self.getAddressFormatLen() + self.gap2 + self.getHexLength())  > (event.pos().x()/self.charWidth) > (self.getAddressFormatLen() + self.gap2)):
 			self.ActiveView = 'hex'
 		else:
 			self.ActiveView = 'ascii'
@@ -495,8 +503,8 @@ class HexWidget(QAbstractScrollArea):
 				bottomright_ascii = QPoint(self.charToPxCoords(cx_end_ascii, line))
 				
 			else:
-				bottomright_hex = QPoint(self.charToPxCoords(self.code_start() - self.gap2, line))
-				bottomright_ascii = QPoint(self.charToPxCoords(self.code_start() + self.bpl, line))
+				bottomright_hex = QPoint(self.charToPxCoords(self.ascii_start() - self.gap2, line))
+				bottomright_ascii = QPoint(self.charToPxCoords(self.ascii_start() + self.bpl, line))
 
 			bottomright_hex += QPoint(0, self.charHeight)				
 			bottomright_ascii += QPoint(0, self.charHeight)
@@ -504,14 +512,14 @@ class HexWidget(QAbstractScrollArea):
 			painter.fillRect(QRect(topleft_ascii, bottomright_ascii), selection.color)
 			
 		elif line > cy_start_hex and line <= cy_end_hex:
-			topleft_hex = QPoint(self.charToPxCoords(self.data_start(), line))
-			topleft_ascii = QPoint(self.charToPxCoords(self.code_start(), line))
+			topleft_hex = QPoint(self.charToPxCoords(self.hex_start(), line))
+			topleft_ascii = QPoint(self.charToPxCoords(self.ascii_start(), line))
 			if line == cy_end_hex:
 				bottomright_hex = QPoint(self.charToPxCoords(cx_end_hex, line))
 				bottomright_ascii = QPoint(self.charToPxCoords(cx_end_ascii, line))					
 			else:
-				bottomright_hex = QPoint(self.charToPxCoords(self.code_start() - self.gap2, line))
-				bottomright_ascii = QPoint(self.charToPxCoords(self.code_start() + self.bpl, line))
+				bottomright_hex = QPoint(self.charToPxCoords(self.ascii_start() - self.gap2, line))
+				bottomright_ascii = QPoint(self.charToPxCoords(self.ascii_start() + self.bpl, line))
 
 			bottomright_hex += QPoint(0, self.charHeight)	
 			bottomright_ascii += QPoint(0, self.charHeight)
@@ -532,7 +540,7 @@ class HexWidget(QAbstractScrollArea):
 
 	def paintHex(self, painter, row, column):
 		addr = self.pos + row * self.bpl + column
-		topleft = self.charToPxCoords(column*self.getHexCharFormatLen() + self.data_start(), row)
+		topleft = self.charToPxCoords(column*self.getHexCharFormatLen() + self.hex_start(), row)
 		bottomleft = topleft + QPoint(0, self.charHeight-self.magic_font_offset)
 		byte = self.getHexCharFormat().format(self.filebuff[addr])
 		size = QSize(self.charWidth*self.getHexCharFormatLen(), self.charHeight)
@@ -558,7 +566,7 @@ class HexWidget(QAbstractScrollArea):
 
 	def paintAscii(self, painter, row, column):
 		addr = self.pos + row * self.bpl + column
-		topleft = self.charToPxCoords(column + self.code_start(), row)
+		topleft = self.charToPxCoords(column + self.ascii_start(), row)
 		bottomleft = topleft + QPoint(0, self.charHeight-self.magic_font_offset)
 		byte = self.toAscii(bytearray([self.filebuff[addr]]))
 		size = QSize(self.charWidth, self.charHeight)
@@ -605,21 +613,21 @@ class HexWidget(QAbstractScrollArea):
 					painter.fillRect(self.cursorRectAscii(), Qt.gray)
 			return
 
-		data_width = self.getDataLength()
+		hex_width = self.getHexLength()
 		addr_width = self.getAddressFormatLen()
 		addr_start = self.addr_start()
 
-		data_start = addr_start + addr_width + self.gap2
-		code_start = data_start + data_width + self.gap3
+		hex_start = addr_start + addr_width + self.gap2
+		ascii_start = hex_start + hex_width + self.gap3
 
 		hs = self.horizontalScrollBar().value()
 		addr_start -= hs
-		code_start -= hs
-		data_start -= hs
+		ascii_start -= hs
+		hex_start -= hs
 
 		addr_start *= self.charWidth
-		data_start *= self.charWidth
-		code_start *= self.charWidth
+		hex_start *= self.charWidth
+		ascii_start *= self.charWidth
 
 		self.pos = self.verticalScrollBar().value() * self.bpl
 
@@ -666,20 +674,19 @@ class HexWidget(QAbstractScrollArea):
 	def getAddressWidth(self):
 		return self.getAddressFormatLen() * self.charWidth
 	
-	def getDataLength(self, bpl=None):
-		return (self.getCodeLength(bpl) * self.getDataFormatLen())
+	def getHexLength(self, bpl=None):
+		return (self.getAsciiLength(bpl) * self.getHexFormatLen())
 	
-	def getCodeLength(self,bpl=None):
+	def getAsciiLength(self,bpl=None):
 		if bpl == None:
 			return self.bpl
 		else:
 			return bpl
 	
-	def getDataFormatLen(self):
+	def getHexFormatLen(self):
 		return  len(self.hexcharformat.format(0))
 		
 	def getAddressFormatLen(self):
-# 		return 8
 		return len(self.getAddressFormat().format(self.cursor.getAddress() + (self.visibleLines() * self.bpl)))
 
 	def cursorMove(self, selection):
