@@ -2,18 +2,13 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 class Selection(QObject):
-	def __init__(self, start=None, end=None, active=True, color=Qt.green):
+	def __init__(self, start=0, end=None, active=True, color=Qt.green):
 		super(Selection, self).__init__()
-		if end == None:
-			end = start
-
-		if start <=  end :
-			self._start = int(start)
+		self._start = int(start)
+		if end is not None:
 			self._end = int(end)
 		else:
-			self._start = int(end)
-			self._end = int(start)
-		
+			self._end = self._start
 		self.active = active
 		self.color = color
 
@@ -24,35 +19,40 @@ class Selection(QObject):
 		if  (self._end == None) or  (self._start == None):
 			return 0		
 		else:
-			return self._end - self._start
+			return abs(self._end - self._start)
 
 	def getRange(self):
-		return (self._start, self._end)
+		return (min(self._start, self._end), max(self._start, self._end))
 		
 	def contains(self, address):
-		return int(address) in range(self._start,  self._end)
-
-	# enforce that start <= end
+		if self._start != None and self._end != None:
+			return int(address) in range(self._start,  self._end, 1 if self._start > self._end else -1)
+		else:
+			return 0
+				
 	@property
 	def start(self):
 		return self._start
-
+				
 	@start.setter
 	def start(self, value):
-		if not self.active:
-			self._start = self._end = int(value)
-			return
-		self._start = min(value, self.end)
-		self._end = max(value, self.end)
+		self._start = int(value)
+		if self._end is None:
+			self._end = self._start
 
 	@property
 	def end(self):
 		return self._end
-
+							
 	@end.setter
 	def end(self, value):
-		if not self.active:
-			self._start = self._end = int(value)
-			return
-		self._end = max(value, self.start)
-		self._start = min(value, self.start)
+		if value is not None:
+			if self._start is  None:
+				self._start =  int(value) 
+				self._end =  int(value) 
+			else:
+				self._end =  int(value) 
+		else:
+			self._end = self._start
+		
+	
