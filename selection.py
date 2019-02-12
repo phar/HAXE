@@ -25,8 +25,9 @@ class Selection(QObject):
 		return (min(self._start, self._end), max(self._start, self._end))
 		
 	def contains(self, address):
-		if self._start != None and self._end != None:
-			return int(address) in range(self._start,  self._end, 1 if self._start > self._end else -1)
+		if self._start != None and self._end != None:			
+			(st,ed) = self.getRange()
+			return int(address) in range(st,ed)
 		else:
 			return 0
 				
@@ -36,7 +37,11 @@ class Selection(QObject):
 				
 	@start.setter
 	def start(self, value):
-		self._start = int(value)
+		if int(value) > 0:
+			self._start = int(value)
+		else:
+			self._start = 0;
+			
 		if self._end is None:
 			self._end = self._start
 
@@ -45,13 +50,17 @@ class Selection(QObject):
 		return self._end
 							
 	@end.setter
-	def end(self, value):
+	def end(self, value):				
 		if value is not None:
 			if self._start is  None:
 				self._start =  int(value) 
 				self._end =  int(value) 
 			else:
-				self._end =  int(value) 
+				if int(value) > 0:
+					self._end = int(value)
+				else:
+					self._end = 0;
+	# 			self._end =  int(value) 
 		else:
 			self._end = self._start
 		

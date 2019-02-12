@@ -49,27 +49,24 @@ from docks import *
 
 
 
-CLIPBOARD_MODE_RAW				=1
-CLIPBOARD_MODE_ASCII_ISPRINT	=2
-CLIPBOARD_MODE_ASCII_ONLY		=3
-CLIPBOARD_MODE_CHEX				=4
-CLIPBOARD_MODE_CHEX_ISPRINT		=5
-CLIPBOARD_MODE_HEX_STRING		=6
+CLIPBOARD_MODE_RAW				=0
+CLIPBOARD_MODE_CHEX				=1
+CLIPBOARD_MODE_HEX_STRING		=2
 
 
 
 
-CLIPBOARD_CONVERT_TO = {
-	CLIPBOARD_MODE_RAW : ("RAW", lambda x : bytearray([y if chr(y) in string.printable else 0x20 for y in x])),
-	CLIPBOARD_MODE_CHEX : ("C-Hex",lambda x : "".join(["\\x%02x" % y for y in x])),
-	CLIPBOARD_MODE_HEX_STRING : ("Hex string",lambda x : " ".join(["%02x" % y for y in x])),
-}
+CLIPBOARD_CONVERT_TO = [
+	("RAW", lambda x : bytearray([y if chr(y) in string.printable else 0x20 for y in x])),
+	("C-Hex",lambda x : "".join(["\\x%02x" % y for y in x])),
+	("Hex string",lambda x : " ".join(["%02x" % y for y in x])),
+]
 
-CLIPBOARD_CONVERT_FROM = {
-	CLIPBOARD_MODE_RAW : ("RAW",lambda x : bytearray([y for y in x])),
-	CLIPBOARD_MODE_CHEX_ISPRINT : ("C-Hex",lambda x: bytearray([y for y in x.decode('unicode_escape')])),
-	CLIPBOARD_MODE_HEX_STRING : ("Hex string",  lambda x : bytearray([int(y,16) for y in x.split()])),
-}
+CLIPBOARD_CONVERT_FROM = [
+	("RAW",lambda x : bytearray([y for y in x])),
+	("C-Hex",lambda x: bytearray([y for y in x.decode('unicode_escape')])),
+	("Hex string",  lambda x : bytearray([int(y,16) for y in x.split()])),
+]
 
 
 class Delegate(QItemDelegate):
@@ -104,6 +101,10 @@ class HaxeAPI(QObject):
 		self.reloadPlugins()
 		
 		
+	def getConverters(self):
+		return(CLIPBOARD_CONVERT_FROM,CLIPBOARD_CONVERT_TO)
+	
+	
 	def reloadPlugins(self):
 		self.modules = {}
 		fl = glob.glob(os.path.join("plugins","*.py"))
@@ -124,14 +125,14 @@ class HaxeAPI(QObject):
 		return self.copy_mode
 		
 	def getPasteMode(self):
-		self.paste_mode
+		return self.paste_mode
 
 	def getCopyModeFn(self):
+		print(self.copy_mode)
 		return CLIPBOARD_CONVERT_TO[self.copy_mode][1]
 		
 	def getPasteModeFn(self):
 		return CLIPBOARD_CONVERT_FROM[self.paste_mode][1]
-
 		
 	def isActiveWindow(self,filename):
 		return self.activefocusfilename == filename
@@ -210,6 +211,9 @@ class HaxeAPI(QObject):
 			print( x)
 			raise
 		return y
+		
+	def getStruct(self,name):
+		return self.structs[name]
 		
 	def getStructList(self):
 		return [x for x,y in self.structs.items()]
@@ -299,7 +303,23 @@ class HaxEditor(QMainWindow):
 		self.api.structChanged.connect(self.structChanged);
 	
 		self.open_file(args.filename)
+		self.setAcceptDrops(True)
+	
 
+	def dragEnterEvent(self, e):
+		if e.mimeData().hasText():#only accept files that i can opn
+			t = e.mimeData().text() 
+			if t[:7] == 'file://' and os.path.exists(t[7:]):
+				e.accept()
+			else:
+				e.ignore()
+		else:
+			e.ignore()
+
+	def dropEvent(self, e):
+		fn = e.mimeData().text()[7:]
+		print("drag",fn)      	
+		self.open_file(fn)
 	
 	
 	def structChanged(self):
@@ -342,34 +362,30 @@ class HaxEditor(QMainWindow):
 		tb = self.addToolBar("Toolbar")
 		l = QLabel("Copy Mode:")
 		self.cb = QComboBox()
-		for v,nf in CLIPBOARD_CONVERT_TO.items():
-			print(nf)
+		for nf in CLIPBOARD_CONVERT_TO:
 			(n,f) = nf
-			self.cb.addItem(n,v)	
+			self.cb.addItem(n)	
 				
 		tb.addWidget(l)
 		tb.addWidget(self.cb)
-		self.cb.currentIndexChanged.connect(self.copy_mode)
+# 		self.cb.currentIndexChanged.connect(self.copy_mode)
 
 		l = QLabel("Paste Mode:")
 		self.pm = QComboBox()
-		for v,nf in CLIPBOARD_CONVERT_FROM.items():
+		for nf in CLIPBOARD_CONVERT_FROM:
 			(n,f) = nf
-			self.pm.addItem(n,v)	
+			self.pm.addItem(n)	
 			
 		tb.addWidget(l)
 		tb.addWidget(self.pm)
 
-		l = QLabel("Text Encoding:")
-		self.enc = QComboBox()
-# 		for v,nf in aliases.items():
-		self.enc.addItems(aliases)	
-			
-		self.enc.setCurrentIndex(self.enc.findText('utf8', QtCore.Qt.MatchFixedString))			
-		tb.addWidget(l)
-		tb.addWidget(self.enc)
-
-
+# 		l = QLabel("Text Encoding:")
+# 		self.enc = QComboBox()
+# 		self.enc.addItems(aliases)			
+# 		self.enc.setCurrentIndex(self.enc.findText('utf8', QtCore.Qt.MatchFixedString))			
+# 		tb.addWidget(l)
+# 		tb.addWidget(self.enc)
+		self.cb.currentIndexChanged.connect(self.copy_mode)
 		self.pm.currentIndexChanged.connect(self.paste_mode)
 
 	def copy_mode(self,arg):

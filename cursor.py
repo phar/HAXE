@@ -12,7 +12,7 @@ class Cursor(QObject):
 	def __init__(self, parent, address=0, nibble=0):
 		super(Cursor, self).__init__()
 		self.parent = parent
-		self._selection = Selection(0,None,active=False, color=self.parent.palette().color(QPalette.HighlightedText))# 		self._address = int(address)
+		self._selection = Selection(0,None,active=False)
 		self._nibble = nibble
 		self.blink = False
 	
@@ -54,7 +54,6 @@ class Cursor(QObject):
 		if selection.start:
 			self._selection.start = selection.start
 		self._selection.end = selection.end
-		print (self._selection)
 		self.changed.emit(self._selection)		
 		
 	def setSelection(self,selection):
@@ -101,7 +100,6 @@ class Cursor(QObject):
 		if not shift:
 			self._selection.end = self._selection.start
 		if update:
-			print(self._selection)
 			self.changed.emit(self._selection)	
 
 			
