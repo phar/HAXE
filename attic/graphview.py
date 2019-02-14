@@ -18,8 +18,10 @@
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from math import *
-from Queue import PriorityQueue
-
+# from Queue import PriorityQueue
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
 
 class NameDialog(QDialog):
     def __init__(self, node):
@@ -40,7 +42,7 @@ class NameDialog(QDialog):
 
 
 class GraphicsButton(QGraphicsTextItem):
-    clicked = Signal()
+    clicked = pyqtSignal()
     def mousePressEvent(self, event):
         self.clicked.emit()
 
@@ -328,7 +330,7 @@ class GraphEdgeItem(QGraphicsItem):
         painter.setRenderHint(QPainter.Antialiasing, False)
 
 class MainView(QGraphicsView):
-    resized = Signal()
+    resized = pyqtSignal()
     def __init__(self, scene=None):
         super(MainView, self).__init__(scene)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -516,7 +518,7 @@ class Ida(QWidget):
     def layout_graph(self):
         pass
 
-	def populate(self): # ambitious my friend.. i like how you think..
+    def populate(self): # ambitious my friend.. i like how you think..
         self.nodes = nodes = []
         self.edges = edges = []
         scene = self.scene

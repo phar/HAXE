@@ -6,14 +6,13 @@ to replace the parsed structure values
 
 
 change hilight cololor between ascii and hex sides depending on which selection is active
-confirm safe
+confirm save
 confirm large file mode
 plugin scripts
-structure at location
 re-add virtical lines in hex view
-structure @ address
-* missing features
-
+resize width
+edit struct fields by double clicking
+diffing using difflib
 
 
    
@@ -37,26 +36,20 @@ structure @ address
 ** TODO diff files and regions
    - beyondcompare-like context menu: "select left side to compare"...
 
-** TODO file explorer
 
-** TODO regex builder?
 ** TODO bookmarks / favourites
-** TODO tabbed interface for multiple open files
-** TODO open disk / process / partial files
-   - specify offset & length when opening a file
-   - add choice to mmap the file instead of reading it into ram
+
+   
 ** TODO import / export
    - intel hex (with sparse support)
    - ...
-** TODO undo tree like emacs
-   - maybe use graphview widget for undo tree display?
-** TODO rectangle selection mode?
+
 
 ** TODO bitmap view
 
 ** TODO Jump to address for values that are also valid 32bit addresses - started
 
-** TODO multiple views for same file - i can kind of support this now.. not sure how it will work out workflow wise
+
 
 ** TODO view as hex/oct/dec/bin?
 
@@ -67,29 +60,10 @@ structure @ address
    
 ** TODO allow syncrhonized scrolling in multiple buffers - good idea added a checkbox to sync checked windows
 
-* user interface
-** selection
-   - selection possibility on right side
-   - boxes around selection or parsed structs? so that content can be color coded
-   
+
 ** display
    - make everything configurable
      - font
      - address view (hex / dec / oct / off, length, ...)
      - data view (hex / dec / oct / bin, grouping, separator lines, bytes per line, ...)
-     - ascii view (
 
-
-
-#probably wont do the ones below these, its python, you dan do them yourself with the API
-** TODO disassembler
-   - see pure python disassemblers from vivisect
-   - also include assembler?
-   - maybe even search / replace for asm?
-   
-   ** look at python libs for binary parsing
-   - pyelftools
-     is actually construct based
-   - pefile
-     uses 'struct'
-   - ...

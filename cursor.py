@@ -15,7 +15,7 @@ class Cursor(QObject):
 		self._selection = Selection(0,None,active=False)
 		self._nibble = nibble
 		self.blink = False
-	
+		self.startCursor(500)
 
 	def updateCursor(self):
 		self.blink = not self.blink
@@ -32,8 +32,7 @@ class Cursor(QObject):
 	def getSelection(self):
 		self._selection.color = self.parent.palette().color(QPalette.Highlight)
 		return self._selection
-	
-	
+		
 	def setCursorPosistion(self, pos):
 		self._selection.start = self, pos
 		self._selection.end = self._selection.start
@@ -81,14 +80,6 @@ class Cursor(QObject):
 		self.changed.emit(self._selection)
 
 	def update(self, other_cursor):
-# 		changed = False
-# 		if not self._address == other_cursor.getAddress():
-# # 			self._address = other_cursor.getAddress()
-# 			changed = True
-# 		if not self._nibble == other_cursor.getNibble():
-# 			self._nibble = other_cursor.getNibble()
-# 			changed = True
-# 		if changed:
 		self.changed.emit(self._selection)
 
 
@@ -115,7 +106,7 @@ class Cursor(QObject):
 		if update:
 			self.changed.emit(self._selection)	
 	
-	def rewind(self, amount, shift=False,):
+	def rewind(self, amount, shift=False):
 		for i in range(int(amount)):
 			self.left(shift,False)						
 			self.left(shift,False)						

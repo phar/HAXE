@@ -2,7 +2,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 
 class Selection(QObject):
-	def __init__(self, start=0, end=None, active=True, color=Qt.green):
+	def __init__(self, start=0, end=None, active=True, color=Qt.green, obj=None):
 		super(Selection, self).__init__()
 		self._start = int(start)
 		if end is not None:
@@ -10,6 +10,7 @@ class Selection(QObject):
 		else:
 			self._end = self._start
 		self.active = active
+		self.obj = obj
 		self.color = color
 
 	def __repr__(self):	

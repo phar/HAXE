@@ -34,30 +34,24 @@ import string
 import importlib
 import construct
 from encodings.aliases import aliases
-
 import argparse
 from matplotlib.pyplot import *
-import binwalk
-# # %matplotlib inline
 
 # own submodules
 from hexwidget import *
 from ipythonwidget import *
 from cursor import *
 from docks import *
+import traceback
 #from mmapslice import *
-
 
 
 CLIPBOARD_MODE_RAW				=0
 CLIPBOARD_MODE_CHEX				=1
 CLIPBOARD_MODE_HEX_STRING		=2
 
-
-
-
 CLIPBOARD_CONVERT_TO = [
-	("RAW", lambda x : bytearray([y if chr(y) in string.printable else 0x20 for y in x])),
+	("RAW", lambda x : "".join([chr(y) if chr(y) in string.printable else ' ' for y in x])),
 	("C-Hex",lambda x : "".join(["\\x%02x" % y for y in x])),
 	("Hex string",lambda x : " ".join(["%02x" % y for y in x])),
 ]
@@ -69,16 +63,34 @@ CLIPBOARD_CONVERT_FROM = [
 ]
 
 
-class Delegate(QItemDelegate):
-    def __init__(self):
-        super(Delegate, self).__init__()
-        self.validator = QIntValidator()
 
-    def setModelData(self, editor, model, index):
-        print (editor, model, index)
-        editor = QLineEdit(editor)
-        editor.setValidator(self.validator)
-        super(Delegate, self).setModelData(editor, model, index)
+
+class StructEditor(QObject):
+	def __init__(self,parent, api):
+		super(StructEditor, self).__init__(parent)
+		self.editorwindow = self.structEditorWindow()
+		self.api = api
+		self.setStructOk()
+# 		return self.editorwindow
+
+	def structEditorWindow(self):
+		editorwindow = QTextEdit()
+		# qscintilla compatibility
+# 		editorwindow.text = self.editorwindow.toPlainText
+# 		editorwindow.setText = self.editorwindow.setPlainText
+# 		structeditor.setStyleSheet("background-color: rgb(255, 232, 232);")#red
+# 		structeditor.setFont(self.font)
+		editorwindow.setMinimumWidth(300)
+		return editorwindow
+			
+	def getParams(self):
+		return ("Struct Editor","Alt+S",self.editorwindow)
+			
+	def setStructOk(self):
+			self.editorwindow.setStyleSheet("background-color: rgb(255, 232, 232);")#red
+			
+	def setStructBad(self):
+			sself.editorwindow,setStyleSheet("background-color: rgb(232, 255, 232);")#green
 
 
 
@@ -86,6 +98,8 @@ class HaxeAPI(QObject):
 	activeWindowChanged = pyqtSignal(object)
 	structChanged = pyqtSignal(object)
 	structStatusChanged = pyqtSignal(object)
+	pluginLoadEvent = pyqtSignal(object)
+	pluginUnLoadEvent = pyqtSignal(object)
 	def __init__(self, parent):
 		super(HaxeAPI, self).__init__(parent)
 		self.activefocusfilename = None
@@ -98,29 +112,75 @@ class HaxeAPI(QObject):
 		self.structbuff = ""
 		self.structs = {}
 		self.modules = {}
-		self.reloadPlugins()
-		
+		self.loaded_plugins = {}
+		self.scanPlugins()
+		self.startPlugins()
+		self.settings = QSettings("phar", "haxe hex editor")
 		
 	def getConverters(self):
 		return(CLIPBOARD_CONVERT_FROM,CLIPBOARD_CONVERT_TO)
 	
 	
-	def reloadPlugins(self):
+	def scanPlugins(self):
 		self.modules = {}
 		fl = glob.glob(os.path.join("plugins","*.py"))
 		for f in fl:
-			a = importlib.import_module(".".join(os.path.split(".".join(f.split(".")[:-1]))))	
-			for cn in dir(a):
-				c  = getattr(a,cn)
-				if inspect.isclass(c):
-					is_plugin_class = False
-					for base in c.__bases__:
-						if (base.__name__ == 'HexPlugin'):
-							is_plugin_class = True
-					if is_plugin_class:
-						print("found plugin class \"%s\"" % cn)
-						self.modules[cn] = c	
+			try:
+				a = importlib.import_module(".".join(os.path.split(".".join(f.split(".")[:-1]))))
+				for cn in dir(a):
+					c  = getattr(a,cn)
+					if inspect.isclass(c):
+						is_plugin_class = False
+						for base in c.__bases__:
+							if (base.__name__ == 'HexPlugin'):
+								is_plugin_class = True
+						if is_plugin_class:
+							print("found plugin class \"%s\"" % cn)
+							self.modules[cn] = c	
+			except:
+				self.log("failed to load plugin from file %s due to errors" % f)
+				self.log("-------BEGIN PLUGIN_SIN-------")
+				traceback.print_exc()
+				self.log("-------END PLUGIN_SIN-------")
+				
+	def listSelectionPlugins(self):
+		ns = []
+		for n,m in self.loaded_plugins.items():
+			for pn, pf in m.pluginSelectionPlacement():
+				ns.append((pn,pf))	
+		return ns
+						
+	def startPlugins(self):
+		print(self.modules)
+		for n,m in self.modules.items():
+			try:
+				self.loaded_plugins[n] = m(self)
+				self.loaded_plugins[n].start()
+				self.pluginLoadEvent.emit(self.loaded_plugins[n])
+			except:
+				print("failed to start plugin %s" % n)
+				self.log("-------BEGIN PLUGIN_SIN-------")
+				traceback.print_exc()
+				self.log("-------END PLUGIN_SIN-------")
+
+	def unloadPlugin(self, n):
+		if n in loaded_plugins:
+			try:
+				self.loaded_plugins[n].stop()
+				del(self.loaded_plugins[n])
+				self.pluginUnLoadEvent.emit(self.loaded_plugins[n])
+			except:
+				print("failed to stop plugin %s" % n)
+				traceback.print_exc()
+
+	def reloadPlugins(self):
+		self.stopPlugins()
+		self.startPlugins()
 		
+	def stopPlugins(self):
+		for n,p in self.loaded_plugins.items():
+			self.unloadPlugin(n)
+			
 	def getCopyMode(self):
 		return self.copy_mode
 		
@@ -175,16 +235,29 @@ class HaxeAPI(QObject):
 	def saveFileAs(self):
 		self.filename = QFileDialog.getSaveFileName(self, "Save File as...")[0]
 		if self.filename:
-			self.statusBar().showMessage("Saving...")
+			self.api.log("Saving...")
 # 			open(self.filename, 'wb').write(self.data)
-			self.statusBar().showMessage("done.")
+			self.api.log("done.")
+			pass
 
 	def saveFile(self):
 		self.filename = QFileDialog.getSaveFileName(self, "Save File as...")[0]
 		if self.filename:
-			self.statusBar().showMessage("Saving...")
+			self.api.log("Saving...")
 			try:
-				self.statusBar().showMessage("wrote %s done." % self.filename)
+# 				self.statusBar().showMessage("wrote %s done." % self.filename)
+				msg = QMessageBox()
+				msg.setIcon(QMessageBox.Critical)
+				msg.setText("Save confirm.")
+				msg.setInformativeText("Are you really sure you want to save to the existing file?")
+				msg.setWindowTitle("Confirm Operation")
+				msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+				retval = msg.exec_()		
+				if retval == QMessageBox.Ok:
+					self.api.log("save confirmed.")
+					raise("FIXME")
+					self.api.log("save done.")
+
 			except:
 				msg = QMessageBox()
 				msg.setIcon(QMessageBox.Critical)
@@ -192,7 +265,7 @@ class HaxeAPI(QObject):
 				msg.setInformativeText("This is probably because you dont have permissions to write to the file.")
 				msg.setWindowTitle("Critical Error")
 				msg.setStandardButtons(QMessageBox.Ok)
-				self.statusBar().showMessage("save failed.")
+				self.api.log("save failed.")
 				retval = msg.exec_()		
 		
 
@@ -201,7 +274,8 @@ class HaxeAPI(QObject):
 		return filename
 			
 	def log(self, logmsg):
-		self.qtparent.statusBar().showMessage(logmsg) 
+		print(logmsg)
+# 		self.qtparent.statusBar().showMessage(logmsg) 
 
 
 	def foo(self, x): #fixme
@@ -228,13 +302,16 @@ class HaxeAPI(QObject):
 			cons = ns[name]
 			self.structs[name] = cons
 
-	def closeEvent(self, event):
-
-		settings = QSettings("phar", "haxe hex editor")
-		settings.setValue("geometry", self.saveGeometry())
-		settings.setValue("windowState", self.saveState())
-		QMainWindow.closeEvent(self, event)
-
+# 
+# 	def loadSettings(self):
+# # 		txt = self.obj.api.settings.value("%s.crcplugin.hash")
+# # 		index = self.crccb.findText(txt, Qt.MatchFixedString)
+# # 		if index >= 0:
+# # 			self.crccb.setCurrentIndex(index)
+# 		pass
+#        
+# 	def saveSettings(self):
+# # 		self.obj.api.settings.setValue("%s.crcplugin.hash",self.crccb.currentText())
 
 	
 	def getActiveFocus(self):
@@ -285,14 +362,15 @@ class HaxEditor(QMainWindow):
 
 		self.loadiPythonEnvironment("ipython.env")
 
-		(name, dock, window, action, shortcut) = self.createDock(self.structExplorerWindow)
-		self.docks[name] = {'dock':dock, 'window':window,'action':action,'shortcut':shortcut}				
-		self.viewmenu.addAction(self.docks[name]['action'])
-		
-		(name, dock, window, action, shortcut) = self.createDock(self.structEditorWindow)
-		self.docks[name] = {'dock':dock, 'window':window,'action':action,'shortcut':shortcut}		
-		self.viewmenu.addAction(self.docks[name]['action'])
-		
+# 		(name, dock, window, action, shortcut) = self.createDock(self.structExplorerWindow)
+# 		self.docks[name] = {'dock':dock, 'window':window,'action':action,'shortcut':shortcut}				
+# 		self.viewmenu.addAction(self.docks[name]['action'])
+# 		
+		self.structeditor = StructEditor(self,self.api)
+# 		(name, dock, window, action, shortcut) = self.createDock(self.structeditor)
+# 		self.docks[name] = {'dock':dock, 'window':window,'action':action,'shortcut':shortcut}		
+# 		self.viewmenu.addAction(self.docks[name]['action'])
+# 		
 		(name, dock, window, action, shortcut) = self.createDock(self.iPuthonWindow)
 		self.docks[name] = {'dock':dock, 'window':window,'action':action,'shortcut':shortcut}		
 		self.viewmenu.addAction(self.docks[name]['action'])
@@ -304,6 +382,7 @@ class HaxEditor(QMainWindow):
 	
 		self.open_file(args.filename)
 		self.setAcceptDrops(True)
+		self.loadSettings()
 	
 
 	def dragEnterEvent(self, e):
@@ -358,6 +437,26 @@ class HaxEditor(QMainWindow):
 		self.setWindowIcon(self.icon)
 
 
+	def loadSettings(self):
+		txt = self.api.settings.value("%s.copymode")
+		index = self.cb.findText(txt, Qt.MatchFixedString)
+		if index >= 0:
+			self.cb.setCurrentIndex(index)
+		txt = self.api.settings.value("%s.pastemode")
+		index = self.pm.findText(txt, Qt.MatchFixedString)
+		if index >= 0:
+			self.pm.setCurrentIndex(index)
+         
+	def saveSettings(self):
+		self.api.settings.setValue("%s.copymode",self.cb.currentText())
+		self.api.settings.setValue("%s.pastemode",self.pm.currentText())
+		self.api.settings.setValue("geometry", self.saveGeometry())
+		self.api.settings.setValue("windowState", self.saveState())
+
+	def closeEvent(self, event):
+		self.saveSettings()
+		QMainWindow.closeEvent(self, event)
+
 	def createToolbar(self):
 		tb = self.addToolBar("Toolbar")
 		l = QLabel("Copy Mode:")
@@ -395,23 +494,22 @@ class HaxEditor(QMainWindow):
 		self.api.setPasteMode(arg)
 
 
-	def structEditorWindow(self):
-		structeditor = QTextEdit()
-		# qscintilla compatibility
-		structeditor.text = structeditor.toPlainText
-		structeditor.setText = structeditor.setPlainText
-		structeditor.setStyleSheet("background-color: rgb(255, 232, 232);")#red
-		structeditor.setFont(self.font)
-		structeditor.setMinimumWidth(300)
-		
-		return ("Struct Editor","Alt+S",structeditor)
+# 	def structEditorWindow(self):
+# 		structeditor = QTextEdit()
+# 		# qscintilla compatibility
+# 		structeditor.text = structeditor.toPlainText
+# 		structeditor.setText = structeditor.setPlainText
+# 		structeditor.setStyleSheet("background-color: rgb(255, 232, 232);")#red
+# 		structeditor.setFont(self.font)
+# 		structeditor.setMinimumWidth(300)
+# 		
+# 		return ("Struct Editor","Alt+S",structeditor)
 			
-	def structExplorerWindow(self):
-		structexplorer = QTreeWidget()
-		structexplorer.setColumnCount(3)
-		structexplorer.setMinimumWidth(300)
-		
-		return ("Struct Explorer", "Alt+X", structexplorer)
+# 	def structExplorerWindow(self):
+# 		structexplorer = QTreeWidget()
+# 		structexplorer.setColumnCount(3)
+# 		structexplorer.setMinimumWidth(300)
+# 		return ("Struct Explorer", "Alt+X", structexplorer)
 
 	def loadiPythonEnvironment(self, filename="ipython.env"):
 		f = open(filename)

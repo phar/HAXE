@@ -1,23 +1,32 @@
+from binascii import *
+from math import *
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+import string
+import importlib
+import construct
 
 
 class HexPlugin():
-	def __init__(self,api):
+	def __init__(self,api,name):
 		self.api = api
+		self.name = name
 
 	def name(self):
 		raise "must implement"	
 
-	def load(self):
+	def start(self):
 		raise "must implement"	
 		
-	def unload(self):
+	def stop(self):
 		raise "must implement"	
 
-	def preRunGui(self, selection=None):
-		raise "must implement"	
+	def pluginMenuPlacement(self, selection=None):
+		return []
 		
-	def postRunGui(self, selection=None):
-		raise "must implement"	
-
-	def run(self, selection=None):
-		raise "must implement"	
+	def pluginSelectionPlacement(self, selection=None):
+		return []
+		
+	def pluginImporterExporterPlacement(self, selection=None):
+		return []

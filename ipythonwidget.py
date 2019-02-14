@@ -16,11 +16,9 @@ class IPythonWidget(RichJupyterWidget):
         except:
             return
 
-
         self.kernel = kernel = kernel_manager.kernel
         kernel.gui = 'qt4'
         kernel.shell.push(kwargs)
-
 
         self.kernel_client = kernel_client = kernel_manager.client()
         kernel_client.start_channels()

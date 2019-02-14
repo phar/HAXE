@@ -9,7 +9,7 @@ class FileBuffer(object):
 		self.modified = False
 		self.mode = 'overwrite';
 		self.editlist = []
-		self.editindex = 0
+		self.editindex = None
 		self.bufferlen = 0
 		self.readonly = False
 		self.largdocumentmode = largefile
@@ -33,36 +33,24 @@ class FileBuffer(object):
 		
 		self.bufferlen = len(self.data)		
 
-	def addEdit(self, selection, edit):
+	def addEdit(self, selection, edit):	
+		if self.editindex == None:
+			self.editindex = 0
+		else:
+			self.editindex += 1
+		self.editlist = self.editlist[:self.editindex]
 		self.editlist.append((selection.start, self[selection.start:selection.end], edit))
 		if not self.largdocumentmode:
 			if  (not isinstance(edit,int)):
 					print(edit)
-# 				if (len(edit) > 1):
 					if not self.largdocumentmode:	
 						if selection.end != None:
 							self.data = self.data[:selection.start] + edit + self.data[selection.end:]	
 						else:
 							self.data = self.data[:selection.start] + edit + self.data[selection.start:]	
 						self.bufferlen = len(self.data)
-# 					print("yep",type(edit))
 			else:
 				self.data[selection.start] = edit
-		self.editindex += 1
-
-# 	def __setitem__(self, key):
-# 		if isinstance(key, slice):
-# 			if key.stop == None:
-# 				stop = self.bufferlen
-# 			else:
-# 				stop = key.stop
-# 			
-# 			if key.start == None:
-# 				start = 0
-# 			else:
-# 				start = key.start
-
-
 
 	def __len__(self):
 		return self.bufferlen
@@ -94,9 +82,35 @@ class FileBuffer(object):
 				if (a-key) == 0:
 					t = e		
 		return t
-
+	
+	def redo(self):
+		if self.editindex != None and  self.editindex == len(self.editlist):
+			(addr, oldval, curval) = self.editlist[self.editindex ]
+			print(addr,oldval, curval)	
+			self.data = self.data[:addr] + curval + self.data[addr + len(oldval):]
+	
+			if self.editindex ==None:
+				self.editindex = 0
+			else:
+				self.editindex += 1
+		else:
+			print("no more undo levels")
+	
+	def undo(self):
+		if self.editindex != None:
+			print(self.editindex, len(self.editlist))
+			(addr, oldval, curval) = self.editlist[self.editindex]
+			print(addr,oldval, curval)	
+			self.data = self.data[:addr] + oldval + self.data[addr + len(curval):]
+			
+			if self.editindex == 0:
+				self.editindex = None
+			else:
+				self.editindex -= 1
+		else:
+			print("no more undo levels")
+					
 	def find(self, findbuf, start=None, end=None):
-		
 		return 0
 
 	def readOnly(self, tf):

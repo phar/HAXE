@@ -37,9 +37,9 @@ class TreeNode(object):
 
         if isinstance(self.value, dict): # struct
             for i, con in enumerate(self.cons.subcons):
-                if isinstance(con, ConstAdapter):
-                    self.children.append(TreeNode(con.value, i, self, con, con.name or "Magic", self.root))
-                else:
+#                 if isinstance(con, ConstAdapter):
+#                     self.children.append(TreeNode(con.value, i, self, con, con.name or "Magic", self.root))
+#                 else:
                     self.children.append(TreeNode(self.value[con.name], i, self, con, con.name, self.root))
 
         elif isinstance(self.value, list):
@@ -61,11 +61,11 @@ class TreeNode(object):
 
 
     def editable(self):
-        if isinstance(self.cons, ConstAdapter):
-            return False
-        if isinstance(self.value, (dict, list)):
-            return False
-        return True
+#         if isinstance(self.cons, ConstAdapter):
+#             return False
+#         if isinstance(self.value, (dict, list)):
+#             return False
+        return False
 
     def size(self):
         return len(self.cons.build(self.value))
@@ -240,9 +240,11 @@ if __name__ == '__main__':
     content = "\x05hello\x08world!!!"
     data = mmap.mmap(-1, len(content))
     data[:] = bytearray(content, "utf-8")
-    cons = Struct("foo",
-                  PascalString("first"),
-                  PascalString("second"))
+    cons = bar = Struct(
+    "foo" / Int16ul,
+    "bar" / Int32ul,
+    "baz" / Int64ul
+    ) 
     root1 = TreeNode(cons.parse(data), 0, None, cons, cons.name)
     root2 = TreeNode(cons.parse(data), 0, None, cons, cons.name)
     root3 = TreeNode(cons.parse(data), 0, None, cons, cons.name)
