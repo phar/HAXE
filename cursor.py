@@ -2,7 +2,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QMainWindow, QApplication
-import math
+# import math
 from selection import *
 
 class Cursor(QObject):

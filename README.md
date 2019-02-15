@@ -13,24 +13,24 @@ currently supporting such wild features as:
 	delete!
 	largefile support(a compromis that removes the above features.. labeled as a feature!)	
 	the above features from ascii or binary sides depending on where you placed the cursur!
-	undo!
 	copy paste binary data even though clipboard only likes strings!
 	active/passive cursor so you can tell where you are!
 	arrow key based cursor movement and selection using shift!
-	almost has an undo stack!
+	undo stack!
 	almost has a dynamic plugin architecture!
 	almost has functional structure support!
 	interactive python with a straightforward-ish Help() command and API
 	bugs i havnt found in my obsessive feature adding!
 	dynamic high contrast highlighting scheme 
+	struct support using construct!
+	savable bookmarks!
 	
 	
 still to come:
 	syncronizing documents 
 	different then ascii encodings
 	graphical view (bytes mapped to colors)
-	"make structure at location" and assosciated gui elements
-	plguin api that supports infinite expansion *cough*
+	loadable bookmarks
 </pre>
 <img src="imgs/snap.png">
 

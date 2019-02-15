@@ -1,7 +1,6 @@
-import mmap
 import os
-from math import *
 import time
+from math import *
 import string
 from cursor import *
 from selection import *
@@ -52,7 +51,7 @@ COLOR_PALETTE = [ #high contrast color mapping
         "#252F99", "#00CCFF", "#674E60", "#FC009C", "#92896B"
     ]
 
-QPalette.HighlightedText
+
 def hilo(r,g,b):
 	b = ((r * 299.0) + (g * 587.0) + (b * 114.0)) / 1000.0
 	if b < 128:
@@ -62,263 +61,8 @@ def hilo(r,g,b):
 
 def hexColorComplement(cstr):
         (r,g,b) = tuple(int(cstr[i:i+2], 16) for i in (1, 3 ,5))
-#         k = hilo(r, g, b)
-#         return "#" + "".join(["%02x" % x for x in tuple(k - u for u in (r, g, b))])
         return "#" + "".join(["%02x" % x for x in hilo(r,g,b)])
 
-class JumpToDialog(QDialog):
-	def __init__(self, parent , api):
-		super(JumpToDialog, self).__init__(parent)
-
-		self.api = api
-		layout = QFormLayout()
-		self.parent = parent
-		l = QLabel("Offset")
-		self.le1 = QLineEdit()
-		layout.addRow(l, self.le1)		
-
-		self.btn = QRadioButton("Hexidecimal")
-# 		self.le = QLineEdit()
-		layout.addRow(None,self.btn)		
-		self.btn1 = QRadioButton("Decimal")
-		layout.addRow(None,self.btn1)
-		self.btn1.setChecked(True)
-		self.setLayout(layout)
-		self.btn2 = QPushButton("Cancel")
-		self.btn3 = QPushButton("OK")
-		self.btn3.clicked.connect(self.dook)
-		self.btn2.clicked.connect(self.doclose)
-		layout.addRow(self.btn2,self.btn3)
-		self.setLayout(layout)
-		self.setWindowTitle("Jumt to Offset")
-
-	def dook(self):
-		addr = 0
-		if self.btn.isChecked():
-			addr = int(self.le1.text().replace("0x",""),16)
-		elif self.btn1.isChecked():
-			
-			addr = int(self.le1.text())
-		self.parent.goto(addr)
-# 		self.parent.hexWidget.viewport().update()
-						
-	def doclose(self):
-		self.close()
-
-
-
-class SearchDialog(QWidget):
-	def __init__(self, po=None,parent=None):
-		super(SearchDialog, self).__init__(parent)
-		self.lyt = QGridLayout()
-		self.setLayout(self.lyt)
-		self.parent = po
-# 		self.api = api
-		self.filename = self.parent.filebuff.filename
-		self.searchline = QLineEdit()
-		self.replaceLine = QLineEdit()
-		self.searchlinel = QLabel("Search")
-		self.pb_searchn = QPushButton("Find Next")
-		self.pb_searchp = QPushButton("Find Prev")
-		self.pb_replacen = QPushButton("Replace Next")
-		self.pb_replacen = QPushButton("Replace All")
-		self.pb_replace= QLabel("Replace")
-
-		self.lyt.addWidget(self.searchlinel, 0,0,1,1)
-		self.lyt.addWidget(self.searchline, 0, 1,1,2)
-
-		self.lyt.addWidget(self.pb_replace, 1,0,1,1)# 
-		self.lyt.addWidget(self.replaceLine, 1, 1,1,2)
-
-		l = QLabel("Mode:")
-		self.pm = QComboBox()
-		for nf in self.parent.api.getConverters()[0]:
-			(n,f) = nf
-			self.pm.addItem(n)	
-			
-		self.lyt.addWidget(l, 2, 1)
-		self.lyt.addWidget(self.pm, 2, 2)
-		
-
-# 		self.lyt.addWidget(self.pb_replace, 1,0,1,1)# 
-# 		self.lyt.addWidget(self.replaceLine, 1, 1,1,2)
-
-
-		self.search_a = QRadioButton("ASCII")
-		self.search_a.setChecked(True)
-		self.search_chex = QRadioButton("C Hex")
-		self.search_hex = QRadioButton("Hex String")
-		self.search_reg = QRadioButton("RegEx")
-
-
-
-# 		self.lyt.addWidget(self.search_a, 1, 0)
-# 
-# 		self.lyt.addWidget(self.searchline, 0, 0,1,3)
-# 		self.lyt.addWidget(self.search_a, 2, 0)
-# 		self.lyt.addWidget(self.search_hex, 2, 1)
-# 		self.lyt.addWidget(self.search_reg, 2, 2)
-
-
-# 		self.lyt.addWidget(self.pb_replacen, 3, 0)
-# 		self.lyt.addWidget(self.pb_replacep, 3, 1)
-# 		self.lyt.addWidget(self.pb_searchn, 3, 2)
-# 		self.lyt.addWidget(self.pb_searchn, 3, 3)
-
-		self.pb_search.clicked.connect(self.do_search)
-
-	def do_search(self):
-		phrase = self.searchline.text()
-		if self.search_a.isChecked():
-			index = self.parent.filebuff.find(phrase.encode('utf-8'), self.parent.cursor._selection.start)
-		elif self.search_chex.isChecked():
-			pass
-		elif self.search_hex.isChecked():
-			phrase = self.searchline.text().decode("hex").encode('utf-8')
-			index = self.parent.filebuff.find(phrase.encode('utf-8'), self.parent.cursor._selection.start)
-		
-		elif self.search_reg.isChecked():
-			pass			
-		if index >= 0:
-			self.api.openFiles[self.filename].goto(index)
-		else:
-			msg = QMessageBox()
-			msg.setIcon(QMessageBox.Information)
-			msg.setText("Search String was not found")
-			msg.setInformativeText("Search string not found.")
-			msg.setWindowTitle("Not found")
-			msg.setStandardButtons(QMessageBox.Ok)
-# 			self.statusBar().showMessage("search string not found")
-			retval = msg.exec_()		
-		
-		self.close()
-
-
-class HexDialog(QMainWindow):
-	saveEvent = QtCore.pyqtSignal(object)
-	pasteFailed = QtCore.pyqtSignal()
-	def __init__(self, api, parent=None,fileobj=None):
-		super(HexDialog, self).__init__(parent)
-		self.filebuff = fileobj
-		self.api = api
-		self.parent = parent
-		self.clipboardata = []
-		self.clipboarcopy = [] #fixme, replace with hash
-		self.isActiveWindow = False
-		self.hexWidget =  HexWidget(api,self,self.filebuff, font="Courier", fontsize=12)
-		splitter1 = QSplitter(Qt.Horizontal)	
-		self.setCentralWidget(splitter1)
-		splitter1.addWidget(self.hexWidget)
-			
-		self.bookmarks = QListWidget(self)
-		splitter1.addWidget(self.hexWidget)
-		splitter1.addWidget(self.bookmarks)
-		splitter1.setOrientation( Qt.Vertical)
-		splitter1.setSizes((999999,0))
-		self.statusBar = QStatusBar()
-		self.setStatusBar(self.statusBar)
-	
-	
-		self.api.activeWindowChanged.connect(self.active_notify)
-		self.hexWidget.selectionChanged.connect(self.select_changed)
-		self.hexWidget.copyEvent.connect(self.copy)
-		self.hexWidget.cutEvent.connect(self.cut)
-		self.hexWidget.deleteEvent.connect(self.delete)
-		self.hexWidget.pasteEvent.connect(self.paste)
-		self.hexWidget.editEvent.connect(self.edit)
-		self.hexWidget.focusEvent.connect(self.setFocus)
-		self.hexWidget.undoEvent.connect(self.undo)
-		self.hexWidget.undoEvent.connect(self.redo)
-
-	
-		self.hexWidget.findEvent.connect(self.search)
-	
-		self.synccheck = QCheckBox("Sync")
-		self.statusBar.addWidget(self.synccheck)
-		
-		self.selectstatus = QLabel("")
-		self.statusBar.addWidget(self.selectstatus)
-		
-		self.statusBar.show()
-
-	def undo(self,selection):
-		(start,end) = selection.getRange()
-		self.filebuff.undo()		
-		self.hexWidget.cursor.updateSelection(Selection(start, start))
-		self.hexWidget.viewport().update()
-
-	def redo(self,selection):
-		self.filebuff.redo()		
-		self.hexWidget.viewport().update()
-
-	def search(self):
-		self.dia = SearchDialog(self)
-		self.dia.show()
-		self.dia.raise_()
-		self.dia.activateWindow()
-		      	
-	def getSelection(self):
-		return self.hexWidget.getSelection()
-      	
-	def select_changed(self,selection):
-		(start,end) = selection.getRange()
-		if len(selection):
-			self.selectstatus.setText(" [%d bytes selected at offset 0x%x out of %d bytes]" % (len(selection), start, len(self.filebuff)))
-		else:
-			self.selectstatus.setText(" [offset 0x%x (%d) of %d bytes]" % (start,start, len(self.filebuff)))
-		self.selectstatus.repaint()
-
-	def setFocus(self):
-		self.api.setActiveFocus(self.filebuff.filename)
-
-	def active_notify(self, fn):
-		if fn == self.filebuff.filename:
-			self.isActiveWindow = True
-		else:
-			self.isActiveWindow = False
-
-	def cut(self,selection):
-		(start,end) = self.hexWidget.cursor._selection.getRange()
-		self.copy(selection)	
-		self.delete(selection)
-				
-	def delete(self,selection):
-		(start,end) = self.hexWidget.cursor._selection.getRange()
-		self.filebuff.addEdit(selection, b'')
-		self.hexWidget.cursor.updateSelection(Selection(start, start))
-		self.hexWidget.viewport().update()
-		
-	def edit(self,tup):
-		(selection,edit) = tup
-		self.filebuff.addEdit(selection,edit)
-		self.hexWidget.viewport().update()
-
-	def paste(self,selection):
-		cb = QApplication.clipboard()
-		if self.clipboarcopy == hash(cb.text()):
-			t = self.clipboardata	
-		else:
-			t = bytearray(cb.text(),'utf-8')
-						
-		try:
-			t = self.api.getPasteModeFn()(t)
-			self.filebuff.addEdit(selection, t)
-			(start,end) = self.hexWidget.cursor._selection.getRange()
-			self.hexWidget.goto(start)
-			self.hexWidget.cursor.updateSelection(Selection(start, start + len(t)))
-			self.hexWidget.viewport().update()			
-		except:
-			self.pasteFailed.emit()		
-	
-	def copy(self,slection):
-		(start,end)  = self.hexWidget.cursor._selection.getRange()
-		t = self.filebuff[start:end]			
-		self.clipboardata = t
-		cb = QApplication.clipboard()
-		t = self.api.getCopyModeFn()(t)
-		self.clipboarcopy  = hash(t)
-		cb.setText(t, mode=cb.Clipboard)
-		self.hexWidget.viewport().update()
 
 
 
@@ -334,7 +78,8 @@ class HexWidget(QAbstractScrollArea):
 	undoEvent = QtCore.pyqtSignal(object)	
 	redoEvent = QtCore.pyqtSignal(object)
 	selectAllEvent = QtCore.pyqtSignal(object)
-	
+	updateSelectionListEvent =  QtCore.pyqtSignal(object)
+	ctxtMenuEvent =  QtCore.pyqtSignal(object)
 	def __init__(self,api, parent=None, fileobj=None, font="Courier", fontsize=12):
 		super(HexWidget, self).__init__(parent)
 		self.api = api
@@ -352,8 +97,6 @@ class HexWidget(QAbstractScrollArea):
 		self.hexcharformat = "{:02x} "
 		self.ActiveView = 'hex'
 		self.highlights = []
-		self.structs = []
-		self.struct_hints = {}
 		self.dragactive = 0
 		# constants... NOT IF I HAVE ANYTHING TO SAY ABOUT IT
 		self.bpl = 16
@@ -397,60 +140,8 @@ class HexWidget(QAbstractScrollArea):
 		return self.cursor.getSelection()
 
 	def contextMenuEvent(self, event):
-		menu = QMenu(self)		
-
-		mnu = {} #fixme
-	
-		structmenu = QMenu("Structs")#this whole area uses variables slopily.. fixme	
-		mnu["structs"] = menu.addMenu(structmenu)
-	
-		for n in self.api.getStructList():
-			mnu[n] = structmenu.addAction("Struct %s here" % n, lambda n = n: self.structAtAddress(n,self.cursor._selection.start))	
+		self.ctxtMenuEvent.emit(event)
 		
-# 		for structs in self.pxToSelectionList(event.pos()):
-# 			mnu[n] = menu.addAction("Delete struct %s" % structs.obj[2].name, lambda n = n: self.structAtAddress(n,self.cursor._selection.start))	
-		
-		menu.addSeparator()
-		if len(self.cursor._selection):
-			mnu['annotate'] = menu.addAction("Annotate Selection")
-
-		pluginmenu = QMenu("Plugins")#this whole area uses variables slopily.. fixme	
-		mnu["pluginmenu"] = menu.addMenu(pluginmenu)
-	
-		pluginmenus = {}
-		for (n,fn) in self.api.listSelectionPlugins():
-			pluginmenus['plugin_%s' % n] = pluginmenu.addAction("%s from selection" % n, lambda n = n, fn = fn: self.selectionPluginRun(n,fn))
-		
-		action = menu.exec_(self.mapToGlobal(event.pos()))
-		if 'annotate' in mnu and action == mnu['annotate']:
-			text, ok = QInputDialog.getText(self, 'Annotate', 'Note:')	
-			if ok:
-				self.addSelection(self.cursor._selection.start,self.cursor._selection.end, obj=("note",text), color=self.getNextColor())
-		
-	def selectionPluginRun(self, pn,fn):
-		try:
-			fn(self)
-		except:
-			self.api.log("-------BEGIN PLUGIN_SIN-------")
-			traceback.print_exc()
-			self.api.log("-------END PLUGIN_SIN-------")
-
-		
-	def structAtAddress(self,struct,address):
-		print("define struct %s @ %08x" % (struct,address))
-		self.structs.append((struct,address))
-		self.refreshStructs()
-				
-	def refreshStructs(self):
-		for (structn, address) in self.structs:
-			s = self.api.getStruct(structn);
-			if s is not None:
-				t = s.parse(self.filebuff[self.cursor._selection.start:self.cursor._selection.start+s.sizeof()])
-				tally = 0
-				for  i in s.subcons:
-					self.addSelection(int(address+tally), int(address+tally + i.sizeof()),color=None,obj=("struct",structn,t,i))
-					tally += i.sizeof()
-		self.viewport().update()
 
 	def addr_start(self):
 		return 1
@@ -686,6 +377,7 @@ class HexWidget(QAbstractScrollArea):
 		if color == None:
 			color =  self.getNextColor()
 		self.highlights.append(Selection(start,end,True, color,obj))
+		self.updateSelectionListEvent.emit(self.highlights)
 
 	def paintHex(self, painter, row, column):
 		addr = self.pos + row * self.bpl + column

@@ -17,7 +17,7 @@
 
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
-from math import *
+# from math import *
 # from Queue import PriorityQueue
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *

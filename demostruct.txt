@@ -1,14 +1,17 @@
+
 foo = Struct(
     "foo" / Int16ul,
     "bar" / Int32ul,
     "baz" / Int64ul
     )
 
+
 baz = Struct(
     "foo" / Int16ul,
     "bar" / Int32ul,
     "baz" / Int64ul
     )
+
 
 bar = Struct(
     "foo" / Int16ul,
