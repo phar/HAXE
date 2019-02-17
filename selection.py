@@ -1,7 +1,11 @@
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+from PyQt5 import QtCore
+from PyQt5 import QtGui 
 
 class Selection(QObject):
+	selectionChanged = QtCore.pyqtSignal(object)
 	def __init__(self, start=0, end=None, active=True, color=Qt.green, obj=None):
 		super(Selection, self).__init__()
 		self._start = int(start)
@@ -38,13 +42,17 @@ class Selection(QObject):
 				
 	@start.setter
 	def start(self, value):
-		if int(value) > 0:
-			self._start = int(value)
-		else:
-			self._start = 0;
-			
-		if self._end is None:
-			self._end = self._start
+# 		if int(value) > 0:
+# 			if  self._start != int(value):
+		self._start = int(value)
+		self.selectionChanged.emit(self.getRange())
+# 		else:
+# 			self._start = 0;
+# 			self.selectionChanged.emit(self.getRange())
+# 			
+# 		if self._end is None:
+# 			self._end = self._start
+# 			self.selectionChanged.emit(self.getRange())
 
 	@property
 	def end(self):
@@ -52,17 +60,22 @@ class Selection(QObject):
 							
 	@end.setter
 	def end(self, value):				
-		if value is not None:
-			if self._start is  None:
-				self._start =  int(value) 
-				self._end =  int(value) 
-			else:
-				if int(value) > 0:
-					self._end = int(value)
-				else:
-					self._end = 0;
-	# 			self._end =  int(value) 
-		else:
-			self._end = self._start
-		
+# 		if value is not None:
+# 			if self._start is  None:
+# 				self._start =  int(value) 
+		self._end =  int(value) 
+		self.selectionChanged.emit(self.getRange())
+# 			else:
+# 				if int(value) > 0:
+# 					if self._end != int(value):					
+# 						self._end = int(value)
+# 						self.selectionChanged.emit(self.getRange())
+# 				else:
+# 					self._end = 0;
+# 	# 			self._end =  int(value) 
+# 		else:
+# 			if  self._end != self._start:
+# 				self._end = self._start
+# 				self.selectionChanged.emit(self.getRange())
+# 		
 	

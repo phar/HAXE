@@ -28,5 +28,5 @@ class HexPlugin():
 	def pluginSelectionPlacement(self, selection=None):
 		return []
 		
-	def pluginImporterExporterPlacement(self, selection=None):
+	def pluginImportExportPlacement(self, selection=None):
 		return []

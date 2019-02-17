@@ -41,7 +41,7 @@ from matplotlib.pyplot import *
 from hexdialog import *
 from ipythonwidget import *
 from cursor import *
-from docks import *
+# from docks import *
 import traceback
 #from mmapslice import *
 
@@ -78,13 +78,13 @@ class StructEditor(QTextEdit):
 		return ("Struct Editor","Alt+S",self)
 			
 	def setStructOk(self):
-		self.setStyleSheet("background-color: rgb(232, 255, 232);")#green
+		self.setStyleSheet("background-color: rgb(232, 255, 232); color: rgb(0, 0, 0);")#green
 		
 	def setStructBad(self):
-		self.setStyleSheet("background-color: rgb(255, 232, 232);")#red
+		self.setStyleSheet("background-color: rgb(255, 232, 232);color: rgb(0, 0, 0)")#red
 	
 	def contextMenuEvent(self, event):
-		menu = QMenu(self)
+		menu = QMenu()
 		mnu = {} #fixme
 		mnu["save"] = menu.addAction("Save Struct File", self.saveStructFile)	
 		mnu["load"] = menu.addAction("Load Struct File", self.loadStructFile)		
@@ -479,6 +479,7 @@ class HaxEditor(QMainWindow):
 
 	def createToolbar(self):
 		tb = self.addToolBar("Toolbar")
+		
 		l = QLabel("Copy Mode:")
 		self.cb = QComboBox()
 		for nf in CLIPBOARD_CONVERT_TO:
@@ -546,16 +547,25 @@ class HaxEditor(QMainWindow):
 		self.act_save.setShortcuts(QKeySequence.Save)
 		self.act_save.setStatusTip("Save file...")
 		self.act_save.triggered.connect(self.save_file)
-		
+
 		self.act_revert = QAction("Revert to saved", self)
 		self.act_revert.setShortcuts(QKeySequence.Refresh)
 		self.act_revert.setStatusTip("Revert to saved")
 		self.act_revert.triggered.connect(self.revert_file)
-				
+		
 		self.act_saveas = QAction("Save as...", self)
 		self.act_saveas.setShortcuts(QKeySequence.SaveAs)
 		self.act_saveas.setStatusTip("Save file as...")
 		self.act_saveas.triggered.connect(self.save_file_as)
+
+
+		self.act_import = QAction("Import", self)
+		self.act_import.setStatusTip("Import Plugins")
+		# 		self.act_import.triggered.connect(self.save_file_as)
+
+		self.act_export = QAction("Export", self)
+		self.act_export.setStatusTip("Export Plugins")
+		# 		self.act_export.triggered.connect(self.save_file_as)
 
 		self.act_quit = QAction("&Quit", self)
 		self.act_quit.setShortcuts(QKeySequence.Quit)
@@ -572,6 +582,12 @@ class HaxEditor(QMainWindow):
 		self.filemenu.addAction(self.act_save)
 		self.filemenu.addAction(self.act_revert)
 		self.filemenu.addAction(self.act_saveas)
+		self.filemenu.addSeparator()
+		self.filemenu.addAction(self.act_import)
+		self.filemenu.addAction(self.act_export)
+		self.filemenu.addSeparator()
+		self.filemenu.addAction(self.act_quit)
+
 		self.filemenu.addAction(self.act_quit)
 # 		self.filemenu.addAction(self.act_search)
 		self.viewmenu = self.menuBar().addMenu("&View")

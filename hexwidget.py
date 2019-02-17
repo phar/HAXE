@@ -104,8 +104,8 @@ class HexWidget(QAbstractScrollArea):
 		self.gap3 = 1
 		self.gap4 = 3
 		self.pos = 0
-		self.magic_font_offset = 4
-		self.backgroundStripes = True
+		self.magic_font_offset = 2
+		self.colorBars = True
 		
 		self.setWidgetFont(font,fontsize)
 		self.cursor = Cursor(self, 0,0)
@@ -320,46 +320,46 @@ class HexWidget(QAbstractScrollArea):
 	def resizeEvent(self, event):
 		self.adjust()
 
-	def paintSelection(self, painter, line, selection):
-	
-		(start,end) = self.cursor._selection.getRange()
-	
-		cx_start_hex, cy_start_hex = self.indexToHexCharCoords(start)
-		cx_end_hex, cy_end_hex = self.indexToHexCharCoords(end)
-		
-		cx_start_ascii, cy_start_ascii = self.indexToAsciiCharCoords(start)
-		cx_end_ascii, cy_end_ascii = self.indexToAsciiCharCoords(end)
-		
-		if line == cy_start_hex:
-			topleft_hex = QPoint(self.charToPxCoords(cx_start_hex, line))
-			topleft_ascii = QPoint(self.charToPxCoords(cx_start_ascii, line))
-			if line == cy_end_hex: # single line selection
-				bottomright_hex = QPoint(self.charToPxCoords(cx_end_hex, line))
-				bottomright_ascii = QPoint(self.charToPxCoords(cx_end_ascii, line))
-				
-			else:
-				bottomright_hex = QPoint(self.charToPxCoords(self.ascii_start() - self.gap2, line))
-				bottomright_ascii = QPoint(self.charToPxCoords(self.ascii_start() + self.bpl, line))
-
-			bottomright_hex += QPoint(0, self.charHeight)				
-			bottomright_ascii += QPoint(0, self.charHeight)
-			painter.fillRect(QRect(topleft_hex, bottomright_hex), QColor(selection.color))
-			painter.fillRect(QRect(topleft_ascii, bottomright_ascii), QColor(selection.color))
-			
-		elif line > cy_start_hex and line <= cy_end_hex:
-			topleft_hex = QPoint(self.charToPxCoords(self.hex_start(), line))
-			topleft_ascii = QPoint(self.charToPxCoords(self.ascii_start(), line))
-			if line == cy_end_hex:
-				bottomright_hex = QPoint(self.charToPxCoords(cx_end_hex, line))
-				bottomright_ascii = QPoint(self.charToPxCoords(cx_end_ascii, line))					
-			else:
-				bottomright_hex = QPoint(self.charToPxCoords(self.ascii_start() - self.gap2, line))
-				bottomright_ascii = QPoint(self.charToPxCoords(self.ascii_start() + self.bpl, line))
-
-			bottomright_hex += QPoint(0, self.charHeight)	
-			bottomright_ascii += QPoint(0, self.charHeight)
-			painter.fillRect(QRect(topleft_hex, bottomright_hex), QColor(selection.color))
-			painter.fillRect(QRect(topleft_ascii, bottomright_ascii), QColor(selection.color))
+# 	def paintSelection(self, painter, line, selection):
+# 	
+# 		(start,end) = self.cursor._selection.getRange()
+# 	
+# 		cx_start_hex, cy_start_hex = self.indexToHexCharCoords(start)
+# 		cx_end_hex, cy_end_hex = self.indexToHexCharCoords(end)
+# 		
+# 		cx_start_ascii, cy_start_ascii = self.indexToAsciiCharCoords(start)
+# 		cx_end_ascii, cy_end_ascii = self.indexToAsciiCharCoords(end)
+# 		
+# 		if line == cy_start_hex:
+# 			topleft_hex = QPoint(self.charToPxCoords(cx_start_hex, line))
+# 			topleft_ascii = QPoint(self.charToPxCoords(cx_start_ascii, line))
+# 			if line == cy_end_hex: # single line selection
+# 				bottomright_hex = QPoint(self.charToPxCoords(cx_end_hex, line))
+# 				bottomright_ascii = QPoint(self.charToPxCoords(cx_end_ascii, line))
+# 				
+# 			else:
+# 				bottomright_hex = QPoint(self.charToPxCoords(self.ascii_start() - self.gap2, line))
+# 				bottomright_ascii = QPoint(self.charToPxCoords(self.ascii_start() + self.bpl, line))
+# 
+# 			bottomright_hex += QPoint(0, self.charHeight)				
+# 			bottomright_ascii += QPoint(0, self.charHeight)
+# 			painter.fillRect(QRect(topleft_hex, bottomright_hex), QColor(selection.color))
+# 			painter.fillRect(QRect(topleft_ascii, bottomright_ascii), QColor(selection.color))
+# 			
+# 		elif line > cy_start_hex and line <= cy_end_hex:
+# 			topleft_hex = QPoint(self.charToPxCoords(self.hex_start(), line))
+# 			topleft_ascii = QPoint(self.charToPxCoords(self.ascii_start(), line))
+# 			if line == cy_end_hex:
+# 				bottomright_hex = QPoint(self.charToPxCoords(cx_end_hex, line))
+# 				bottomright_ascii = QPoint(self.charToPxCoords(cx_end_ascii, line))					
+# 			else:
+# 				bottomright_hex = QPoint(self.charToPxCoords(self.ascii_start() - self.gap2, line))
+# 				bottomright_ascii = QPoint(self.charToPxCoords(self.ascii_start() + self.bpl, line))
+# 
+# 			bottomright_hex += QPoint(0, self.charHeight)	
+# 			bottomright_ascii += QPoint(0, self.charHeight)
+# 			painter.fillRect(QRect(topleft_hex, bottomright_hex), QColor(selection.color))
+# 			painter.fillRect(QRect(topleft_ascii, bottomright_ascii), QColor(selection.color))
 
 	def getHexCharFormat(self):
 		return self.hexcharformat
@@ -379,20 +379,14 @@ class HexWidget(QAbstractScrollArea):
 		self.highlights.append(Selection(start,end,True, color,obj))
 		self.updateSelectionListEvent.emit(self.highlights)
 
-	def paintHex(self, painter, row, column):
-		addr = self.pos + row * self.bpl + column
-		topleft = self.charToPxCoords(column*self.getHexCharFormatLen() + self.hex_start(), row)
+	def paintByte(self, painter, addr, topleft, byte, selected):
 		bottomleft = topleft + QPoint(0, self.charHeight-self.magic_font_offset)
-		byte = self.getHexCharFormat().format(self.filebuff[addr])
 		size = QSize(self.charWidth*self.getHexCharFormatLen(), self.charHeight)
 		rect = QRect(topleft, size)
 
-
-		if self.dragactive and self.cursor.getSelection().contains(addr):
+		if selected:
 			painter.fillRect(rect,self.palette().color(QPalette.Highlight))
 			painter.setPen(self.palette().color(QPalette.HighlightedText))
-			painter.drawText(bottomleft, byte)
-			painter.setPen(self.palette().color(QPalette.WindowText))
 		else:
 			for sel in self.highlights:
 				if len(sel) and sel.active and sel.contains(addr):
@@ -400,38 +394,51 @@ class HexWidget(QAbstractScrollArea):
 					painter.setPen(QColor(hexColorComplement(sel.color)))
 					painter.drawText(bottomleft, byte)
 					return
-			painter.setPen(self.palette().color(QPalette.WindowText))
-			painter.drawText(bottomleft, byte)
+		painter.setPen(self.palette().color(QPalette.WindowText))
+		painter.drawText(bottomleft, byte)
 		
-	
 
-	def paintAscii(self, painter, row, column):
-		addr = self.pos + row * self.bpl + column
-		topleft = self.charToPxCoords(column + self.ascii_start(), row)
-		bottomleft = topleft + QPoint(0, self.charHeight-self.magic_font_offset)
-		byte = self.toAscii(bytearray([self.filebuff[addr]]))
-		size = QSize(self.charWidth, self.charHeight)
-		rect = QRect(topleft, size)
-
-		if self.dragactive  and self.cursor.getSelection().contains(addr):
-			painter.fillRect(rect,self.palette().color(QPalette.Highlight))
-			painter.setPen(self.palette().color(QPalette.HighlightedText))
-			painter.drawText(bottomleft, byte )
-			painter.setPen(self.palette().color(QPalette.WindowText))
-		else: 
-			for sel in self.highlights:
-				if len(sel) and sel.active and sel.contains(addr):
-					painter.fillRect(rect,QColor( sel.color))
-					painter.setPen(QColor(hexColorComplement(sel.color)))
-					painter.drawText(bottomleft, byte )
-					return
-			painter.setPen(self.palette().color(QPalette.WindowText))
-			painter.drawText(bottomleft, byte )
-
+# 	def paintHex(self, painter, addr, topleft, byte, selected):
+# 		bottomleft = topleft + QPoint(0, self.charHeight-self.magic_font_offset)
+# 		size = QSize(self.charWidth*self.getHexCharFormatLen(), self.charHeight)
+# 		rect = QRect(topleft, size)
+# 
+# 		if selected:
+# 			painter.fillRect(rect,self.palette().color(QPalette.Highlight))
+# 			painter.setPen(self.palette().color(QPalette.HighlightedText))
+# 		else:
+# 			for sel in self.highlights:
+# 				if len(sel) and sel.active and sel.contains(addr):
+# 					painter.fillRect(rect,QColor( sel.color))
+# 					painter.setPen(QColor(hexColorComplement(sel.color)))
+# 					painter.drawText(bottomleft, byte)
+# 					return
+# 		painter.setPen(self.palette().color(QPalette.WindowText))
+# 		painter.drawText(bottomleft, byte)
+# 		
+# 	
+# 
+# 	def paintAscii(self, painter, addr,  topleft,byte,selected):
+# 		bottomleft = topleft + QPoint(0, self.charHeight-self.magic_font_offset)
+# 		size = QSize(self.charWidth, self.charHeight)
+# 		rect = QRect(topleft, size)
+# 
+# 		if selected:
+# 			painter.fillRect(rect,self.palette().color(QPalette.Highlight))
+# 			painter.setPen(self.palette().color(QPalette.HighlightedText))
+# 		else: 
+# 			for sel in self.highlights:
+# 				if len(sel) and sel.active and sel.contains(addr):
+# 					painter.fillRect(rect,QColor( sel.color))
+# 					painter.setPen(QColor(hexColorComplement(sel.color)))
+# 					painter.drawText(bottomleft, byte )
+# 					return
+					
+		painter.setPen(self.palette().color(QPalette.WindowText))
+		painter.drawText(bottomleft, byte )
 
 
 	def paintCursor(self, event,painter, cur, active):
-# 		painter = QPainter(self.viewport())
 		palette = self.viewport().palette()
 
 		if event.rect() == cur: 
@@ -489,7 +496,6 @@ class HexWidget(QAbstractScrollArea):
 
 		addr_width = self.getAddressFormatLen()
 		addr_start = self.addr_start()
-
 		hex_start = addr_start + addr_width + self.gap2
 		ascii_start = hex_start + hex_width + self.gap3
 
@@ -509,24 +515,21 @@ class HexWidget(QAbstractScrollArea):
 				break
 
 			#background stripes
-			if self.backgroundStripes:
-				if (i % 2):
-					painter.fillRect(0, (i * self.charHeight)+self.magic_font_offset, self.viewport().width(),  self.charHeight, self.palette().color(QPalette.AlternateBase))
-				else:
-					painter.fillRect(0, (i * self.charHeight)+self.magic_font_offset, self.viewport().width(),  self.charHeight, self.palette().color(QPalette.Base))
-			
+			if self.colorBars and (i % 2):
+				painter.fillRect(0, (i * self.charHeight)+self.magic_font_offset,(self.totalCharsPerLine() * self.charWidth),  self.charHeight, self.palette().color(QPalette.AlternateBase))
+	
 			(address, length, ascii) = line
 			
 			data = self.filebuff[address:address+length]
 
-			# selection 
-			sel = self.cursor.getSelection()
-			if len(sel):
-				self.paintSelection(painter, i, self.cursor.getSelection())
-			else:
-				#highlights
-				for h in self.highlights:
-					self.paintSelection(painter, i, h)
+# 			selection 
+# 			sel = self.cursor.getSelection()
+# 			if len(sel):
+# 				self.paintSelection(painter, i, self.cursor.getSelection())
+# 			else:
+# 				highlights
+# 				for h in self.highlights:
+# 					self.paintSelection(painter, i, h)
 
 			# address
 			painter.setPen(self.palette().color(QPalette.WindowText))
@@ -534,8 +537,19 @@ class HexWidget(QAbstractScrollArea):
 
 			# data
 			for j, byte in enumerate(data):
-				self.paintHex(painter, i, j)
-				self.paintAscii(painter, i, j)
+				addr = self.pos + i * self.bpl + j
+				dat = self.filebuff[addr]
+				selected =  self.dragactive and self.cursor.getSelection().contains(addr)
+				
+				topleft = self.charToPxCoords(j*self.getHexCharFormatLen() + self.hex_start(), i)
+				self.paintByte(painter, addr, topleft, self.getHexCharFormat().format(dat),selected)
+				
+				topleft = self.charToPxCoords(j + self.ascii_start(), i)
+				self.paintByte(painter, addr, topleft,  self.toAscii([dat]),selected)
+				
+			painter.setPen(Qt.gray)
+			painter.drawLine(hex_start-self.charWidth, 0, hex_start-self.charWidth, self.height())
+			painter.drawLine(ascii_start-self.charWidth, 0, ascii_start-self.charWidth, self.height())								
 				
 		duration = time.time()-start
 		if duration > 0.02 and self.debug == 1:

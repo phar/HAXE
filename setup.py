@@ -9,8 +9,13 @@ from setuptools import setup
 
 APP = ['haxe.py']
 DATA_FILES = []
-OPTIONS = {}
-
+OPTIONS = {'argv_emulation': True,
+           'plist': {
+               'PyRuntimeLocations': [
+                '@executable_path/../Frameworks/libpython3.7m.dylib',
+                '/Users/phar/anaconda3/lib/libpython3.7m.dylib'
+               ]
+           }}
 setup(
     app=APP,
     data_files=DATA_FILES,

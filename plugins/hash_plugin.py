@@ -51,8 +51,8 @@ class HashGUIWin(QMainWindow):
 
 	def dohash(self):		
 		h = hashlib.new(self.hashcb.currentText())
-		(start,end) = self.obj.cursor._selection.getRange()
-		h.update(self.obj.parent.filebuff[start:end])
+		(start,end) = self.obj.hexWidget.cursor._selection.getRange()
+		h.update(self.obj.filebuff[start:end])
 		self.hashout.setPlainText(h.hexdigest())
 # 		print(h.hexdigest())
 

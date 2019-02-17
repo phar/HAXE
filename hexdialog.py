@@ -28,7 +28,15 @@ class BookmarkWidget(QTableWidget):
 		mnu = {} #fixme
 		mnu["save"] = menu.addAction("Save Bookmarks", self.saveBookmarks)	
 		mnu["load"] = menu.addAction("Load Bookmarks", self.loadBookmarks)			
+		mnu["remove"] = menu.addAction("Remove Bookmarks", self.delBookmarks)			
+		mnu["clear"] = menu.addAction("Clear Bookmarks", self.clarBookmarks)			
 		action = menu.exec_(self.mapToGlobal(event.pos()))
+
+	def delBookmarks(self):
+		pass
+
+	def clarBookmarks(self):
+		pass
 
 	def maintainBookmarks(self, bookmarks):
 		self.setRowCount(len(bookmarks))
@@ -36,21 +44,26 @@ class BookmarkWidget(QTableWidget):
 		for s in bookmarks:
 			(start,end) = s.getRange()
 			qtw = QTableWidgetItem("0x%08x" % start)
+			qtw.setForeground(QColor(hexColorComplement( s.color)))
 			self.setItem(i,0, qtw)
 			qtw.setBackground(QColor( s.color))
 			qtw = QTableWidgetItem("0x%08x" % end)
+			qtw.setForeground(QColor(hexColorComplement(s.color)))
 			self.setItem(i,1, qtw)
 			qtw.setBackground(QColor( s.color))
+			qtw.setForeground(QColor(hexColorComplement( s.color)))
 
 			if s.obj[0] == 'struct':
 				(type, structname,parent,child) = s.obj
 				qtw =  QTableWidgetItem(".".join([structname,child.name]) + " %s" % "")
 				qtw.setBackground(QColor( s.color))
+				qtw.setForeground(QColor(hexColorComplement( s.color)))
 				self.setItem(i,2,qtw)
 			elif s.obj[0] == 'note':
 				(type, text) = s.obj
 				qtw = QTableWidgetItem(text)
-				qtw.setBackground(QColor( s.color))
+				qtw.setBackground(QColor(s.color))
+				qtw.setForeground(QColor(hexColorComplement(s.color)))
 				self.setItem(i,2, qtw)
 			i+=1
 			
@@ -105,8 +118,6 @@ class HexDialog(QMainWindow):
 			
 		self.bookmarks  = BookmarkWidget(self)
 		self.hexWidget.updateSelectionListEvent.connect(self.bookmarks.maintainBookmarks)
-
-# 		self.bookmarksbuildWindow
 		
 		splitter1.addWidget(self.hexWidget)
 		splitter1.addWidget(self.bookmarks)
@@ -163,9 +174,6 @@ class HexDialog(QMainWindow):
 		for n in self.api.structeditor.getStructList():
 			mnu[n] = structmenu.addAction("Struct %s here" % n, lambda n = n: self.structAtAddress(n,self.hexWidget.cursor._selection.start))	
 		
-# 		for structs in self.pxToSelectionList(event.pos()):
-# 			mnu[n] = menu.addAction("Delete struct %s" % structs.obj[2].name, lambda n = n: self.structAtAddress(n,self.cursor._selection.start))	
-		
 		menu.addSeparator()
 		if len(self.hexWidget.cursor._selection):
 			mnu['annotate'] = menu.addAction("Annotate Selection")
@@ -175,7 +183,7 @@ class HexDialog(QMainWindow):
 	
 		pluginmenus = {}
 		for (n,fn) in self.api.listSelectionPlugins():
-			pluginmenus['plugin_%s' % n] = pluginmenu.addAction("%s from selection" % n, lambda n = n, fn = fn: self.api.runPluginOnHexobj(n,fn, self))
+			pluginmenus['plugin_%s' % n] = pluginmenu.addAction("%s from selection" % n, lambda n = n, fn = fn: self.api.runPluginOnHexobj(fn, self))
 		
 		action = menu.exec_(self.mapToGlobal(event.pos()))
 		if 'annotate' in mnu and action == mnu['annotate']:
@@ -184,7 +192,6 @@ class HexDialog(QMainWindow):
 				self.hexWidget.addSelection(self.hexWidget.cursor._selection.start,self.hexWidget.cursor._selection.end, obj=("note",text), color=self.hexWidget.getNextColor())
 		
 	def maintainBookmarks(self, bookmarks):
-# 		self.bookmarks.setRowCount(0)
 		self.bookmarks.setRowCount(len(bookmarks))
 		i = 0
 		for s in bookmarks:
@@ -205,7 +212,6 @@ class HexDialog(QMainWindow):
 				(type, text) = s.obj
 				qtw = QTableWidgetItem(text)
 				qtw.setBackground(QColor( s.color))
-# 				qtw.setStyleSheet("background-color: %s;" % s.color)
 				self.bookmarks.setItem(i,2, qtw)
 			i+=1
 			
@@ -234,7 +240,7 @@ class HexDialog(QMainWindow):
 			self.selectstatus.setText(" [%d bytes selected at offset 0x%x out of %d bytes]" % (len(selection), start, len(self.filebuff)))
 		else:
 			self.selectstatus.setText(" [offset 0x%x (%d) of %d bytes]" % (start,start, len(self.filebuff)))
-		self.selectstatus.repaint()
+# 		self.selectstatus.repaint()
 
 	def setFocus(self):
 		self.api.setActiveFocus(self.filebuff.filename)
@@ -288,6 +294,7 @@ class HexDialog(QMainWindow):
 		cb.setText(t, mode=cb.Clipboard)
 		self.hexWidget.viewport().update()
 		
+	
 		
 class JumpToDialog(QDialog):
 	def __init__(self, parent , api):
@@ -360,31 +367,11 @@ class SearchDialog(QWidget):
 		self.lyt.addWidget(l, 2, 1)
 		self.lyt.addWidget(self.pm, 2, 2)
 		
-
-# 		self.lyt.addWidget(self.pb_replace, 1,0,1,1)# 
-# 		self.lyt.addWidget(self.replaceLine, 1, 1,1,2)
-
-
 		self.search_a = QRadioButton("ASCII")
 		self.search_a.setChecked(True)
 		self.search_chex = QRadioButton("C Hex")
 		self.search_hex = QRadioButton("Hex String")
 		self.search_reg = QRadioButton("RegEx")
-
-
-
-# 		self.lyt.addWidget(self.search_a, 1, 0)
-# 
-# 		self.lyt.addWidget(self.searchline, 0, 0,1,3)
-# 		self.lyt.addWidget(self.search_a, 2, 0)
-# 		self.lyt.addWidget(self.search_hex, 2, 1)
-# 		self.lyt.addWidget(self.search_reg, 2, 2)
-
-
-# 		self.lyt.addWidget(self.pb_replacen, 3, 0)
-# 		self.lyt.addWidget(self.pb_replacep, 3, 1)
-# 		self.lyt.addWidget(self.pb_searchn, 3, 2)
-# 		self.lyt.addWidget(self.pb_searchn, 3, 3)
 
 		self.pb_search.clicked.connect(self.do_search)
 

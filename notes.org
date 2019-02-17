@@ -8,12 +8,16 @@ to replace the parsed structure values
 change hilight cololor between ascii and hex sides depending on which selection is active
 confirm save
 confirm large file mode
-plugin scripts
-re-add virtical lines in hex view
 resize width
 edit struct fields by double clicking
 diffing using difflib
+large file detection/support
+double clicking struct highlights edit the struct field
+status bar notices
+	file readonly
+	largefile
 
+overlapping highlights	
 
    
 
@@ -35,9 +39,6 @@ diffing using difflib
    - save result regions as selection
 ** TODO diff files and regions
    - beyondcompare-like context menu: "select left side to compare"...
-
-
-** TODO bookmarks / favourites
 
    
 ** TODO import / export
