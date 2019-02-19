@@ -8,7 +8,6 @@ to replace the parsed structure values
 change hilight cololor between ascii and hex sides depending on which selection is active
 confirm save
 confirm large file mode
-resize width
 edit struct fields by double clicking
 diffing using difflib
 large file detection/support
@@ -18,53 +17,58 @@ status bar notices
 	largefile
 
 overlapping highlights	
+widget should be usable on its own
+import export patch from undostack
+
+
+behaviour bugs:
+	shift clicking a selection doesnt work the way shift <arrow> does
+	should overwrite highlighted text when selected (this is more a bug in the undo system at this point)
+	undo's should select the new data
+    recent files are mis ordered, doesnt really handle a user opening the same file twice
 
    
-
-** TODO rich status bar information
-   - progress bar for long operations (search, parse, ...)
-   - insert / overwrite mode,  read-write / read-only, charset,
-   - file length / selection length / cursor position
-   - value at cursor in dec / hex / bin
-   - ...
-** TODO better search dialog
-   - ascii / hex / numbers / number ranges / regex
-   - "find all" option
-   - give region to search in (selection, start+length, start+end, whole buffer)
-   - select matching bytes
-   - replace option
-   - maybe include hexview widget for search term input?
-   - distribution map for search results?
-   - highlight search results
-   - save result regions as selection
-** TODO diff files and regions
-   - beyondcompare-like context menu: "select left side to compare"...
-
-   
-** TODO import / export
+things best done as plugins:
    - intel hex (with sparse support)
-   - ...
-
-
-** TODO bitmap view
-
-** TODO Jump to address for values that are also valid 32bit addresses - started
+	** TODO bitmap view
+	** TODO import / export
+	keystone assembler
+	binary diff
 
 
 
-** TODO view as hex/oct/dec/bin?
-
-
-** TODO keep sparse space at the end
-   - automatically growing as it fills up?
-   - will help displaying a new (empty) buffer
-   
-** TODO allow syncrhonized scrolling in multiple buffers - good idea added a checkbox to sync checked windows
-
-
-** display
+things that probably wont happen but i keep to remind me
    - make everything configurable
      - font
      - address view (hex / dec / oct / off, length, ...)
      - data view (hex / dec / oct / bin, grouping, separator lines, bytes per line, ...)
+	** TODO view as hex/oct/dec/bin?
+	** TODO keep sparse space at the end
+	   - automatically growing as it fills up?
+	   - will help displaying a new (empty) buffer
+   - maybe include hexview widget for search term input?
+
+
+** TODO rich status bar information
+   - progress bar for long operations (search, parse, ...)
+   - insert / overwrite mode,  read-write / read-only, charset,
+
+** TODO better search dialog
+   - ascii / hex / numbers / number ranges / regex
+   - "find all" option
+   - select matching bytes
+   - replace option
+   - distribution map for search results?
+   - save result regions as selection
+   
+** TODO diff files and regions
+   - beyondcompare-like context menu: "select left side to compare"...
+
+   
+** TODO Jump to address for values that are also valid 32bit addresses - started
+
+
+   
+** TODO allow syncrhonized scrolling in multiple buffers - good idea added a checkbox to sync checked windows
+
 

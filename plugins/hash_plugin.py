@@ -4,19 +4,16 @@ from plugin_base import *
 #modules required for this plugin
 import hashlib
 
-class HashGUIWin(QMainWindow):
+class HashGUIWin(QDialog):
 	def __init__(self,obj):
-		QMainWindow.__init__(self)
+		QDialog.__init__(self)
 		self.changeHexObj( obj)
 	
 		self.setMinimumSize(QSize(430, 150))    
 		self.setWindowTitle("Hashing plugin") 
 
-		centralWidget = QWidget(self)          
-		self.setCentralWidget(centralWidget)   
-
 		gridLayout = QGridLayout()     
-		centralWidget.setLayout(gridLayout)  
+		self.setLayout(gridLayout)  
 
 		l = QLabel("Select Hash:")
 		self.hashcb = QComboBox()
@@ -54,7 +51,6 @@ class HashGUIWin(QMainWindow):
 		(start,end) = self.obj.hexWidget.cursor._selection.getRange()
 		h.update(self.obj.filebuff[start:end])
 		self.hashout.setPlainText(h.hexdigest())
-# 		print(h.hexdigest())
 
 	def closeEvent(self,event):
 			self.saveSettings()

@@ -12,7 +12,7 @@
 #     GNU General Public License for more details.
 
 #     You should have received a copy of the GNU General Public License along
-#     with this program; if not, write to the Free Software Foundation, Inc.,
+#     with this program; if not, write to the Free Soft gware Foundation, Inc.,
 #     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 # standard modules
@@ -35,7 +35,7 @@ import importlib
 import construct
 from encodings.aliases import aliases
 import argparse
-from matplotlib.pyplot import *
+# from matplotlib.pyplot import *
 
 # own submodules
 from hexdialog import *
@@ -58,7 +58,7 @@ CLIPBOARD_CONVERT_TO = [
 
 CLIPBOARD_CONVERT_FROM = [
 	("RAW",lambda x : bytearray([y for y in x])),
-	("C-Hex",lambda x: bytearray([y for y in x.decode('unicode_escape')])),
+	("C-Hex",lambda x: bytearray([ord(y) for y in x.decode('unicode_escape')])),
 	("Hex string",  lambda x : bytearray([int(y,16) for y in x.split()])),
 ]
 
@@ -251,11 +251,16 @@ class HaxeAPI(QObject):
 		return self.paste_mode
 
 	def getCopyModeFn(self):
-		print(self.copy_mode)
 		return CLIPBOARD_CONVERT_TO[self.copy_mode][1]
 		
 	def getPasteModeFn(self):
 		return CLIPBOARD_CONVERT_FROM[self.paste_mode][1]
+
+	def getPasteModeFnbyName(self,mode):
+		for i in range(len(CLIPBOARD_CONVERT_FROM)):
+			if  CLIPBOARD_CONVERT_FROM[i][0] == mode:	
+				return CLIPBOARD_CONVERT_FROM[i][1]
+		return None
 		
 	def isActiveWindow(self,filename):
 		return self.activefocusfilename == filename
@@ -332,18 +337,31 @@ class HaxeAPI(QObject):
 				retval = msg.exec_()		
 		
 
+	def find(self, filename, findval, selection=None):
+		print("yep here2")
+		return  self.openFiles[filename].find(findval, selection)
+ 		
+	def findAll(self, filename, findval, selection=None):	
+		return  self.openFiles[filename].findAll(findval, selection)
+		
 	def openFile(self, filename):
-		self.openFiles[filename] =  FileBuffer(filename)
-		return filename
-			
+		try:
+			self.openFiles[filename] =  FileBuffer(filename)
+			return filename
+		except:
+			pass #fixme
+			return None
+				
 	def log(self, logmsg):
 		print(logmsg)
 # 		self.qtparent.statusBar().showMessage(logmsg) 
 
-
 	def getActiveFocus(self):
-		return self.activefocusfilename
-		
+		if  self.activefocusfilename != None:
+			return self.activefocusfilename
+		else:
+			return next(iter(self.openFiles.values()))
+			
 	def setActiveFocus(self,filename):
 		if filename in self.openFiles:
 			self.activefocusfilename = filename
@@ -355,20 +373,6 @@ class HaxeAPI(QObject):
 	def setPasteMode(self,mode):
 		self.paste_mode = mode	
 	
-# 	def loadStructFile(self, filename="demostruct.txt"):
-# 		f = open(filename)
-# 		self.structfile = filename
-# 		self.structbuff = f.read()
-# 		self.evalStructFile()
-# 		self.structChanged.emit(filename)
-
-# 	def saveStructFile(self,filename):
-# 		f = open(filename)
-# 		f.write(self.structbuff)
-# 		f.close()
-
-	
-
 class HaxEditor(QMainWindow):
 	def __init__(self):
 		super(HaxEditor, self).__init__()
@@ -380,7 +384,8 @@ class HaxEditor(QMainWindow):
 		self.central.setDockOptions(self.central.dockOptions()|QMainWindow.AllowNestedDocks)
 		self.tabs = []
 		self.setCentralWidget(self.central)
-		
+		self.recentfiles = []
+
 		self.font = QFont("Courier", 10)
 		self.createToolbar()
 		self.docks = {}
@@ -403,6 +408,7 @@ class HaxEditor(QMainWindow):
 		self.open_file(args.filename)
 		self.setAcceptDrops(True)
 		self.loadSettings()
+		self.loadRecentFiles()
 	
 
 	def dragEnterEvent(self, e):
@@ -421,12 +427,12 @@ class HaxEditor(QMainWindow):
 		self.open_file(fn)
 	
 	
-# 	def structChanged(self):
-# 		self.structeditor.setText(self.api.structbuff)			
-# 		pass		
-		
-	def newHexDock(self, filebuff):
+
+	def newHexDock(self, filebuff=None):
 		tab = QDockWidget()
+		if filebuff == None:
+			filebuff = FileBuffer()
+		
 		tab.setWindowTitle(filebuff.filename)
 		hw = HexDialog(self.api,self,filebuff)
 		tab.setWidget(hw)
@@ -435,12 +441,14 @@ class HaxEditor(QMainWindow):
 		self.central.addDockWidget(Qt.RightDockWidgetArea, tab)
 		
 	def open_file(self, filename=None):
+		print(filename)
 		if filename in [None, False]:
 			filename = QFileDialog.getOpenFileName(self, "Open File...")[0]
 		if filename:
 			hw = self.api.openFile(filename)
-# 			self.cursor
-			self.newHexDock(self.api.openFiles[filename])		
+			if hw != None:
+				self.pushRecentFiles(filename)
+				self.newHexDock(self.api.openFiles[filename])	#fixme	
 		else:
 			pass #i dont know what to do with this
 				
@@ -472,6 +480,7 @@ class HaxEditor(QMainWindow):
 		self.api.settings.setValue("%s.pastemode",self.pm.currentText())
 		self.api.settings.setValue("geometry", self.saveGeometry())
 		self.api.settings.setValue("windowState", self.saveState())
+		self.saveRecentFiles()
 
 	def closeEvent(self, event):
 		self.saveSettings()
@@ -543,6 +552,18 @@ class HaxEditor(QMainWindow):
 		self.act_open.setStatusTip("Open file")
 		self.act_open.triggered.connect(self.open_file)
 
+		self.act_openrecent = QAction("Open Recent", self)
+		self.act_openrecent.setStatusTip("Open Re")
+		self.act_openrecent.triggered.connect(self.open_recent)
+
+
+
+		self.act_new = QAction("&New", self)
+		self.act_new.setShortcuts(QKeySequence.New)
+		self.act_new.setStatusTip("New file...")
+		self.act_new.triggered.connect(self.new_file)
+
+
 		self.act_save = QAction("&Save ...", self)
 		self.act_save.setShortcuts(QKeySequence.Save)
 		self.act_save.setStatusTip("Save file...")
@@ -573,23 +594,50 @@ class HaxEditor(QMainWindow):
 		self.act_quit.triggered.connect(self.close)
 
 
+	def loadRecentFiles(self):
+		self.recentfiles = []
+		for i in range(10):
+			txt = self.api.settings.value("recent.%d" % i)
+			if txt != None:
+				self.pushRecentFiles(txt)	
+
+	def pushRecentFiles(self,fn):
+		if fn not in self.recentfiles:
+			self.recentfiles.append(fn)	
+			recentact  = QAction(fn,self)	
+			print(fn)	
+			recentact.triggered.connect(lambda state, x=fn: self.open_file(filename=x) )
+			self.recentmenu.addAction(recentact)		
+
+
+	def saveRecentFiles(self):
+		for i,fn in enumerate(self.recentfiles):
+			self.api.settings.setValue("recent.%d" % i,fn)
+
+	def new_file(self):
+		self.api.qtparent.newHexDock()
+
 	def revert_file(self):
+		pass
+		
+	def open_recent(self):
 		pass
 	
 	def createMenus(self):
 		self.filemenu = self.menuBar().addMenu("&File")
+
 		self.filemenu.addAction(self.act_open)
+		self.recentmenu = self.filemenu.addMenu("Recent Files")
+		self.filemenu.addSeparator()
+		self.filemenu.addAction(self.act_new)
 		self.filemenu.addAction(self.act_save)
-		self.filemenu.addAction(self.act_revert)
 		self.filemenu.addAction(self.act_saveas)
+		self.filemenu.addAction(self.act_revert)
 		self.filemenu.addSeparator()
 		self.filemenu.addAction(self.act_import)
 		self.filemenu.addAction(self.act_export)
 		self.filemenu.addSeparator()
 		self.filemenu.addAction(self.act_quit)
-
-		self.filemenu.addAction(self.act_quit)
-# 		self.filemenu.addAction(self.act_search)
 		self.viewmenu = self.menuBar().addMenu("&View")
 
 

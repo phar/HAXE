@@ -21,16 +21,24 @@ currently supporting such wild features as:
 	almost has functional structure support!
 	interactive python with a straightforward-ish Help() command and API
 	bugs i havnt found in my obsessive feature adding!
-	dynamic high contrast highlighting scheme 
+	dynamic high contrast coloring scheme 
 	struct support using construct!
-	savable bookmarks!
+	savable/loadable bookmarks!
+	find next/findprev!
+	capstone disassembler plugin
+	CRC plugin
+	hash plugin
 	
 	
 still to come:
+	search/replace/replace all
 	syncronizing documents 
 	different then ascii encodings
 	graphical view (bytes mapped to colors)
-	loadable bookmarks
+	plugins exposed by API
+	comment api function helps
+	handle new buffers (new file)
+	
 </pre>
 <img src="imgs/snap.png">
 

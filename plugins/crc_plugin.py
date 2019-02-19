@@ -32,7 +32,6 @@ class CRCGUIWin(QMainWindow):
 		gridLayout.addWidget(l, 1,0,1,2)
 		gridLayout.addWidget(self.poly, 1,1,1,2)
 
-
 		l = QLabel("XOR in")
 		self.xorin = QLineEdit("")
 		gridLayout.addWidget(l, 2,0,1,2)
@@ -48,32 +47,20 @@ class CRCGUIWin(QMainWindow):
 		gridLayout.addWidget(l, 4,0,1,2)
 		gridLayout.addWidget(self.bitwidth, 4,1,1,2)
 
-# 		self.refin = QCheckBox("Reflect in")
-# 		gridLayout.addWidget(self.refin, 5,0,1,2)
-
 		self.refout = QCheckBox("Reflect out")
 		gridLayout.addWidget(self.refout, 5,0,1,2)
-
 
 		l = QLabel("CRC Out")
 		self.crcout = QLineEdit("")
 		gridLayout.addWidget(l, 6,0,1,2)
 		gridLayout.addWidget(self.crcout, 6,1,1,2)
-		
-# 		l = QLabel("Match Crc Hex")
-# 		self.matchcrc = QLineEdit("")
-# 		gridLayout.addWidget(l, 7,0,1,2)
-# 		gridLayout.addWidget(self.matchcrc, 7,1,1,2)
 
 		gobtn = QPushButton("Go")
-# 		matchbtn = QPushButton("Find Match")
 		gridLayout.addWidget(gobtn, 8,2,1,1)
-# 		gridLayout.addWidget(matchbtn, 8,0,1,1)
-# 		gobtn.clicked.connect(self.dohash)
+
 		gobtn.clicked.connect(self.docrcfunc)
 		self.loadSettings()
 		
-
 	def getBitLengthFromPoly(self,poly):
 		return int(poly).bit_length() - 1
 
@@ -90,7 +77,7 @@ class CRCGUIWin(QMainWindow):
 				self.bitwidth.setText("%d" %bl)
 				self.refout.setChecked(i['reverse'])
 				return		
-	
+
 	def docrcfunc(self):	
 		try:
 			poly = int(self.poly.text(),16)
@@ -109,37 +96,33 @@ class CRCGUIWin(QMainWindow):
 		self.obj = obj
 
 	def loadSettings(self):
-		txt = self.obj.api.settings.value("%s.crcplugin.predefinedcrc")
+		txt = self.obj.api.settings.value("crcplugin.predefinedcrc")
 		index = self.crccb.findText(txt, Qt.MatchFixedString)
 		if index >= 0:
 			self.crccb.setCurrentIndex(index)
 
-		txt = self.obj.api.settings.value("%s.crcplugin.poly")
+		txt = self.obj.api.settings.value("crcplugin.poly")
 		if txt != None:
 			self.poly.setText(txt)		
-		txt = self.obj.api.settings.value("%s.crcplugin.xorin")
+		txt = self.obj.api.settings.value("crcplugin.xorin")
 		if txt != None:
 			self.xorin.setText(txt)
-		txt = self.obj.api.settings.value("%s.crcplugin.xorout")
+		txt = self.obj.api.settings.value("crcplugin.xorout")
 		if txt != None:
 			self.xorout.setText(txt)
-		txt = self.obj.api.settings.value("%s.crcplugin.refout")
+		txt = self.obj.api.settings.value("crcplugin.refout")
 		if txt != None:
 			self.refout.setChecked(txt)
          
 	def saveSettings(self):
-		self.obj.api.settings.setValue("%s.crcplugin.predefinedcrc",self.crccb.currentText())
-		self.obj.api.settings.setValue("%s.crcplugin.poly",self.poly.text())
-		self.obj.api.settings.setValue("%s.crcplugin.xorin",self.xorin.text())
-		self.obj.api.settings.setValue("%s.crcplugin.xorout",self.xorout.text())
-		self.obj.api.settings.setValue("%s.crcplugin.refout",self.refout.isChecked())
+		self.obj.api.settings.setValue("crcplugin.predefinedcrc",self.crccb.currentText())
+		self.obj.api.settings.setValue("crcplugin.poly",self.poly.text())
+		self.obj.api.settings.setValue("crcplugin.xorin",self.xorin.text())
+		self.obj.api.settings.setValue("crcplugin.xorout",self.xorout.text())
+		self.obj.api.settings.setValue("crcplugin.refout",self.refout.isChecked())
 
 	def closeEvent(self,event):
 			self.saveSettings()
-
-	
-
-
 
 class CRCPlugin(HexPlugin):
 	def __init__(self,api):

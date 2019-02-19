@@ -1,6 +1,5 @@
 import mmap
 import os
-# from math import *
 import time
 import string
 from cursor import *
@@ -138,8 +137,11 @@ class HexDialog(QMainWindow):
 		self.hexWidget.undoEvent.connect(self.undo)
 		self.hexWidget.undoEvent.connect(self.redo)
 		self.hexWidget.ctxtMenuEvent.connect(self.contextEvent)
-	
+		self.hexWidget.jumpToEvent.connect(self.jumpto)
+# 		self.hexWidget.selectAllEvent.connect(self.selectall)
 		self.hexWidget.findEvent.connect(self.search)
+	
+	
 	
 		self.synccheck = QCheckBox("Sync")
 		self.statusBar.addWidget(self.synccheck)
@@ -147,8 +149,23 @@ class HexDialog(QMainWindow):
 		self.selectstatus = QLabel("")
 		self.statusBar.addWidget(self.selectstatus)
 		
+		self.filestatus = QLabel("Welcome to HAxe")
+		self.statusBar.addWidget(self.filestatus)
+		
+		self.filestatus.setAlignment(QtCore.Qt.AlignRight)
 		self.statusBar.show()
 
+
+	def getSelection(self):
+		return self.hexWidget.getCursor().getSelection()
+
+# 	def selectall(self,selection):
+# 		self.selectAllEvent.emit(self.cursor.getSelection())
+
+	def jumpto(self,selection):
+		f  = JumpToDialog(self,self.api)
+		f.show()
+					
 	def structAtAddress(self,struct,address):
 		print("define struct %s @ %08x" % (struct,address))
 		self.structs.append((struct,address))
@@ -242,6 +259,10 @@ class HexDialog(QMainWindow):
 			self.selectstatus.setText(" [offset 0x%x (%d) of %d bytes]" % (start,start, len(self.filebuff)))
 # 		self.selectstatus.repaint()
 
+		self.filestatus.setText(self.filebuff.statusString() + "[%s]" %self.hexWidget.charset)
+		self.hexWidget.viewport().update()
+	
+
 	def setFocus(self):
 		self.api.setActiveFocus(self.filebuff.filename)
 
@@ -269,20 +290,23 @@ class HexDialog(QMainWindow):
 
 	def paste(self,selection):
 		cb = QApplication.clipboard()
-		if self.clipboarcopy == hash(cb.text()):
-			t = self.clipboardata	
-		else:
-			t = bytearray(cb.text(),'utf-8')
-						
 		try:
-			t = self.api.getPasteModeFn()(t)
+			if self.clipboarcopy == hash(cb.text()):
+				t = self.clipboardata	
+			else:
+				t = cb.text().encode("utf-8")
+				t = self.api.getPasteModeFn()(t)
+						
+	# 		try:
+			print(t)
 			self.filebuff.addEdit(selection, t)
 			(start,end) = self.hexWidget.cursor._selection.getRange()
 			self.hexWidget.goto(start)
 			self.hexWidget.cursor.updateSelection(Selection(start, start + len(t)))
 			self.hexWidget.viewport().update()			
 		except:
-			self.pasteFailed.emit()		
+			print("somthing has gone wrong in the paste translation system")
+# 			self.pasteFailed.emit()		
 	
 	def copy(self,slection):
 		(start,end)  = self.hexWidget.cursor._selection.getRange()
@@ -320,36 +344,78 @@ class JumpToDialog(QDialog):
 		self.btn2.clicked.connect(self.doclose)
 		layout.addRow(self.btn2,self.btn3)
 		self.setLayout(layout)
-		self.setWindowTitle("Jumt to Offset")
+		self.setWindowTitle("Jump to Offset")
+		self.loadSettings()
 
 	def dook(self):
 		addr = 0
 		if self.btn.isChecked():
-			addr = int(self.le1.text().replace("0x",""),16)
+			try:
+				addr = int(self.le1.text().replace("0x",""),16)
+			except:
+				pass
 		elif self.btn1.isChecked():
-			
-			addr = int(self.le1.text())
-		self.parent.goto(addr)
+			try:				
+				addr = int(self.le1.text())
+			except ValueError:
+				return
+		self.parent.hexWidget.goto(addr) #fixme
 						
 	def doclose(self):
 		self.close()
 
+	def loadSettings(self):
+		txt = self.api.settings.value("jumpto.address")
+		if txt != None:
+			self.le1.setText(txt)	
+		txt = self.api.settings.value("jumpto.format")
+		if  self.api.settings.value("jumpto.format") == "hex":
+			self.btn.setChecked(True)
+		else:
+			self.btn1.setChecked(True)
+         
+	def saveSettings(self):
+		self.api.settings.setValue("jumpto.address",self.le1.text())
+		
+		if self.btn.isChecked():
+			self.api.settings.setValue("jumpto.format",'hex')
+		else:
+			self.api.settings.setValue("jumpto.format",'decimal')
 
-class SearchDialog(QWidget):
+	def closeEvent(self,event):
+			self.saveSettings()
+
+
+class FindAllDialog(QDialog):
+	def __init__(self, po=None,parent=None):
+		super(FindAllDialog, self).__init__(parent)
+		self.lyt = QGridLayout()
+		self.setLayout(self.lyt)
+		self.parent = po
+# 		self.api = api
+
+
+
+
+class SearchDialog(QDialog):
 	def __init__(self, po=None,parent=None):
 		super(SearchDialog, self).__init__(parent)
 		self.lyt = QGridLayout()
 		self.setLayout(self.lyt)
 		self.parent = po
 # 		self.api = api
-		self.filename = self.parent.filebuff.filename
 		self.searchline = QLineEdit()
 		self.replaceLine = QLineEdit()
+		
 		self.searchlinel = QLabel("Search")
 		self.pb_searchn = QPushButton("Find Next")
+		self.pb_searchn.clicked.connect(self.find_next)
 		self.pb_searchp = QPushButton("Find Prev")
-		self.pb_replacen = QPushButton("Replace Next")
-		self.pb_replacen = QPushButton("Replace All")
+		self.pb_searchp.clicked.connect(self.find_prev)
+		self.pb_searcha = QPushButton("Find All")
+		self.pb_searchp.clicked.connect(self.find_all)
+		self.pb_replacen = QPushButton("Replace")
+		self.pb_replacea = QPushButton("Replace All")
 		self.pb_replace= QLabel("Replace")
 
 		self.lyt.addWidget(self.searchlinel, 0,0,1,1)
@@ -358,46 +424,72 @@ class SearchDialog(QWidget):
 		self.lyt.addWidget(self.pb_replace, 1,0,1,1)# 
 		self.lyt.addWidget(self.replaceLine, 1, 1,1,2)
 
-		l = QLabel("Mode:")
 		self.pm = QComboBox()
 		for nf in self.parent.api.getConverters()[0]:
 			(n,f) = nf
 			self.pm.addItem(n)	
 			
-		self.lyt.addWidget(l, 2, 1)
-		self.lyt.addWidget(self.pm, 2, 2)
-		
-		self.search_a = QRadioButton("ASCII")
-		self.search_a.setChecked(True)
-		self.search_chex = QRadioButton("C Hex")
-		self.search_hex = QRadioButton("Hex String")
-		self.search_reg = QRadioButton("RegEx")
+		self.lyt.addWidget(self.pm, 0, 3)
 
-		self.pb_search.clicked.connect(self.do_search)
-
-	def do_search(self):
-		phrase = self.searchline.text()
-		if self.search_a.isChecked():
-			index = self.parent.filebuff.find(phrase.encode('utf-8'), self.parent.cursor._selection.start)
-		elif self.search_chex.isChecked():
-			pass
-		elif self.search_hex.isChecked():
-			phrase = self.searchline.text().decode("hex").encode('utf-8')
-			index = self.parent.filebuff.find(phrase.encode('utf-8'), self.parent.cursor._selection.start)
+		self.lyt.addWidget(self.pb_searchn, 2, 0)
+		self.lyt.addWidget(self.pb_searchp, 2, 1)
+		self.lyt.addWidget(self.pb_replacen, 2, 2)
+		self.lyt.addWidget(self.pb_replacea, 2, 3)
+		self.loadSettings()
 		
-		elif self.search_reg.isChecked():
-			pass			
-		if index >= 0:
-			self.api.openFiles[self.filename].goto(index)
+	def getsearchvalue(self):	
+		ret = self.parent.api.getPasteModeFnbyName(self.pm.currentText())(self.searchline.text())
+		return ret
+
+	def find_all(self):
+		pass
+
+	def find_next(self):	
+		searchval = self.getsearchvalue()
+		self.parent.hexWidget.getCursor().selectNone()		
+		x = self.parent.filebuff.findNext(searchval, self.parent.hexWidget.getCursor())		
+		print(x)
+			
+		if x >= 0:
+			self.parent.hexWidget.getCursor().setSelection(Selection(x, x+len(searchval)))
+			self.parent.hexWidget.viewport().update()
 		else:
 			msg = QMessageBox()
 			msg.setIcon(QMessageBox.Information)
-			msg.setText("Search String was not found")
-			msg.setInformativeText("Search string not found.")
-			msg.setWindowTitle("Not found")
+			msg.setText("The search term was not found")
+			msg.setInformativeText("Not found")
+			msg.setWindowTitle("find next")
 			msg.setStandardButtons(QMessageBox.Ok)
-# 			self.statusBar().showMessage("search string not found")
-			retval = msg.exec_()		
-		
-		self.close()
+			retval = msg.exec_()	
 
+	def find_prev(self):	
+		searchval = self.getsearchvalue()
+		self.parent.hexWidget.getCursor().selectNone()		
+		x = self.parent.filebuff.findPrev(searchval, self.parent.hexWidget.getCursor())		
+		print(x)
+					
+		if x >= 0:
+			self.parent.hexWidget.getCursor().setSelection(Selection(x, x+len(searchval)))
+			self.parent.hexWidget.viewport().update()
+		else:
+			msg = QMessageBox()
+			msg.setIcon(QMessageBox.Information)
+			msg.setText("The search term was not found")
+			msg.setInformativeText("Not found")
+			msg.setWindowTitle("find next")
+			msg.setStandardButtons(QMessageBox.Ok)
+			retval = msg.exec_()	
+				
+	def loadSettings(self):
+# 		txt = self.api.settings.value("search.address")
+# 		if txt != None:
+# 			self.le1.setText(txt)	
+		pass
+         
+	def saveSettings(self):
+# 		self.api.settings.setValue("search.address",self.le1.text())
+		pass
+		
+	def closeEvent(self,event):
+			self.saveSettings()
+			

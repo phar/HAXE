@@ -21,6 +21,9 @@ class Cursor(QObject):
 		self.blink = not self.blink
 		self.parent.viewport().update(self.parent.cursorRectHex())
 		
+	def selectNone(self):
+		self._selection.start = self._selection.end
+		
 	def startCursor(self,interval=500):
 		# cursor blinking timer
 		self.cursorTimer = QTimer()
