@@ -259,15 +259,16 @@ class HexWidget(QAbstractScrollArea):
 		hex_cx, hex_cy = self.indexToHexCharCoords(cur._selection.end)
 		hex_cx += cur.getNibble()
 		hex_point = self.charToPxCoords(hex_cx, hex_cy)
-		hex_rect = QRect(hex_point, QSize( 2, self.charHeight))
-
+		coffset = QPoint(0, self.charHeight-2)
+		hex_rect = QRect(hex_point+coffset, QSize(self.charWidth, 2))
 		return hex_rect
 
 
 	def cursorToAsciiRect(self, cur):
 		ascii_cx, ascii_cy = self.indexToAsciiCharCoords(cur._selection.end)
 		ascii_point = self.charToPxCoords(ascii_cx, ascii_cy)
-		ascii_rect = QRect(ascii_point, QSize(2, self.charHeight))
+		coffset = QPoint(0, self.charHeight-2)
+		ascii_rect = QRect(ascii_point+coffset, QSize(self.charWidth,2))
 		return ascii_rect
 
 	def charAtCursor(self, cursor):
@@ -295,6 +296,14 @@ class HexWidget(QAbstractScrollArea):
 			self.cursor.startActiveSelection(Selection(cur,cur))
 			self.cursor.setNibble(nib)	
 			self.viewport().update()
+			for s in self.pxToSelectionList(event.pos()):
+				s.obj.selectAction()
+	
+	
+	def mouseDoubleClickEvent(self,event):
+		for s in self.pxToSelectionList(event.pos()):
+			s.obj.editAction()
+
 		
 	def pxToSelectionList(self, pos):
 		"""bytes may be involved in more then one selection, this returns a list of those selections"""
@@ -308,14 +317,8 @@ class HexWidget(QAbstractScrollArea):
 	def hover(self,pos):
 		for s in self.pxToSelectionList(pos):
 			if s.obj != None:
-				if s.obj[0] == 'struct':
-					(type, structname,parent,child) = s.obj
-					QToolTip.hideText()
-					QToolTip.showText(self.mapToGlobal(pos),  ".".join([structname,child.name]) + " %s" % "",self)
-				elif s.obj[0] == 'note':
-					(type, text) = s.obj
-					QToolTip.hideText()
-					QToolTip.showText(self.mapToGlobal(pos),  text, self)
+				QToolTip.hideText()
+				QToolTip.showText(self.mapToGlobal(pos),  s.obj.labelAction(), self)
 						
 	def mouseMoveEvent(self, event):	
 		(nib,cur) = self.pxCoordToAddr(event.pos())
@@ -413,23 +416,6 @@ class HexWidget(QAbstractScrollArea):
 		rect = self.cursorRectHex()
 		rect.setRight(self.cursorRectAscii().right())
 
-		if event.rect() == self.cursorRectHex(): 
-			if self.cursor.blink and self.parent.isActiveWindow:
-				if self.activeview == "hex":
-					painter.fillRect(self.cursorRectHex(), Qt.black)
-				else:
-					painter.fillRect(self.cursorRectHex(), Qt.gray)
-			self.viewport().update(self.cursorRectAscii())
-			return
-		elif event.rect() == self.cursorRectAscii():
-			if self.cursor.blink and self.parent.isActiveWindow :
-				if self.activeview == "ascii":
-					painter.fillRect(self.cursorRectAscii(), Qt.black)
-				else:
-					painter.fillRect(self.cursorRectAscii(), Qt.gray)
-			self.viewport().update(self.cursorRectAscii())
-			return
-# 
 		hex_width = self.getHexLength()
 
 		addr_width = self.getAddressFormatLen()
@@ -448,15 +434,15 @@ class HexWidget(QAbstractScrollArea):
 
 		self.pos = self.verticalScrollBar().value() * self.bpl
 
-		for i, line in enumerate(self.getLines(self.pos)):
+		for i, line in enumerate(self.getLines(self.pos)):	
+			(address, length, ascii) = line
+			
 			if i > self.visibleLines():
 				break
 
 			#background stripes
-			if self.colorBars and (i % 2):
+			if self.colorBars and 1 if (address % (self.bpl * 2)) == self.bpl else 0:
 				painter.fillRect(0, (i * self.charHeight)+self.magic_font_offset,(self.totalCharsPerLine() * self.charWidth),  self.charHeight, self.palette().color(QPalette.AlternateBase))
-	
-			(address, length, ascii) = line
 			
 			data = self.filebuff[address:address+length]
 
@@ -476,13 +462,24 @@ class HexWidget(QAbstractScrollArea):
 				topleft = self.charToPxCoords(j + self.ascii_start(), i)
 				self.paintByte(painter, addr, topleft,  self.toAscii([dat]),selected)
 				
+			#virt sep bars
 			painter.setPen(Qt.gray)
 			painter.drawLine(hex_start-self.charWidth, 0, hex_start-self.charWidth, self.height())
 			painter.drawLine(ascii_start-self.charWidth, 0, ascii_start-self.charWidth, self.height())								
 				
+		#cursor
+		if (self.parent.blinkstate % 2) == 0:
+			if self.activeview == "hex":
+				painter.fillRect(self.cursorRectHex(), Qt.black)
+				painter.fillRect(self.cursorRectAscii(), Qt.gray)
+			else:
+				painter.fillRect(self.cursorRectAscii(), Qt.black)
+				painter.fillRect(self.cursorRectHex(), Qt.gray)
+				
+				
 		duration = time.time()-start
-		if duration > 0.02 and self.debug == 1:
-			print ("painting took: ", duration, 's')
+# 		if duration > 0.02:
+# 			print ("painting took: ", duration, 's')
 
 	def getAddressFormat(self):
 		return self.addressformat
@@ -506,7 +503,6 @@ class HexWidget(QAbstractScrollArea):
 		return len(self.getAddressFormat().format(self.cursor.getAddress() + (self.visibleLines() * self.bpl)))
 
 	def cursorMove(self, selection):
-		
 		if selection.start > len(self.filebuff):
 			self.cursor._selection.start = len(self.filebuff)
 			

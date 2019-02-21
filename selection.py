@@ -4,6 +4,27 @@ from PyQt5.QtWidgets import *
 from PyQt5 import QtCore
 from PyQt5 import QtGui 
 
+class SelectionActionClasss(QObject):
+	def __init__(self,hexdialog, name=None):
+		super(SelectionActionClasss, self).__init__()
+		self.name = name
+		self.hexdialog = hexdialog
+
+	def setLabel(self,name):
+		self.name = name
+	
+	def labelAction(self):
+		return self.name
+	
+	def selectAction(self):
+		print("click!")
+		True
+
+	def editAction(self):
+		print("dblckick!")
+		True
+
+
 class Selection(QObject):
 	selectionChanged = QtCore.pyqtSignal(object)
 	def __init__(self, start=0, end=None, active=True, color=Qt.green, obj=None):

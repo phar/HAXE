@@ -14,24 +14,12 @@ class Cursor(QObject):
 		self.parent = parent
 		self._selection = Selection(0,None,active=False)
 		self._nibble = nibble
-		self.blink = False
-		self.startCursor(500)
 
-	def updateCursor(self):
-		self.blink = not self.blink
-		self.parent.viewport().update(self.parent.cursorRectHex())
 		
 	def selectNone(self):
 		self._selection.start = self._selection.end
 		
-	def startCursor(self,interval=500):
-		# cursor blinking timer
-		self.cursorTimer = QTimer()
-		self.cursorBlinkInterval = interval
-		self.cursorTimer.timeout.connect(self.updateCursor)
-		self.cursorTimer.setInterval(interval)
-		self.cursorTimer.start()
-						
+
 	def getSelection(self):
 		self._selection.color = self.parent.palette().color(QPalette.Highlight)
 		return self._selection

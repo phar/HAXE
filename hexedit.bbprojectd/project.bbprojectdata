@@ -26,12 +26,14 @@
 			<key>CollectionItems</key>
 			<array>
 				<string>39C7F982-83BD-4D6C-8DF9-E33E16B08BD8</string>
+				<string>4E5D8A8F-F7EA-41C9-9CDB-3A3BC2AA9285</string>
 				<string>76AF71D6-C0CE-4481-B24D-FBB7B0AE5E50</string>
 				<string>E9D45730-84B9-4D1A-8C9A-0946084044CC</string>
 				<string>A8971145-6E2E-4663-943A-6D04534D8957</string>
 				<string>83AF902C-5F49-4566-9B8A-7C02DA30C16A</string>
 				<string>9AC733C4-681E-4C85-8F01-0AB7F192824F</string>
 				<string>45DB2653-6C0B-4E77-B915-9F38A7B89957</string>
+				<string>63817C6B-2E72-4B63-83FA-72DE07656542</string>
 			</array>
 		</dict>
 		<dict>
@@ -426,6 +428,55 @@
 			<key>UserOverrideItemName</key>
 			<true/>
 		</dict>
+		<key>4E5D8A8F-F7EA-41C9-9CDB-3A3BC2AA9285</key>
+		<dict>
+			<key>ItemData</key>
+			<dict>
+				<key>BookmarkData</key>
+				<data>
+				Ym9va/wCAAAAAAQQMAAAAGww8F7HeWa2yAw7bzHVbpgb
+				BubAjGNBBHFR9EG5z2oY4AEAAAQAAAADAwAAAAgAKAUA
+				AAABAQAAVXNlcnMAAAAEAAAAAQEAAHBoYXIEAAAAAQEA
+				AEhBWEUHAAAAAQEAAHBsdWdpbnMADgAAAAEBAABub3Rl
+				X3BsdWdpbi5weQAAFAAAAAEGAAAQAAAAIAAAACwAAAA4
+				AAAASAAAAAgAAAAEAwAATmkGAAAAAAAIAAAABAMAAHfJ
+				BgAAAAAACAAAAAQDAABvqi0CAgAAAAgAAAAEAwAAkcsz
+				AgIAAAAIAAAABAMAADwSSQICAAAAFAAAAAEGAAB8AAAA
+				jAAAAJwAAACsAAAAvAAAAAgAAAAABAAAQcEN/3iKdCgY
+				AAAAAQIAAAEAAAAAAAAADwAAAAAAAAAAAAAAAAAAAAAA
+				AAABBQAABAAAAAMDAAACAAAACAAAAAQDAAADAAAAAAAA
+				AAQAAAADAwAA9QEAAAgAAAABCQAAZmlsZTovLy8IAAAA
+				AQEAAFVudGl0bGVkCAAAAAQDAAAAsGBudAAAAAgAAAAA
+				BAAAQb/ifpIAAAAkAAAAAQEAADI5QjczRTM5LUNFODQt
+				MzU1Ny1BMzU0LTQyQTA2OUU4NkJBMxgAAAABAgAAgQAA
+				AAEAAADvEwAAAQAAAAAAAAAAAAAAAQAAAAEBAAAvAAAA
+				5AAAAP7///8BAAAAAAAAABIAAAAEEAAAYAAAAAAAAAAF
+				EAAAzAAAAAAAAAAQEAAA+AAAAAAAAABAEAAA6AAAAAAA
+				AABVEAAAIAEAAAAAAABWEAAAGAEAAAAAAAACIAAA1AEA
+				AAAAAAAFIAAASAEAAAAAAAAQIAAAWAEAAAAAAAARIAAA
+				iAEAAAAAAAASIAAAaAEAAAAAAAATIAAAeAEAAAAAAAAg
+				IAAAtAEAAAAAAAAwIAAAGAEAAAAAAAABwAAALAEAAAAA
+				AAARwAAAIAAAAAAAAAASwAAAPAEAAAAAAAAQ0AAABAAA
+				AAAAAAA=
+				</data>
+				<key>FileURL</key>
+				<string>file:///Users/phar/HAXE/plugins/note_plugin.py</string>
+				<key>HasSecurityScope</key>
+				<true/>
+				<key>RelativePath</key>
+				<string>./plugins/note_plugin.py</string>
+				<key>TypeID</key>
+				<string>_CFileLocator</string>
+				<key>Version</key>
+				<integer>1</integer>
+			</dict>
+			<key>ItemName</key>
+			<string>note_plugin.py</string>
+			<key>ItemType</key>
+			<string>FileReference</string>
+			<key>UserOverrideItemName</key>
+			<true/>
+		</dict>
 		<key>568978AE-C9A1-4C20-8E96-1E47D4A81719</key>
 		<dict>
 			<key>ItemData</key>
@@ -482,6 +533,55 @@
 			<string>docks</string>
 			<key>ItemType</key>
 			<string>StaticCollection</string>
+			<key>UserOverrideItemName</key>
+			<true/>
+		</dict>
+		<key>63817C6B-2E72-4B63-83FA-72DE07656542</key>
+		<dict>
+			<key>ItemData</key>
+			<dict>
+				<key>BookmarkData</key>
+				<data>
+				Ym9vawADAAAAAAQQMAAAAKvgsaxJiBPxMwCyKTS8AdiX
+				AKv2cuQhus3rzAwk688q5AEAAAQAAAADAwAAAAgAKAUA
+				AAABAQAAVXNlcnMAAAAEAAAAAQEAAHBoYXIEAAAAAQEA
+				AEhBWEUHAAAAAQEAAHBsdWdpbnMAEQAAAAEBAABzdHJ1
+				Y3RzX3BsdWdpbi5weQAAABQAAAABBgAAEAAAACAAAAAs
+				AAAAOAAAAEgAAAAIAAAABAMAAE5pBgAAAAAACAAAAAQD
+				AAB3yQYAAAAAAAgAAAAEAwAAb6otAgIAAAAIAAAABAMA
+				AJHLMwICAAAACAAAAAQDAABnDUkCAgAAABQAAAABBgAA
+				gAAAAJAAAACgAAAAsAAAAMAAAAAIAAAAAAQAAEHBDf0G
+				9cGMGAAAAAECAAABAAAAAAAAAA8AAAAAAAAAAAAAAAAA
+				AAAAAAAAAQUAAAQAAAADAwAAAgAAAAgAAAAEAwAAAwAA
+				AAAAAAAEAAAAAwMAAPUBAAAIAAAAAQkAAGZpbGU6Ly8v
+				CAAAAAEBAABVbnRpdGxlZAgAAAAEAwAAALBgbnQAAAAI
+				AAAAAAQAAEG/4n6SAAAAJAAAAAEBAAAyOUI3M0UzOS1D
+				RTg0LTM1NTctQTM1NC00MkEwNjlFODZCQTMYAAAAAQIA
+				AIEAAAABAAAA7xMAAAEAAAAAAAAAAAAAAAEAAAABAQAA
+				LwAAAOQAAAD+////AQAAAAAAAAASAAAABBAAAGQAAAAA
+				AAAABRAAANAAAAAAAAAAEBAAAPwAAAAAAAAAQBAAAOwA
+				AAAAAAAAVRAAACQBAAAAAAAAVhAAABwBAAAAAAAAAiAA
+				ANgBAAAAAAAABSAAAEwBAAAAAAAAECAAAFwBAAAAAAAA
+				ESAAAIwBAAAAAAAAEiAAAGwBAAAAAAAAEyAAAHwBAAAA
+				AAAAICAAALgBAAAAAAAAMCAAABwBAAAAAAAAAcAAADAB
+				AAAAAAAAEcAAACAAAAAAAAAAEsAAAEABAAAAAAAAENAA
+				AAQAAAAAAAAA
+				</data>
+				<key>FileURL</key>
+				<string>file:///Users/phar/HAXE/plugins/structs_plugin.py</string>
+				<key>HasSecurityScope</key>
+				<true/>
+				<key>RelativePath</key>
+				<string>./plugins/structs_plugin.py</string>
+				<key>TypeID</key>
+				<string>_CFileLocator</string>
+				<key>Version</key>
+				<integer>1</integer>
+			</dict>
+			<key>ItemName</key>
+			<string>structs_plugin.py</string>
+			<key>ItemType</key>
+			<string>FileReference</string>
 			<key>UserOverrideItemName</key>
 			<true/>
 		</dict>

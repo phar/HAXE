@@ -33,7 +33,7 @@ from PyQt5.QtWidgets import *
 import string
 import importlib
 import construct
-from encodings.aliases import aliases
+# from encodings.aliases import aliases
 import argparse
 # from matplotlib.pyplot import *
 
@@ -43,6 +43,7 @@ from ipythonwidget import *
 from cursor import *
 # from docks import *
 import traceback
+import codecs
 #from mmapslice import *
 
 
@@ -53,99 +54,46 @@ CLIPBOARD_MODE_HEX_STRING		=2
 CLIPBOARD_CONVERT_TO = [
 	("RAW", lambda x : "".join([chr(y) if chr(y) in string.printable else ' ' for y in x])),
 	("C-Hex",lambda x : "".join(["\\x%02x" % y for y in x])),
-	("Hex string",lambda x : " ".join(["%02x" % y for y in x])),
+# 	("Hex string",lambda x : " ".join(["%02x" % y for y in x])),
+	("Hex string",lambda x : "".join([chr(y) for y in codecs.encode(x,"hex")])),
+	("Base64",lambda x : "".join([chr(y) for y in codecs.encode(x,"base64")])),
 ]
+
 
 CLIPBOARD_CONVERT_FROM = [
 	("RAW",lambda x : bytearray([y for y in x])),
 	("C-Hex",lambda x: bytearray([ord(y) for y in x.decode('unicode_escape')])),
-	("Hex string",  lambda x : bytearray([int(y,16) for y in x.split()])),
+# 	("Hex string",  lambda x : bytearray([int(y,16) for y in x.split()])),
+	("Hex string",lambda x: bytearray([y for y in codecs.decode(x,'hex')])),
+	("Base64",lambda x: bytearray([y for y in codecs.decode(x,'base64')])),
 ]
 
-
-class StructEditor(QTextEdit):
-	structChanged = pyqtSignal(object)
-	def __init__(self, api):
-		super(StructEditor, self).__init__()
-		self.api = api
-		self.structs = {}
-		self.setStructOk()
-		self.setMinimumWidth(300)
-		self.structbuff = ""
-		self.refreshStructBuff()
-
-	def widgetfunc(self):
-		return ("Struct Editor","Alt+S",self)
-			
-	def setStructOk(self):
-		self.setStyleSheet("background-color: rgb(232, 255, 232); color: rgb(0, 0, 0);")#green
-		
-	def setStructBad(self):
-		self.setStyleSheet("background-color: rgb(255, 232, 232);color: rgb(0, 0, 0)")#red
-	
-	def contextMenuEvent(self, event):
-		menu = QMenu()
-		mnu = {} #fixme
-		mnu["save"] = menu.addAction("Save Struct File", self.saveStructFile)	
-		mnu["load"] = menu.addAction("Load Struct File", self.loadStructFile)		
-		mnu["load"] = menu.addAction("Evaluate Structs", self.evalStructFile)		
-		action = menu.exec_(self.mapToGlobal(event.pos()))
-
-	def getStruct(self,name):
-		return self.structs[name]
-		
-	def getStructList(self):
-		return [x for x,y in self.structs.items()]
-		
-	def refreshStructBuff(self):
-		if self.structbuff != self.toPlainText():
-			self.structbuff = self.toPlainText()
-			self.structChanged.emit(self.structbuff)
-			
-	def evalStructFile(self):
-		self.items = []
-		ns = {}
-		self.refreshStructBuff()
-		try:
-			exec(compile("from construct import *\n" + self.structbuff, '<none>', 'exec'), ns)
-			results = []
-			self.structs = {}
-			for name in sorted([x for x, v in ns.items() if isinstance(v, construct.Construct) and (x not in dir(construct)) ], key=self.foo):
-				cons = ns[name]
-				self.structs[name] = cons
-			self.setStructOk()
-		except:
-			self.setStructBad()
-			print(dir(traceback))
-			traceback.print_exc()
-			
-		print (self.structs)
-
-	def loadStructFile(self):
-		self.filename = QFileDialog.getOpenFileName(self, "Load Struct defs From...")[0]
-		if self.filename:
-			f = open(self.filename, "rb")
-			self.structbuff = f.read().decode("utf-8")
-			self.setText(self.structbuff)
-			f.close()
-		self.evalStructFile()
-			
-	def saveStructFile(self):
-		self.filename = QFileDialog.getSaveFileName(self, "Save Struct defs as...")[0]
-		self.refreshStructBuff()
-		if self.filename:
-			f = open(self.filename, "wb")
-			f.write(bytearray(self.structbuff,'utf-8'))
-			f.close()
-
-	def foo(self, x): #fixme
-		try:
-			y = ("\n" + self.structbuff).index("\n" + x)
-		except:
-			print( x)
-			raise
-		return y
-		
+# 
+# 
+# class StructEditor(QTextEdit):
+# 	structChanged = pyqtSignal(object)
+# 	def __init__(self, api):
+# 		super(StructEditor, self).__init__()
+# 		self.api = api
+# 		self.structs = {}
+# 		self.setStructOk()
+# 		self.setMinimumWidth(300)
+# 		self.structbuff = ""
+# 		self.refreshStructBuff()
+# 
+# 	def widgetfunc(self):
+# 		return ("Struct Editor","Alt+S",self)
+# 
+# 	def contextMenuEvent(self, event):
+# 		menu = QMenu()
+# 		mnu = {} #fixme
+# 		mnu["save"] = menu.addAction("Save Struct File", self.saveStructFile)	
+# 		mnu["load"] = menu.addAction("Load Struct File", self.loadStructFile)		
+# 		mnu["load"] = menu.addAction("Evaluate Structs", self.evalStructFile)		
+# 		action = menu.exec_(self.mapToGlobal(event.pos()))
+# 			
+# 
+# 		
 		
 					
 
@@ -170,7 +118,7 @@ class HaxeAPI(QObject):
 		self.scanPlugins()
 		self.startPlugins()
 		self.settings = QSettings("phar", "haxe hex editor")
-		self.structeditor = StructEditor(self)
+# 		self.structeditor = StructEditor(self)
 		
 	def getConverters(self):
 		return(CLIPBOARD_CONVERT_FROM,CLIPBOARD_CONVERT_TO)
@@ -373,6 +321,9 @@ class HaxeAPI(QObject):
 	def setPasteMode(self,mode):
 		self.paste_mode = mode	
 	
+	
+	
+	
 class HaxEditor(QMainWindow):
 	def __init__(self):
 		super(HaxEditor, self).__init__()
@@ -394,9 +345,9 @@ class HaxEditor(QMainWindow):
 
 		self.loadiPythonEnvironment("ipython.env")
 
-		(name, dock, window, action, shortcut) = self.createDock(self.api.structeditor.widgetfunc)
-		self.docks[name] = {'dock':dock, 'window':window,'action':action,'shortcut':shortcut}		
-		self.viewmenu.addAction(self.docks[name]['action'])
+# 		(name, dock, window, action, shortcut) = self.createDock(self.api.structeditor.widgetfunc)
+# 		self.docks[name] = {'dock':dock, 'window':window,'action':action,'shortcut':shortcut}		
+# 		self.viewmenu.addAction(self.docks[name]['action'])
  		
 		(name, dock, window, action, shortcut) = self.createDock(self.iPuthonWindow)
 		self.docks[name] = {'dock':dock, 'window':window,'action':action,'shortcut':shortcut}		
@@ -672,7 +623,5 @@ if __name__ == '__main__':
 
 
 	h = HaxEditor()
-# 	h.api.loadStructFile()
 	h.show()
-# 	h.api.evalStructFile()
 	app.exec_()

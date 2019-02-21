@@ -8,13 +8,9 @@ to replace the parsed structure values
 change hilight cololor between ascii and hex sides depending on which selection is active
 confirm save
 confirm large file mode
-edit struct fields by double clicking
-diffing using difflib
 large file detection/support
-double clicking struct highlights edit the struct field
-status bar notices
-	file readonly
-	largefile
+crash in undo stack
+
 
 overlapping highlights	
 widget should be usable on its own

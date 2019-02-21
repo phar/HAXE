@@ -52,18 +52,18 @@ class BookmarkWidget(QTableWidget):
 			qtw.setBackground(QColor( s.color))
 			qtw.setForeground(QColor(hexColorComplement( s.color)))
 
-			if s.obj[0] == 'struct':
-				(type, structname,parent,child) = s.obj
-				qtw =  QTableWidgetItem(".".join([structname,child.name]) + " %s" % "")
-				qtw.setBackground(QColor( s.color))
-				qtw.setForeground(QColor(hexColorComplement( s.color)))
-				self.setItem(i,2,qtw)
-			elif s.obj[0] == 'note':
-				(type, text) = s.obj
-				qtw = QTableWidgetItem(text)
-				qtw.setBackground(QColor(s.color))
-				qtw.setForeground(QColor(hexColorComplement(s.color)))
-				self.setItem(i,2, qtw)
+# 			if s.obj[0] == 'struct':
+# 				(type, structname,parent,child) = s.obj
+# 				qtw =  QTableWidgetItem(".".join([structname,child.name]) + " %s" % "")
+# 				qtw.setBackground(QColor( s.color))
+# 				qtw.setForeground(QColor(hexColorComplement( s.color)))
+# 				self.setItem(i,2,qtw)
+# 			elif s.obj[0] == 'note':
+# 				(type, text) = s.obj
+			qtw = QTableWidgetItem(s.obj.labelAction())
+			qtw.setBackground(QColor(s.color))
+			qtw.setForeground(QColor(hexColorComplement(s.color)))
+			self.setItem(i,2, qtw)
 			i+=1
 			
 			
@@ -106,8 +106,8 @@ class HexDialog(QMainWindow):
 		self.api = api
 		self.parent = parent
 		self.clipboardata = []
-		self.structs = []
-		self.struct_hints = {}		
+# 		self.structs = []
+# 		self.struct_hints = {}		
 		self.clipboarcopy = [] #fixme, replace with hash
 		self.isActiveWindow = False
 		self.hexWidget =  HexWidget(api,self,self.filebuff, font="Courier", fontsize=12)
@@ -154,59 +154,41 @@ class HexDialog(QMainWindow):
 		
 		self.filestatus.setAlignment(QtCore.Qt.AlignRight)
 		self.statusBar.show()
+		self.blink = False
+		self.blinkstate = 0
+		self.lastblink = 0
+		self.startCursor(500)
+
+	def startCursor(self,interval=500):
+		# cursor blinking timer
+		self.cursorTimer = QTimer()
+		self.cursorBlinkInterval = interval
+		self.cursorTimer.timeout.connect(self.updateCursor)
+		self.cursorTimer.setInterval(interval)
+		self.cursorTimer.start()
+
+	def updateCursor(self):
+# 		self.blink = not self.blink
+		self.blinkstate += 1
+		self.hexWidget.viewport().update()
+
 
 
 	def getSelection(self):
 		return self.hexWidget.getCursor().getSelection()
 
-# 	def selectall(self,selection):
-# 		self.selectAllEvent.emit(self.cursor.getSelection())
-
 	def jumpto(self,selection):
 		f  = JumpToDialog(self,self.api)
 		f.show()
 					
-	def structAtAddress(self,struct,address):
-		print("define struct %s @ %08x" % (struct,address))
-		self.structs.append((struct,address))
-		self.refreshStructs()
-		self.hexWidget.viewport().update()
-				
-	def refreshStructs(self):
-		for (structn, address) in self.structs:
-			s = self.api.structeditor.getStruct(structn);
-			if s is not None:
-				t = s.parse(self.filebuff[self.hexWidget.cursor._selection.start:self.hexWidget.cursor._selection.start+s.sizeof()])
-				tally = 0
-				for  i in s.subcons:
-					self.hexWidget.addSelection(int(address+tally), int(address+tally + i.sizeof()),color=None,obj=("struct",structn,t,i))
-					tally += i.sizeof()
-
 	def contextEvent(self,event):
 		menu = QMenu(self)		
-		mnu = {} #fixme
-		structmenu = QMenu("Structs")#this whole area uses variables slopily.. fixme	
-		mnu["structs"] = menu.addMenu(structmenu)
-	
-		for n in self.api.structeditor.getStructList():
-			mnu[n] = structmenu.addAction("Struct %s here" % n, lambda n = n: self.structAtAddress(n,self.hexWidget.cursor._selection.start))	
-		
-		menu.addSeparator()
-		if len(self.hexWidget.cursor._selection):
-			mnu['annotate'] = menu.addAction("Annotate Selection")
-
-		pluginmenu = QMenu("Plugins")#this whole area uses variables slopily.. fixme	
-		mnu["pluginmenu"] = menu.addMenu(pluginmenu)
-	
 		pluginmenus = {}
 		for (n,fn) in self.api.listSelectionPlugins():
-			pluginmenus['plugin_%s' % n] = pluginmenu.addAction("%s from selection" % n, lambda n = n, fn = fn: self.api.runPluginOnHexobj(fn, self))
+			pluginmenus['plugin_%s' % n] = menu.addAction("%s" % n, lambda n = n, fn = fn: self.api.runPluginOnHexobj(fn, self))
 		
 		action = menu.exec_(self.mapToGlobal(event.pos()))
-		if 'annotate' in mnu and action == mnu['annotate']:
-			text, ok = QInputDialog.getText(self, 'Annotate', 'Note:')	
-			if ok:
-				self.hexWidget.addSelection(self.hexWidget.cursor._selection.start,self.hexWidget.cursor._selection.end, obj=("note",text), color=self.hexWidget.getNextColor())
+
 		
 	def maintainBookmarks(self, bookmarks):
 		self.bookmarks.setRowCount(len(bookmarks))
@@ -219,17 +201,9 @@ class HexDialog(QMainWindow):
 			qtw = QTableWidgetItem("0x%08x" % end)
 			self.bookmarks.setItem(i,1, qtw)
 			qtw.setBackground(QColor( s.color))
-
-			if s.obj[0] == 'struct':
-				(type, structname,parent,child) = s.obj
-				qtw =  QTableWidgetItem(".".join([structname,child.name]) + " %s" % "")
-				qtw.setBackground(QColor( s.color))
-				self.bookmarks.setItem(i,2,qtw)
-			elif s.obj[0] == 'note':
-				(type, text) = s.obj
-				qtw = QTableWidgetItem(text)
-				qtw.setBackground(QColor( s.color))
-				self.bookmarks.setItem(i,2, qtw)
+			qtw = QTableWidgetItem(s.obj.labelAction())
+			qtw.setBackground(QColor( s.color))
+			self.bookmarks.setItem(i,2, qtw)
 			i+=1
 			
 	def undo(self,selection):
@@ -248,8 +222,16 @@ class HexDialog(QMainWindow):
 		self.dia.raise_()
 		self.dia.activateWindow()
 		      	
+	def getCursor(self):
+		return self.hexWidget.getCursor()
+		      	
+	def addSelection(self,start, end=1, color=None, obj=None):
+		self.hexWidget.addSelection(start,end,color,obj)
+		      	
 	def getSelection(self):
 		return self.hexWidget.getSelection()
+
+
       	
 	def select_changed(self,selection):
 		(start,end) = selection.getRange()
@@ -431,14 +413,14 @@ class SearchDialog(QDialog):
 			
 		self.lyt.addWidget(self.pm, 0, 3)
 
-		self.lyt.addWidget(self.pb_searchn, 2, 0)
-		self.lyt.addWidget(self.pb_searchp, 2, 1)
+		self.lyt.addWidget(self.pb_searchn, 2, 1)
+		self.lyt.addWidget(self.pb_searchp, 2, 0)
 		self.lyt.addWidget(self.pb_replacen, 2, 2)
 		self.lyt.addWidget(self.pb_replacea, 2, 3)
 		self.loadSettings()
 		
 	def getsearchvalue(self):	
-		ret = self.parent.api.getPasteModeFnbyName(self.pm.currentText())(self.searchline.text())
+		ret = self.parent.api.getPasteModeFnbyName(self.pm.currentText())(bytearray(self.searchline.text(),"UTF-8"))
 		return ret
 
 	def find_all(self):
@@ -481,13 +463,9 @@ class SearchDialog(QDialog):
 			retval = msg.exec_()	
 				
 	def loadSettings(self):
-# 		txt = self.api.settings.value("search.address")
-# 		if txt != None:
-# 			self.le1.setText(txt)	
 		pass
          
 	def saveSettings(self):
-# 		self.api.settings.setValue("search.address",self.le1.text())
 		pass
 		
 	def closeEvent(self,event):

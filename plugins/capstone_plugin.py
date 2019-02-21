@@ -105,7 +105,7 @@ class CapstonePlugin(HexPlugin):
 			self.mainWin.close()		
 
 	def pluginSelectionPlacement(self, selection=None):
-		return [("Capstone disassemble", self.selectionfilter)]
+		return [("disassemble (capstone)", self.selectionfilter)]
 
 	def selectionfilter(self, hexobj):
 		if self.mainWin == None:

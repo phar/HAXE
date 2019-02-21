@@ -85,7 +85,7 @@ class CRCGUIWin(QMainWindow):
 			xorout =  int(self.xorout.text(),16)		
 			rev = self.refout.isChecked()
 			crc32_func = crcmod.mkCrcFun(poly, rev=False, initCrc=init, xorOut=xorout)
-			(start,end) = self.obj.hexWidget.cursor._selection.getRange()
+			(start,end) = self.obj.getSelection().getRange() #fixme API breaking fixed?
 			self.crcout.setText (hex(crc32_func(self.obj.filebuff[start:end])))
 		except:
 			self.crcout.setText ("invalid input values")
@@ -137,7 +137,7 @@ class CRCPlugin(HexPlugin):
 			self.mainWin.close()		
 
 	def pluginSelectionPlacement(self, selection=None):
-		return [("CRC", self.selectionfilter)]
+		return [("CRC selection", self.selectionfilter)]
 
 	def selectionfilter(self, hexobj):
 		if self.mainWin == None:

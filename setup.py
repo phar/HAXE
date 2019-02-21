@@ -9,13 +9,21 @@ from setuptools import setup
 
 APP = ['haxe.py']
 DATA_FILES = []
-OPTIONS = {'argv_emulation': True,
-           'plist': {
-               'PyRuntimeLocations': [
-                '@executable_path/../Frameworks/libpython3.7m.dylib',
-                '/Users/phar/anaconda3/lib/libpython3.7m.dylib'
-               ]
-           }}
+OPTIONS = dict(
+#	iconfile="path/to/my/icon/my_icon_file.icns",
+ includes=["importlib",
+#  			"string",
+#  			"argparse"
+#               'PyQt5',
+#               'numpy',
+#               'sys',
+#               'os',
+		'construct'
+              'time'],
+
+
+)
+
 setup(
     app=APP,
     data_files=DATA_FILES,
