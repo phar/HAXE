@@ -2,13 +2,16 @@
 from plugin_base import *
 from selection import *
 #modules required for this plugin
-from construct import *
 
 
 class NoteActionClass(SelectionActionClasss):		
 	def editAction(self):
 		self.mainWin = NotesGUIWin(self, action='edit')
 		self.mainWin.show()
+		
+	def dragAction(self,dragdistance):
+		print("click!")
+		True
 
 
 class NotesGUIWin(QDialog):
@@ -45,12 +48,17 @@ class NotesGUIWin(QDialog):
 			
 		self.note.setPlainText(self.notetext)
 			
-
 	def addnote(self):
-		(start,end) = self.actionclass.hexdialog.getSelection().getRange()
+# 		(start,end) = self.actionclass.hexdialog.getSelection().getRange()
 		text = self.note.toPlainText()
 		self.actionclass.setLabel(text)
-		self.actionclass.hexdialog.addSelection(start,end, obj=self.actionclass, color=self.actionclass.hexdialog.hexWidget.getNextColor()) #fixme
+		sel = self.actionclass.hexdialog.getSelection()
+		sel.obj=self.actionclass
+		sel.active=True
+		sel.color = self.actionclass.hexdialog.hexWidget.getNextColor()
+# 		self.actionclass.hexdialog.addSelection(self.actionclass.hexdialog.getSelection(), obj=self.actionclass, color=self.actionclass.hexdialog.hexWidget.getNextColor()) #fixme		self.actionclass.hexdialog.addSelection(self.actionclass.hexdialog.getSelection(), obj=self.actionclass, color=self.actionclass.hexdialog.hexWidget.getNextColor()) #fixme
+		self.actionclass.hexdialog.addSelection(sel) #fixme
+
 		self.close()
 	
 	def loadSettings(self):

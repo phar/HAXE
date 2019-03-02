@@ -24,6 +24,11 @@ class SelectionActionClasss(QObject):
 		print("dblckick!")
 		True
 
+	def dragAction(self):
+		print("click!")
+		True
+
+
 
 class Selection(QObject):
 	selectionChanged = QtCore.pyqtSignal(object)
@@ -37,7 +42,7 @@ class Selection(QObject):
 		self.active = active
 		self.obj = obj
 		self.color = color
-
+		
 	def __repr__(self):	
 		return ("Selection(%s,%s)" % (self._start, self._end))
 
@@ -47,6 +52,24 @@ class Selection(QObject):
 		else:
 			return abs(self._end - self._start)
 
+	def __iter__(self):
+		return iter(range(min(self._start, self._end), max(self._start, self._end)))
+
+
+	def __add__(self,arg):
+		self._start += int(arg)
+		self._end += int(arg)
+		self.selectionChanged.emit(self.getRange())		
+		return self
+
+
+	def __sub__(self,arg):
+		self._start += int(arg)
+		self._end += int(arg)
+		self.selectionChanged.emit(self.getRange())
+		return self
+		
+		
 	def getRange(self):
 		return (min(self._start, self._end), max(self._start, self._end))
 		

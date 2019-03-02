@@ -10,9 +10,8 @@ confirm save
 confirm large file mode
 large file detection/support
 crash in undo stack
+drag mouse past top and bottom of screen
 
-
-overlapping highlights	
 widget should be usable on its own
 import export patch from undostack
 

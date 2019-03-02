@@ -5,7 +5,6 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 import string
 import importlib
-import construct
 
 
 class HexPlugin():
@@ -29,4 +28,7 @@ class HexPlugin():
 		return []
 		
 	def pluginImportExportPlacement(self, selection=None):
+		return []
+		
+	def pluginSelectionSubPlacement(self):
 		return []

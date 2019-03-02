@@ -19,9 +19,12 @@ class Cursor(QObject):
 	def selectNone(self):
 		self._selection.start = self._selection.end
 		
+	def getPosition(self):
+		return self._selection.end
 
 	def getSelection(self):
-		self._selection.color = self.parent.palette().color(QPalette.Highlight)
+		(r,g,b,a) = self.parent.palette().color(QPalette.Highlight).getRgb()
+		self._selection.color = (r << 16) | (g << 8) | b
 		return self._selection
 		
 	def setCursorPosistion(self, pos):

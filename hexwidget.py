@@ -15,40 +15,40 @@ import traceback
 
 
 COLOR_PALETTE = [ #high contrast color mapping
-        "#FFFF00", "#1CE6FF", "#FF34FF", "#FF4A46", "#008941", "#006FA6", "#A30059",
-        "#FFDBE5", "#7A4900", "#0000A6", "#63FFAC", "#B79762", "#004D43", "#8FB0FF", "#997D87",
-        "#5A0007", "#809693", "#FEFFE6", "#1B4400", "#4FC601", "#3B5DFF", "#4A3B53", "#FF2F80",
-        "#61615A", "#BA0900", "#6B7900", "#00C2A0", "#FFAA92", "#FF90C9", "#B903AA", "#D16100",
-        "#DDEFFF", "#000035", "#7B4F4B", "#A1C299", "#300018", "#0AA6D8", "#013349", "#00846F",
-        "#372101", "#FFB500", "#C2FFED", "#A079BF", "#CC0744", "#C0B9B2", "#C2FF99", "#001E09",
-        "#00489C", "#6F0062", "#0CBD66", "#EEC3FF", "#456D75", "#B77B68", "#7A87A1", "#788D66",
-        "#885578", "#FAD09F", "#FF8A9A", "#D157A0", "#BEC459", "#456648", "#0086ED", "#886F4C",
-        "#34362D", "#B4A8BD", "#00A6AA", "#452C2C", "#636375", "#A3C8C9", "#FF913F", "#938A81",
-        "#575329", "#00FECF", "#B05B6F", "#8CD0FF", "#3B9700", "#04F757", "#C8A1A1", "#1E6E00",
-        "#7900D7", "#A77500", "#6367A9", "#A05837", "#6B002C", "#772600", "#D790FF", "#9B9700",
-        "#549E79", "#FFF69F", "#201625", "#72418F", "#BC23FF", "#99ADC0", "#3A2465", "#922329",
-        "#5B4534", "#FDE8DC", "#404E55", "#0089A3", "#CB7E98", "#A4E804", "#324E72", "#6A3A4C",
-        "#83AB58", "#001C1E", "#D1F7CE", "#004B28", "#C8D0F6", "#A3A489", "#806C66", "#222800",
-        "#BF5650", "#E83000", "#66796D", "#DA007C", "#FF1A59", "#8ADBB4", "#1E0200", "#5B4E51",
-        "#C895C5", "#320033", "#FF6832", "#66E1D3", "#CFCDAC", "#D0AC94", "#7ED379", "#012C58",
-        "#7A7BFF", "#D68E01", "#353339", "#78AFA1", "#FEB2C6", "#75797C", "#837393", "#943A4D",
-        "#B5F4FF", "#D2DCD5", "#9556BD", "#6A714A", "#001325", "#02525F", "#0AA3F7", "#E98176",
-        "#DBD5DD", "#5EBCD1", "#3D4F44", "#7E6405", "#02684E", "#962B75", "#8D8546", "#9695C5",
-        "#E773CE", "#D86A78", "#3E89BE", "#CA834E", "#518A87", "#5B113C", "#55813B", "#E704C4",
-        "#00005F", "#A97399", "#4B8160", "#59738A", "#FF5DA7", "#F7C9BF", "#643127", "#513A01",
-        "#6B94AA", "#51A058", "#A45B02", "#1D1702", "#E20027", "#E7AB63", "#4C6001", "#9C6966",
-        "#64547B", "#97979E", "#006A66", "#391406", "#F4D749", "#0045D2", "#006C31", "#DDB6D0",
-        "#7C6571", "#9FB2A4", "#00D891", "#15A08A", "#BC65E9", "#FFFFFE", "#C6DC99", "#203B3C",
-        "#671190", "#6B3A64", "#F5E1FF", "#FFA0F2", "#CCAA35", "#374527", "#8BB400", "#797868",
-        "#C6005A", "#3B000A", "#C86240", "#29607C", "#402334", "#7D5A44", "#CCB87C", "#B88183",
-        "#AA5199", "#B5D6C3", "#A38469", "#9F94F0", "#A74571", "#B894A6", "#71BB8C", "#00B433",
-        "#789EC9", "#6D80BA", "#953F00", "#5EFF03", "#E4FFFC", "#1BE177", "#BCB1E5", "#76912F",
-        "#003109", "#0060CD", "#D20096", "#895563", "#29201D", "#5B3213", "#A76F42", "#89412E",
-        "#1A3A2A", "#494B5A", "#A88C85", "#F4ABAA", "#A3F3AB", "#00C6C8", "#EA8B66", "#958A9F",
-        "#BDC9D2", "#9FA064", "#BE4700", "#658188", "#83A485", "#453C23", "#47675D", "#3A3F00",
-        "#061203", "#DFFB71", "#868E7E", "#98D058", "#6C8F7D", "#D7BFC2", "#3C3E6E", "#D83D66",
-        "#2F5D9B", "#6C5E46", "#D25B88", "#5B656C", "#00B57F", "#545C46", "#866097", "#365D25",
-        "#252F99", "#00CCFF", "#674E60", "#FC009C", "#92896B"
+        0xFFFF00, 0x1CE6FF, 0xFF34FF, 0xFF4A46, 0x008941, 0x006FA6, 0xA30059,
+        0xFFDBE5, 0x7A4900, 0x0000A6, 0x63FFAC, 0xB79762, 0x004D43, 0x8FB0FF, 0x997D87,
+        0x5A0007, 0x809693, 0xFEFFE6, 0x1B4400, 0x4FC601, 0x3B5DFF, 0x4A3B53, 0xFF2F80,
+        0x61615A, 0xBA0900, 0x6B7900, 0x00C2A0, 0xFFAA92, 0xFF90C9, 0xB903AA, 0xD16100,
+        0xDDEFFF, 0x000035, 0x7B4F4B, 0xA1C299, 0x300018, 0x0AA6D8, 0x013349, 0x00846F,
+        0x372101, 0xFFB500, 0xC2FFED, 0xA079BF, 0xCC0744, 0xC0B9B2, 0xC2FF99, 0x001E09,
+        0x00489C, 0x6F0062, 0x0CBD66, 0xEEC3FF, 0x456D75, 0xB77B68, 0x7A87A1, 0x788D66,
+        0x885578, 0xFAD09F, 0xFF8A9A, 0xD157A0, 0xBEC459, 0x456648, 0x0086ED, 0x886F4C,
+        0x34362D, 0xB4A8BD, 0x00A6AA, 0x452C2C, 0x636375, 0xA3C8C9, 0xFF913F, 0x938A81,
+        0x575329, 0x00FECF, 0xB05B6F, 0x8CD0FF, 0x3B9700, 0x04F757, 0xC8A1A1, 0x1E6E00,
+        0x7900D7, 0xA77500, 0x6367A9, 0xA05837, 0x6B002C, 0x772600, 0xD790FF, 0x9B9700,
+        0x549E79, 0xFFF69F, 0x201625, 0x72418F, 0xBC23FF, 0x99ADC0, 0x3A2465, 0x922329,
+        0x5B4534, 0xFDE8DC, 0x404E55, 0x0089A3, 0xCB7E98, 0xA4E804, 0x324E72, 0x6A3A4C,
+        0x83AB58, 0x001C1E, 0xD1F7CE, 0x004B28, 0xC8D0F6, 0xA3A489, 0x806C66, 0x222800,
+        0xBF5650, 0xE83000, 0x66796D, 0xDA007C, 0xFF1A59, 0x8ADBB4, 0x1E0200, 0x5B4E51,
+        0xC895C5, 0x320033, 0xFF6832, 0x66E1D3, 0xCFCDAC, 0xD0AC94, 0x7ED379, 0x012C58,
+        0x7A7BFF, 0xD68E01, 0x353339, 0x78AFA1, 0xFEB2C6, 0x75797C, 0x837393, 0x943A4D,
+        0xB5F4FF, 0xD2DCD5, 0x9556BD, 0x6A714A, 0x001325, 0x02525F, 0x0AA3F7, 0xE98176,
+        0xDBD5DD, 0x5EBCD1, 0x3D4F44, 0x7E6405, 0x02684E, 0x962B75, 0x8D8546, 0x9695C5,
+        0xE773CE, 0xD86A78, 0x3E89BE, 0xCA834E, 0x518A87, 0x5B113C, 0x55813B, 0xE704C4,
+        0x00005F, 0xA97399, 0x4B8160, 0x59738A, 0xFF5DA7, 0xF7C9BF, 0x643127, 0x513A01,
+        0x6B94AA, 0x51A058, 0xA45B02, 0x1D1702, 0xE20027, 0xE7AB63, 0x4C6001, 0x9C6966,
+        0x64547B, 0x97979E, 0x006A66, 0x391406, 0xF4D749, 0x0045D2, 0x006C31, 0xDDB6D0,
+        0x7C6571, 0x9FB2A4, 0x00D891, 0x15A08A, 0xBC65E9, 0xFFFFFE, 0xC6DC99, 0x203B3C,
+        0x671190, 0x6B3A64, 0xF5E1FF, 0xFFA0F2, 0xCCAA35, 0x374527, 0x8BB400, 0x797868,
+        0xC6005A, 0x3B000A, 0xC86240, 0x29607C, 0x402334, 0x7D5A44, 0xCCB87C, 0xB88183,
+        0xAA5199, 0xB5D6C3, 0xA38469, 0x9F94F0, 0xA74571, 0xB894A6, 0x71BB8C, 0x00B433,
+        0x789EC9, 0x6D80BA, 0x953F00, 0x5EFF03, 0xE4FFFC, 0x1BE177, 0xBCB1E5, 0x76912F,
+        0x003109, 0x0060CD, 0xD20096, 0x895563, 0x29201D, 0x5B3213, 0xA76F42, 0x89412E,
+        0x1A3A2A, 0x494B5A, 0xA88C85, 0xF4ABAA, 0xA3F3AB, 0x00C6C8, 0xEA8B66, 0x958A9F,
+        0xBDC9D2, 0x9FA064, 0xBE4700, 0x658188, 0x83A485, 0x453C23, 0x47675D, 0x3A3F00,
+        0x061203, 0xDFFB71, 0x868E7E, 0x98D058, 0x6C8F7D, 0xD7BFC2, 0x3C3E6E, 0xD83D66,
+        0x2F5D9B, 0x6C5E46, 0xD25B88, 0x5B656C, 0x00B57F, 0x545C46, 0x866097, 0x365D25,
+        0x252F99, 0x00CCFF, 0x674E60, 0xFC009C, 0x92896B
     ]
 
 
@@ -58,11 +58,12 @@ def hilo(r,g,b):
 		return  (255,255,255)
 	else:
 		return tuple(int(QColor(QPalette.WindowText).name()[i:i+2], 16) for i in (1, 3 ,5))
-
+		
 def hexColorComplement(cstr):
-        (r,g,b) = tuple(int(cstr[i:i+2], 16) for i in (1, 3 ,5))
-        return "#" + "".join(["%02x" % x for x in hilo(r,g,b)])
-
+	r = (cstr & 0xff0000) >> 16
+	g = (cstr & 0x00ff00) >> 8
+	b = (cstr & 0x0000ff)
+	return "#" + "".join(["%02x" % x for x in hilo(r,g,b)])
 
 
 
@@ -100,7 +101,11 @@ class HexWidget(QAbstractScrollArea):
 		self.activeview = 'hex'
 		self.charset = "ascii"
 		self.highlights = []
-		self.dragactive = 0
+		self.selectactive =  False
+		self.dragactive = False
+		self.dragstart = None
+		self.dragselection = []
+		self.widgetpainted = None
 		# constants... NOT IF I HAVE ANYTHING TO SAY ABOUT IT
 		self.bpl = 16
 		self.gap2 = 2
@@ -152,7 +157,6 @@ class HexWidget(QAbstractScrollArea):
 	def contextMenuEvent(self, event):
 		self.ctxtMenuEvent.emit(event)
 		
-
 	def addr_start(self):
 		return 1
 
@@ -166,17 +170,26 @@ class HexWidget(QAbstractScrollArea):
 		return (pos, self.bpl, self.filebuff[pos:pos+self.bpl])
 
 	def toAscii(self, strin):
-# 		return  "".join([chr(x) if chr(x) in string.printable else "." for x in strin])
 		return  "".join([chr(x) if chr(x) in string.printable else "." for x in strin])
-# 		return strin.decode("")
-	
-	
+
 	def getLines(self, pos=0):
-# 		while pos <  self.visibleLines():#len(self.filebuff)-self.bpl:
 		while pos < len(self.filebuff)-self.bpl:
-			yield (pos, self.bpl, self.toAscii(self.filebuff[pos:pos+self.bpl]))
+			bytes = self.filebuff[pos:pos+self.bpl]
+			yield (pos, self.bpl,bytes, self.toAscii(bytes))
 			pos += self.bpl
-		yield (pos, len(self.filebuff)-pos, self.toAscii(self.filebuff[pos:]))
+		bytes = self.filebuff[pos:]
+		yield (pos, len(self.filebuff)-pos,bytes, self.toAscii(bytes))
+
+
+# 	def getVisibleLines(self, pos=0):
+# 		l = 0
+# 		while pos < (len(self.filebuff)-self.bpl) and (l < self.visibleLines()):
+# 			yield (pos, self.bpl, self.toAscii(self.filebuff[pos:pos+self.bpl]))
+# 			pos += self.bpl
+# 			l += 1
+# 			print(l)
+# 		yield (pos, len(self.filebuff)-pos, self.toAscii(self.filebuff[pos:]))
+
 
 	def numLines(self):
 		return ceil(float(len(self.filebuff))/ self.bpl)
@@ -192,7 +205,7 @@ class HexWidget(QAbstractScrollArea):
 		return ret
 
 	def visibleLines(self):
-		return int(ceil(float(self.viewport().height())/self.charHeight))
+		return ceil(self.viewport().height()/self.charHeight)
 
 	def totalCharsPerLine(self):
 		return  self.getAddressFormatLen()  + self.gap2 + self.getHexLength() + self.gap3 + self.bpl + self.gap4
@@ -203,15 +216,11 @@ class HexWidget(QAbstractScrollArea):
 		self.verticalScrollBar().setRange(0, self.numLines() - self.visibleLines() + 1)
 		self.verticalScrollBar().setPageStep(self.visibleLines())
 
-	def sizeHint(self):
-		return QtCore.QSize((self.totalCharsPerLine() * self.charWidth), (25 * self.charHeight))
-
 
 	def goto(self, address):
 		self.cursor.setAddress(address)
+		
 	# =====================  Coordinate Juggling  ============================
-
-
 	def pxToCharCoords(self, px, py):
 		cx = px / self.charWidth
 		cy = (py-self.magic_font_offset) / self.charHeight
@@ -232,12 +241,12 @@ class HexWidget(QAbstractScrollArea):
 			rel_column = (column-self.hex_start() / 2.0)
 			line_index = rel_column - (rel_column / self.getHexCharFormatLen())
 			addr = self.pos + (line_index / 2.0) + (row * self.bpl) - 1
+			return  (nib,int(addr))
 			
-			return  (nib,addr)
 		elif column >=  self.ascii_start():
 			rel_column = column-self.ascii_start() 
 			addr = self.pos + rel_column + row * self.bpl
-			return (0,addr)
+			return (0,int(addr))
 		else:
 			return (None,None)
 	def indexToHexCharCoords(self, index):
@@ -280,29 +289,6 @@ class HexWidget(QAbstractScrollArea):
 	# ====================  Event Handling  ==============================
 
 
-	def mousePressEvent(self, event):
-		if((event.pos().x()/self.charWidth) < (self.getAddressFormatLen() + self.gap2)):
-			self.activeview = 'addr'
-			self.toggleAddressFormat()
-			self.viewport().update()
-		elif ((self.getAddressFormatLen() + self.gap2 + self.getHexLength())  > (event.pos().x()/self.charWidth) > (self.getAddressFormatLen() + self.gap2)):
-			self.activeview = 'hex'
-		else:
-			self.activeview = 'ascii'
-	
-		(nib, cur) = self.pxCoordToAddr(event.pos())	
-		if cur is not None and event.buttons() == Qt.LeftButton:
-			self.dragactive  = True
-			self.cursor.startActiveSelection(Selection(cur,cur))
-			self.cursor.setNibble(nib)	
-			self.viewport().update()
-			for s in self.pxToSelectionList(event.pos()):
-				s.obj.selectAction()
-	
-	
-	def mouseDoubleClickEvent(self,event):
-		for s in self.pxToSelectionList(event.pos()):
-			s.obj.editAction()
 
 		
 	def pxToSelectionList(self, pos):
@@ -315,48 +301,22 @@ class HexWidget(QAbstractScrollArea):
 		return selections
 		
 	def hover(self,pos):
+		tooltip  = ""
 		for s in self.pxToSelectionList(pos):
 			if s.obj != None:
-				QToolTip.hideText()
-				QToolTip.showText(self.mapToGlobal(pos),  s.obj.labelAction(), self)
+				if tooltip != "":
+					tooltip += "+"
+				tooltip += "[%s]" %  s.obj.labelAction()
+				
+		if tooltip != "":
+			QToolTip.hideText()
+			QToolTip.showText(self.mapToGlobal(pos),  tooltip, self)
 						
-	def mouseMoveEvent(self, event):	
-		(nib,cur) = self.pxCoordToAddr(event.pos())
-		if cur is not None and self.dragactive == True:
-			self.cursor.updateSelection(Selection(self.cursor._selection.start, cur))		
-			self.viewport().update()
-		if cur: 
-			self.hover(event.pos())
-
-	def mouseReleaseEvent(self, event):
-		self.dragactive = False
-
-	def focusInEvent(self, event):
-		self.focusEvent.emit(self.cursor.getSelection())
-	
-	def resizeEvent(self, event):
-
-		a = self.getAddressFormatLen()  + self.gap2 + self.getHexLength() + self.gap3 + self.bpl + self.gap4
-		b = (self.viewport().width() / self.charWidth) -  ( self.getAddressFormatLen()  + self.gap2 +  self.gap3 +  self.gap4)
-		c = b - (self.bpl + (self.bpl * self.getHexCharFormatLen()))
-		if self.viewport().width() <  (b  - (1 + (1 * self.getHexCharFormatLen()))):
-			self.bpl = 1
-		else:
-			snap = 0
-			minlval = 0
-			widths = []
-			for i in range(1,64):
-				l = ( self.viewport().width() /self.charWidth ) - (( self.getAddressFormatLen()  + self.gap2 +  self.gap3 +  self.gap4) + (i + (i * self.getHexCharFormatLen())))
-				widths.append(l)				
-	
-			self.bpl = widths.index(min(widths, key=abs)) + 1
-		self.adjust()
-
 	def getHexCharFormat(self):
 		return self.hexcharformat
 	
 	def getHexCharFormatLen(self):
-		return len(self.getHexCharFormat().format(0))
+		return len(self.getHexCharFormat().format(0)) 
 
 	def clearHilights(self):
 		self.highlights = []
@@ -364,122 +324,10 @@ class HexWidget(QAbstractScrollArea):
 	def getNextColor(self):
 		return COLOR_PALETTE[len(self.highlights)]
 		
-	def addSelection(self,start, end=1, color=None, obj=None):
-		if color == None:
-			color =  self.getNextColor()
-		self.highlights.append(Selection(start,end,True, color,obj))
+	def addSelection(self,selection):
+		print("adding selection", selection)
+		self.highlights.append(selection)
 		self.updateSelectionListEvent.emit(self.highlights)
-
-	def paintByte(self, painter, addr, topleft, byte, selected):
-		bottomleft = topleft + QPoint(0, self.charHeight-self.magic_font_offset)
-		size = QSize(self.charWidth*self.getHexCharFormatLen(), self.charHeight)
-		rect = QRect(topleft, size)
-
-		if selected:
-			painter.fillRect(rect,self.palette().color(QPalette.Highlight))
-			painter.setPen(self.palette().color(QPalette.HighlightedText))
-		else:
-			for sel in self.highlights:
-				if len(sel) and sel.active and sel.contains(addr):
-					painter.fillRect(rect,QColor( sel.color))
-					painter.setPen(QColor(hexColorComplement(sel.color)))
-					painter.drawText(bottomleft, byte)
-					return
-					
-		painter.setPen(self.palette().color(QPalette.WindowText))
-		painter.drawText(bottomleft, byte)
-		
-		painter.setPen(self.palette().color(QPalette.WindowText))
-		painter.drawText(bottomleft, byte )
-
-
-# 	def paintCursor(self, event,painter, cur, active):
-# 		palette = self.viewport().palette()
-# 
-# 		if event.rect() == cur: 
-# 			if self.cursor.blink and self.parent.isActiveWindow:
-# 				if active:
-# 					painter.fillRect(cur, Qt.black)
-# 				else:
-# 					painter.fillRect(cur, Qt.gray)
-# 			self.viewport().update(cur)
-# 			return True
-# 		return False
-# 
-# 		
-
-	def paintEvent(self, event):
-		start = time.time()
-		painter = QPainter(self.viewport())
-		palette = self.viewport().palette()
-
-		rect = self.cursorRectHex()
-		rect.setRight(self.cursorRectAscii().right())
-
-		hex_width = self.getHexLength()
-
-		addr_width = self.getAddressFormatLen()
-		addr_start = self.addr_start()
-		hex_start = addr_start + addr_width + self.gap2
-		ascii_start = hex_start + hex_width + self.gap3
-
-		hs = self.horizontalScrollBar().value()
-		addr_start -= hs
-		ascii_start -= hs
-		hex_start -= hs
-
-		addr_start *= self.charWidth
-		hex_start *= self.charWidth
-		ascii_start *= self.charWidth
-
-		self.pos = self.verticalScrollBar().value() * self.bpl
-
-		for i, line in enumerate(self.getLines(self.pos)):	
-			(address, length, ascii) = line
-			
-			if i > self.visibleLines():
-				break
-
-			#background stripes
-			if self.colorBars and 1 if (address % (self.bpl * 2)) == self.bpl else 0:
-				painter.fillRect(0, (i * self.charHeight)+self.magic_font_offset,(self.totalCharsPerLine() * self.charWidth),  self.charHeight, self.palette().color(QPalette.AlternateBase))
-			
-			data = self.filebuff[address:address+length]
-
-			# address
-			painter.setPen(self.palette().color(QPalette.WindowText))
-			painter.drawText(addr_start, (i * self.charHeight)+self.charHeight, self.getAddressFormat().format(address))
-
-			# data
-			for j, byte in enumerate(data):
-				addr = self.pos + i * self.bpl + j
-				dat = self.filebuff[addr]
-				selected =   self.cursor.getSelection().contains(addr)
-				
-				topleft = self.charToPxCoords(j*self.getHexCharFormatLen() + self.hex_start(), i)
-				self.paintByte(painter, addr, topleft, self.getHexCharFormat().format(dat),selected)
-				
-				topleft = self.charToPxCoords(j + self.ascii_start(), i)
-				self.paintByte(painter, addr, topleft,  self.toAscii([dat]),selected)
-				
-			#virt sep bars
-			painter.setPen(Qt.gray)
-			painter.drawLine(hex_start-self.charWidth, 0, hex_start-self.charWidth, self.height())
-			painter.drawLine(ascii_start-self.charWidth, 0, ascii_start-self.charWidth, self.height())								
-				
-		#cursor
-		if (self.parent.blinkstate % 2) == 0:
-			if self.activeview == "hex":
-				painter.fillRect(self.cursorRectHex(), Qt.black)
-				painter.fillRect(self.cursorRectAscii(), Qt.gray)
-			else:
-				painter.fillRect(self.cursorRectAscii(), Qt.black)
-				painter.fillRect(self.cursorRectHex(), Qt.gray)
-				
-				
-		duration = time.time()-start
-# 		if duration > 0.02:
-# 			print ("painting took: ", duration, 's')
 
 	def getAddressFormat(self):
 		return self.addressformat
@@ -502,6 +350,37 @@ class HexWidget(QAbstractScrollArea):
 	def getAddressFormatLen(self):
 		return len(self.getAddressFormat().format(self.cursor.getAddress() + (self.visibleLines() * self.bpl)))
 
+	def paintHexByte(self, painter, addr, byte, ph):
+		topleft = self.addrToHexPxCoords(addr)
+		bottomleft = topleft + QPoint(0, self.charHeight-self.magic_font_offset)
+			
+			
+		if len(ph):
+			size = QSize(self.charWidth*self.getHexCharFormatLen(), ceil(self.charHeight/len(ph)))
+			for i,sel in enumerate(ph):
+				rect = QRect(topleft + QPoint(0,(self.charHeight/len(ph)) * i), size)
+				painter.fillRect(rect,QColor( sel.color))
+			painter.setPen(QColor(hexColorComplement(sel.color)))
+		else:
+			painter.setPen(self.palette().color(QPalette.WindowText))
+		painter.drawText(bottomleft, byte)
+
+
+	def paintAsciiByte(self, painter, addr, byte, ph):
+		topleft = self.addrToAsciiPxCoords(addr)
+		bottomleft = topleft + QPoint(0, self.charHeight-self.magic_font_offset)
+			
+		if len(ph):
+			size = QSize(self.charWidth, ceil(self.charHeight/len(ph)))
+			for i,sel in enumerate(ph):
+				rect = QRect(topleft + QPoint(0,(self.charHeight/len(ph)) * i), size)
+				painter.fillRect(rect,QColor( sel.color))
+			painter.setPen(QColor(hexColorComplement(sel.color)))
+		else:
+			painter.setPen(self.palette().color(QPalette.WindowText))
+		painter.drawText(bottomleft, byte)
+
+
 	def cursorMove(self, selection):
 		if selection.start > len(self.filebuff):
 			self.cursor._selection.start = len(self.filebuff)
@@ -510,6 +389,198 @@ class HexWidget(QAbstractScrollArea):
 			self.cursor._selection.end = len(self.filebuff)
 			
 		self.scrollWindowToCursor()
+
+	def paintCursor(self):	
+		if (self.parent.blinkstate % 2) == 0:
+			if self.activeview == "hex":
+				painter.fillRect(self.cursorRectHex(), self.palette().color(QPalette.HighlightedText))
+				painter.fillRect(self.cursorRectAscii(), self.palette().color(QPalette.Highlight))
+			else:
+				painter.fillRect(self.cursorRectAscii(),self.palette().color(QPalette.HighlightedText))
+				painter.fillRect(self.cursorRectHex(), self.palette().color(QPalette.Highlight))
+		
+
+	def addrToHexPxCoords(self, addr):
+		return self.charToPxCoords(self.hex_start() + ((addr % self.bpl) * self.getHexCharFormatLen()), floor(addr / self.bpl) - (self.pos/self.bpl))
+
+	def addrToAsciiPxCoords(self, addr):
+		return self.charToPxCoords(self.ascii_start() + ((addr % self.bpl)), floor(addr / self.bpl) - (self.pos/self.bpl))
+
+	def paintEvent(self, event):
+		start = time.time()
+		if  self.widgetpainted == None:
+			self.repaintWidget()						
+		painterself = QPainter(self.viewport())
+		painterself.drawPixmap(0,0,self.widgetpainted)
+# 		cursor
+		if (self.parent.blinkstate % 2) == 0:
+			if self.activeview == "hex":
+				painterself.fillRect(self.cursorRectHex(), self.palette().color(QPalette.HighlightedText))
+				painterself.fillRect(self.cursorRectAscii(), self.palette().color(QPalette.Highlight))
+			else:
+				painterself.fillRect(self.cursorRectAscii(),self.palette().color(QPalette.HighlightedText))
+				painterself.fillRect(self.cursorRectHex(), self.palette().color(QPalette.Highlight))
+
+		duration = time.time()-start
+		if duration > 0.02:
+			print ("painting took: ", duration, 's')
+	
+	
+	def repaintWidget(self):
+		self.widgetpainted = QPixmap(self.viewport().width(), self.viewport().height())
+		painter = QPainter(self.widgetpainted)
+	
+		painter.fillRect(0, 0,self.viewport().width(), self.viewport().height(), self.palette().color(QPalette.Base))
+
+		palette = self.viewport().palette()
+
+		rect = self.cursorRectHex()
+		rect.setRight(self.cursorRectAscii().right())
+
+		hex_width = self.getHexLength()
+
+		addr_width = self.getAddressFormatLen()
+		
+		addr_start = (self.addr_start()) 
+		hex_start = (addr_start + addr_width + self.gap2)
+		ascii_start = (hex_start + hex_width + self.gap3)
+
+		addr_start *= self.charWidth
+		hex_start *= self.charWidth
+		ascii_start *= self.charWidth
+
+		self.pos = self.verticalScrollBar().value() * self.bpl
+
+		for i, (address, length, data, ascii) in enumerate(self.getLines(self.pos)):	
+			
+			if i > self.visibleLines():
+				break
+
+			#background stripes
+# 			painter.fillRect(0, 0,(self.totalCharsPerLine() * self.charWidth),  self.charHeight, self.palette().color(QPalette.Base))
+			if self.colorBars and 1 if (address % (self.bpl * 2)) == self.bpl else 0:
+				painter.fillRect(0, (i * self.charHeight)+self.magic_font_offset,(self.totalCharsPerLine() * self.charWidth),  self.charHeight, self.palette().color(QPalette.AlternateBase))
+			else:
+				painter.fillRect(0, (i * self.charHeight)+self.magic_font_offset,(self.totalCharsPerLine() * self.charWidth),  self.charHeight, self.palette().color(QPalette.Base))
+
+			# address
+			painter.setPen(self.palette().color(QPalette.WindowText))
+			painter.drawText(addr_start, (i * self.charHeight)+self.charHeight, self.getAddressFormat().format(address))
+
+			# data
+			for j, byte in enumerate(data):
+				addr = address + j
+				self.paintByteAtAddr(painter, addr, byte)
+
+			#virt sep bars
+			painter.setPen(Qt.gray)
+			painter.drawLine(hex_start-(self.charWidth/2), 0, hex_start-(self.charWidth/2), self.height())
+			painter.drawLine(ascii_start-self.charWidth, 0, ascii_start-self.charWidth, self.height())								
+					
+		self.viewport().update()
+
+	
+	def paintByteAtAddr(self,painter, addr, data):
+		ph = []
+		
+		if  self.cursor.getSelection().contains(addr):
+			ph.append(self.cursor.getSelection())
+			
+		for sel in self.highlights:
+			if len(sel) and sel.active and sel.contains(addr):
+				ph.append(sel)
+		
+		self.paintHexByte(painter, addr, self.getHexCharFormat().format(data),ph)
+		self.paintAsciiByte(painter, addr,  self.toAscii([data]),ph)
+					
+	
+	def mouseDoubleClickEvent(self,event):
+		for s in self.pxToSelectionList(event.pos()):
+			s.obj.editAction()
+
+
+	def mousePressEvent(self, event):
+		mod = event.modifiers()
+		
+		if((event.pos().x()/self.charWidth) < (self.getAddressFormatLen() + self.gap2)):
+			self.activeview = 'addr'
+			self.toggleAddressFormat()
+		elif ((self.getAddressFormatLen() + self.gap2 + self.getHexLength())  > (event.pos().x()/self.charWidth) > (self.getAddressFormatLen() + self.gap2)):
+			self.activeview = 'hex'
+		else:
+			self.activeview = 'ascii'
+	
+		(nib, cur) = self.pxCoordToAddr(event.pos())	
+		if cur is not None and event.buttons() == Qt.LeftButton:
+			sl = self.pxToSelectionList(event.pos())
+
+			for s in sl:
+				s.obj.selectAction()
+				
+			if cur  not in list( self.cursor.getSelection()):
+				if (mod & Qt.AltModifier):
+					self.dragactive = True
+					self.selectactive = False				
+				else:
+					if (mod & Qt.ShiftModifier):
+						if self.dragstart:
+							self.cursor.updateSelection(Selection(self.dragstart, cur))
+						else:
+							self.cursor.updateSelection(Selection(self.cursor.getSelection().getRange()[0], cur))
+					else:
+						self.cursor.startActiveSelection(Selection(cur,cur))
+					self.cursor.setNibble(nib)	
+					self.selectactive = True
+					self.dragactive = False
+			self.dragstart = cur
+			self.dragselection = sl
+		self.repaintWidget()			
+
+
+
+	def mouseMoveEvent(self, event):	
+		(nib,cur) = self.pxCoordToAddr(event.pos())
+		
+		if cur is not None:
+			if self.selectactive == True:
+				self.cursor.updateSelection(Selection(self.dragstart, cur))	
+				self.repaintWidget()	
+
+			elif self.dragactive == True:
+				t = cur-self.dragstart
+# 				for i in self.dragselection:
+# 				for s in self.pxToSelectionList(event.pos()):
+# 					s.obj.dragAction(t)					
+				self.dragstart = cur
+				
+			self.hover(event.pos())
+
+	def mouseReleaseEvent(self, event):
+		self.selectactive = False
+		self.dragactive = False
+		self.dragselection = []
+	
+	def focusInEvent(self, event):
+		self.focusEvent.emit(self.cursor.getSelection())
+	
+	def resizeEvent(self, event):
+
+		a = self.getAddressFormatLen()  + self.gap2 + self.getHexLength() + self.gap3 + self.bpl + self.gap4
+		b = (self.viewport().width() / self.charWidth) -  ( self.getAddressFormatLen()  + self.gap2 +  self.gap3 +  self.gap4)
+		c = b - (self.bpl + (self.bpl * self.getHexCharFormatLen()))
+		if self.viewport().width() <  (b  - (1 + (1 * self.getHexCharFormatLen()))):
+			self.bpl = 1
+		else:
+			snap = 0
+			minlval = 0
+			widths = []
+			for i in range(1,64):
+				l = ( self.viewport().width() /self.charWidth ) - (( self.getAddressFormatLen()  + self.gap2 +  self.gap3 +  self.gap4) + (i + (i * self.getHexCharFormatLen())))
+				widths.append(l)				
+	
+			self.bpl = widths.index(min(widths, key=abs)) + 1
+		self.adjust()
+		
 
 	def scrollWindowToCursor(self):
 		x, y = self.indexToAsciiCharCoords(self.cursor.getAddress())
@@ -521,10 +592,11 @@ class HexWidget(QAbstractScrollArea):
 	def event(self, event):
 		if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
 			self.toggleActiveView()
-			self.viewport().update()
 			return False
 		return super(HexWidget, self).event(event)
 
+	def sizeHint(self):
+		return QtCore.QSize((self.totalCharsPerLine() * self.charWidth), (25 * self.charHeight))
         		
 	def keyPressEvent(self, event):
 		key = event.key()
@@ -579,9 +651,8 @@ class HexWidget(QAbstractScrollArea):
 				elif text != '':
 					oldbyte = self.filebuff[self.cursor.getAddress()] 
 					
-					hexalpha = "0123456789abcdefABCDEF"
 					if  self.activeview == 'hex':
-						if text in hexalpha:
+						if text in string.hexdigits:
 							if self.cursor.getNibble() == 0:
 								byte = (oldbyte & 0x0f) | (int(text,16) << 4)
 							else:
@@ -598,13 +669,13 @@ class HexWidget(QAbstractScrollArea):
 						byte = ord(text)
 						if byte != oldbyte:		
 							self.editEvent.emit((self.cursor.getSelection(),byte))
-							
 						self.cursor.right()
-						self.cursor.right()
+						self.cursor.right()						
 						
 					elif self.activeview == 'addr':
 						if ord(text) in b'gG':
-							f  = JumpToDialog(self,self.api)
-							f.show()
+							self.jumpToEvent.emit(self.cursor.getSelection())
 							
-				self.viewport().update()
+					self.repaintWidget()
+
+							

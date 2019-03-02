@@ -106,8 +106,6 @@ class HexDialog(QMainWindow):
 		self.api = api
 		self.parent = parent
 		self.clipboardata = []
-# 		self.structs = []
-# 		self.struct_hints = {}		
 		self.clipboarcopy = [] #fixme, replace with hash
 		self.isActiveWindow = False
 		self.hexWidget =  HexWidget(api,self,self.filebuff, font="Courier", fontsize=12)
@@ -121,7 +119,7 @@ class HexDialog(QMainWindow):
 		splitter1.addWidget(self.hexWidget)
 		splitter1.addWidget(self.bookmarks)
 		splitter1.setOrientation( Qt.Vertical)
-		splitter1.setSizes((999999,0))
+		splitter1.setSizes((-1,0))
 		self.statusBar = QStatusBar()
 		self.setStatusBar(self.statusBar)
 	
@@ -138,10 +136,7 @@ class HexDialog(QMainWindow):
 		self.hexWidget.undoEvent.connect(self.redo)
 		self.hexWidget.ctxtMenuEvent.connect(self.contextEvent)
 		self.hexWidget.jumpToEvent.connect(self.jumpto)
-# 		self.hexWidget.selectAllEvent.connect(self.selectall)
 		self.hexWidget.findEvent.connect(self.search)
-	
-	
 	
 		self.synccheck = QCheckBox("Sync")
 		self.statusBar.addWidget(self.synccheck)
@@ -170,9 +165,7 @@ class HexDialog(QMainWindow):
 	def updateCursor(self):
 # 		self.blink = not self.blink
 		self.blinkstate += 1
-		self.hexWidget.viewport().update()
-
-
+		self.hexWidget.repaintWidget()
 
 	def getSelection(self):
 		return self.hexWidget.getCursor().getSelection()
@@ -183,9 +176,25 @@ class HexDialog(QMainWindow):
 					
 	def contextEvent(self,event):
 		menu = QMenu(self)		
+	
 		pluginmenus = {}
-		for (n,fn) in self.api.listSelectionPlugins():
-			pluginmenus['plugin_%s' % n] = menu.addAction("%s" % n, lambda n = n, fn = fn: self.api.runPluginOnHexobj(fn, self))
+		for n,m in self.api.loaded_plugins.items():
+			for pn, pf in m.pluginSelectionPlacement():
+# 				try:
+					sm =  m.pluginSelectionSubPlacement()
+					if len(sm):
+						submenu = QMenu(pn)		
+						menu.addMenu(submenu)
+						for spn, spf in  m.pluginSelectionSubPlacement():
+							if spf != None:
+								pluginmenus['plugin_%s' % n] = submenu.addAction("%s" % spn, lambda n = spn, fn = spf: fn(self))
+							else:
+								submenu.addSeparator()
+					else:
+						pluginmenus['plugin_%s' % n] = menu.addAction("%s" % pn, lambda n = pn, fn = pf: fn(self))
+# 				except:
+# 					self.api.pluginSinCallstack()
+
 		
 		action = menu.exec_(self.mapToGlobal(event.pos()))
 
@@ -210,11 +219,9 @@ class HexDialog(QMainWindow):
 		(start,end) = selection.getRange()
 		self.filebuff.undo()		
 		self.hexWidget.cursor.updateSelection(Selection(start, start))
-		self.hexWidget.viewport().update()
 
 	def redo(self,selection):
 		self.filebuff.redo()		
-		self.hexWidget.viewport().update()
 
 	def search(self):
 		self.dia = SearchDialog(self)
@@ -225,12 +232,15 @@ class HexDialog(QMainWindow):
 	def getCursor(self):
 		return self.hexWidget.getCursor()
 		      	
-	def addSelection(self,start, end=1, color=None, obj=None):
-		self.hexWidget.addSelection(start,end,color,obj)
+	def addSelection(self,selection):
+		self.hexWidget.addSelection(selection)
 		      	
 	def getSelection(self):
-		return self.hexWidget.getSelection()
+		start,end = self.hexWidget.getSelection().getRange()
+		return Selection(start,end)
 
+# 	def getNewSelectionfromSelection(self):
+# 		return self.hexWidget.getSelection()
 
       	
 	def select_changed(self,selection):
@@ -242,7 +252,6 @@ class HexDialog(QMainWindow):
 # 		self.selectstatus.repaint()
 
 		self.filestatus.setText(self.filebuff.statusString() + "[%s]" %self.hexWidget.charset)
-		self.hexWidget.viewport().update()
 	
 
 	def setFocus(self):
@@ -263,12 +272,10 @@ class HexDialog(QMainWindow):
 		(start,end) = self.hexWidget.cursor._selection.getRange()
 		self.filebuff.addEdit(selection, b'')
 		self.hexWidget.cursor.updateSelection(Selection(start, start))
-		self.hexWidget.viewport().update()
 		
 	def edit(self,tup):
 		(selection,edit) = tup
 		self.filebuff.addEdit(selection,edit)
-		self.hexWidget.viewport().update()
 
 	def paste(self,selection):
 		cb = QApplication.clipboard()
@@ -279,16 +286,13 @@ class HexDialog(QMainWindow):
 				t = cb.text().encode("utf-8")
 				t = self.api.getPasteModeFn()(t)
 						
-	# 		try:
 			print(t)
 			self.filebuff.addEdit(selection, t)
 			(start,end) = self.hexWidget.cursor._selection.getRange()
 			self.hexWidget.goto(start)
 			self.hexWidget.cursor.updateSelection(Selection(start, start + len(t)))
-			self.hexWidget.viewport().update()			
 		except:
 			print("somthing has gone wrong in the paste translation system")
-# 			self.pasteFailed.emit()		
 	
 	def copy(self,slection):
 		(start,end)  = self.hexWidget.cursor._selection.getRange()
@@ -298,9 +302,7 @@ class HexDialog(QMainWindow):
 		t = self.api.getCopyModeFn()(t)
 		self.clipboarcopy  = hash(t)
 		cb.setText(t, mode=cb.Clipboard)
-		self.hexWidget.viewport().update()
 		
-	
 		
 class JumpToDialog(QDialog):
 	def __init__(self, parent , api):
@@ -434,7 +436,6 @@ class SearchDialog(QDialog):
 			
 		if x >= 0:
 			self.parent.hexWidget.getCursor().setSelection(Selection(x, x+len(searchval)))
-			self.parent.hexWidget.viewport().update()
 		else:
 			msg = QMessageBox()
 			msg.setIcon(QMessageBox.Information)
@@ -452,7 +453,6 @@ class SearchDialog(QDialog):
 					
 		if x >= 0:
 			self.parent.hexWidget.getCursor().setSelection(Selection(x, x+len(searchval)))
-			self.parent.hexWidget.viewport().update()
 		else:
 			msg = QMessageBox()
 			msg.setIcon(QMessageBox.Information)

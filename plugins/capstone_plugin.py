@@ -69,7 +69,7 @@ class CapstoneGUIWin(QDialog):
 			md.syntax = CAPSTONE_SUPPORTED_ARCHMODES[self.archcb.currentIndex()][3]		
 		outtxt = ""
 		for i in md.disasm(self.obj.filebuff[start:end], start):
-			outtxt += "%x: %s \t%s\t%s\n" %(i.address,"".join(["%02x" % x for x in i.opcode]), i.mnemonic, i.op_str)
+			outtxt += "%x: %s \t\t%s\t%s\n" %(i.address,"".join(["%02x" % x for x in i.bytes]), i.mnemonic, i.op_str)
 		self.disasmwindow.setPlainText(outtxt)
 	
 	def loadSettings(self):

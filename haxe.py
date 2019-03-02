@@ -32,24 +32,15 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 import string
 import importlib
-import construct
-# from encodings.aliases import aliases
 import argparse
-# from matplotlib.pyplot import *
 
 # own submodules
 from hexdialog import *
 from ipythonwidget import *
 from cursor import *
-# from docks import *
 import traceback
 import codecs
-#from mmapslice import *
 
-
-CLIPBOARD_MODE_RAW				=0
-CLIPBOARD_MODE_CHEX				=1
-CLIPBOARD_MODE_HEX_STRING		=2
 
 CLIPBOARD_CONVERT_TO = [
 	("RAW", lambda x : "".join([chr(y) if chr(y) in string.printable else ' ' for y in x])),
@@ -68,33 +59,6 @@ CLIPBOARD_CONVERT_FROM = [
 	("Base64",lambda x: bytearray([y for y in codecs.decode(x,'base64')])),
 ]
 
-# 
-# 
-# class StructEditor(QTextEdit):
-# 	structChanged = pyqtSignal(object)
-# 	def __init__(self, api):
-# 		super(StructEditor, self).__init__()
-# 		self.api = api
-# 		self.structs = {}
-# 		self.setStructOk()
-# 		self.setMinimumWidth(300)
-# 		self.structbuff = ""
-# 		self.refreshStructBuff()
-# 
-# 	def widgetfunc(self):
-# 		return ("Struct Editor","Alt+S",self)
-# 
-# 	def contextMenuEvent(self, event):
-# 		menu = QMenu()
-# 		mnu = {} #fixme
-# 		mnu["save"] = menu.addAction("Save Struct File", self.saveStructFile)	
-# 		mnu["load"] = menu.addAction("Load Struct File", self.loadStructFile)		
-# 		mnu["load"] = menu.addAction("Evaluate Structs", self.evalStructFile)		
-# 		action = menu.exec_(self.mapToGlobal(event.pos()))
-# 			
-# 
-# 		
-		
 					
 
 class HaxeAPI(QObject):
@@ -109,8 +73,8 @@ class HaxeAPI(QObject):
 		self.openFiles = {}
 		self.hexdocks = {}
 		self.qtparent = parent
-		self.copy_mode = CLIPBOARD_MODE_RAW
-		self.paste_mode = CLIPBOARD_MODE_RAW
+		self.copy_mode = 0
+		self.paste_mode = 0
 		self.structfile = None
 		self.structbuff = ""
 		self.modules = {}
@@ -118,7 +82,6 @@ class HaxeAPI(QObject):
 		self.scanPlugins()
 		self.startPlugins()
 		self.settings = QSettings("phar", "haxe hex editor")
-# 		self.structeditor = StructEditor(self)
 		
 	def getConverters(self):
 		return(CLIPBOARD_CONVERT_FROM,CLIPBOARD_CONVERT_TO)
@@ -127,13 +90,6 @@ class HaxeAPI(QObject):
 		self.log("-------BEGIN PLUGIN_SIN-------")
 		traceback.print_exc()
 		self.log("-------END PLUGIN_SIN-------")
-
-
-	def runPluginOnHexobj(self,fn, hexobj):
-		try:
-			fn(hexobj)
-		except:
-			self.pluginSinCallstack()
 
 	def scanPlugins(self):
 		self.modules = {}
@@ -154,14 +110,7 @@ class HaxeAPI(QObject):
 			except:
 				self.log("failed to load plugin from file %s due to errors" % f)
 				self.pluginSinCallstack()
-				
-	def listSelectionPlugins(self):
-		ns = []
-		for n,m in self.loaded_plugins.items():
-			for pn, pf in m.pluginSelectionPlacement():
-				ns.append((pn,pf))	
-		return ns
-						
+									
 	def startPlugins(self):
 		print(self.modules)
 		for n,m in self.modules.items():
@@ -600,9 +549,11 @@ class HaxEditor(QMainWindow):
 
 	def save_file(self):
 		self.api.openFiles[self.api.getActiveFocus()].saveFile()
+		print("yep")
 		pass
 
 	def save_file_as(self):
+
 		pass
 
 
