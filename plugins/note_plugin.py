@@ -20,10 +20,11 @@ class NoteActionClass(SelectionActionClasss):
 
 
 class NotesGUIWin(QDialog):
-	def __init__(self,obj,selection,action='new'):
+	def __init__(self,obj,hexobj,action='new'):
 		QDialog.__init__(self)
 		self.actionclass = obj
-		self.api = self.actionclass.hexdialog.api
+		self.api = hexobj.api
+		self.hexdialog  = hexobj
 		
 		self.setMinimumSize(QSize(430, 150))    
 		self.setWindowTitle("Notes plugin") 
@@ -31,7 +32,7 @@ class NotesGUIWin(QDialog):
 		gridLayout = QGridLayout()     
 		self.setLayout(gridLayout)  
 		self.action = action
-		self.selection = selection
+		self.selection = hexobj.getSelection()
 
 		self.note = QPlainTextEdit("note text")
 		gridLayout.addWidget(self.note, 1,0,1,2)
@@ -43,7 +44,7 @@ class NotesGUIWin(QDialog):
 		self.notetext = ""
 		
 		if self.action=='edit':
-			self.notetext = self.selection.getLabel()
+			self.notetext = self.hexdialog.getSelection.getLabel() #i think this is wrong
 			pass
 		else:
 			txt =  self.api.settings.value("%s.notes.lastnote")
@@ -61,9 +62,9 @@ class NotesGUIWin(QDialog):
 		else:
 			self.selection.obj=self.actionclass
 			self.selection.active=True
-			self.selection.color = self.actionclass.hexdialog.hexWidget.getNextColor()
+			self.selection.color = self.hexdialog.hexWidget.getNextColor()
 			self.selection.setLabel(text)
-			self.actionclass.addSelection(self.selection)
+			self.actionclass.addSelection(self.hexdialog,self.selection)
 		self.close()
 	
 	def loadSettings(self):
@@ -81,6 +82,7 @@ class NotesGUIWin(QDialog):
 class NotesPlugin(HexPlugin):
 	def __init__(self,api):
 		super(NotesPlugin, self).__init__(api,"Notes")
+		self.ac = NoteActionClass(name='Note')
 
 	def start(self):
 		pass
@@ -93,6 +95,6 @@ class NotesPlugin(HexPlugin):
 		return [("add Notes", self.addNote)]
 
 	def addNote(self, hexobj):
-		self.mainWin = NotesGUIWin(NoteActionClass(hexobj, name='Note'),hexobj.getSelection())
+		self.mainWin = NotesGUIWin(self.ac,hexobj)
 		self.mainWin.show()
 	

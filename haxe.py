@@ -69,20 +69,19 @@ class HaxeAPI(QObject):
 	pluginUnLoadEvent = pyqtSignal(object)
 	def __init__(self, parent):
 		super(HaxeAPI, self).__init__(parent)
+		self.settings = QSettings("phar", "haxe hex editor")
 		self.activefocusfilename = None
 		self.openFiles = {}
 		self.hexdocks = {}
 		self.qtparent = parent
 		self.copy_mode = 0
 		self.paste_mode = 0
-		self.structfile = None
-		self.structbuff = ""
 		self.modules = {}
 		self.loaded_plugins = {}
 		self.scanPlugins()
 		self.startPlugins()
 		self.largfilethreshold = 1073741824
-		self.settings = QSettings("phar", "haxe hex editor")
+		
 		
 	def getConverters(self):
 		return(CLIPBOARD_CONVERT_FROM,CLIPBOARD_CONVERT_TO)
@@ -296,7 +295,7 @@ class HaxEditor(QMainWindow):
 
 	def dropEvent(self, e):
 		fn = e.mimeData().text()[7:]
-		print("drag",fn)      	
+		print("drag-drop",fn)      	
 		self.open_file(fn)
 		
 
@@ -313,7 +312,6 @@ class HaxEditor(QMainWindow):
 		self.central.addDockWidget(Qt.RightDockWidgetArea, tab)
 		
 	def open_file(self, filename=None):
-		print(filename)
 		if filename in [None, False]:
 			filename = QFileDialog.getOpenFileName(self, "Open File...")[0]
 			
@@ -347,7 +345,13 @@ class HaxEditor(QMainWindow):
 		index = self.pm.findText(txt, Qt.MatchFixedString)
 		if index >= 0:
 			self.pm.setCurrentIndex(index)
-         
+		geo = self.api.settings.value("geometry")
+		if geo != None:
+			self.restoreGeometry(geo)
+		state = self.api.settings.value("windowState")
+		if state != None:
+			self.restoreState(state)
+	
 	def saveSettings(self):
 		self.api.settings.setValue("%s.copymode",self.cb.currentText())
 		self.api.settings.setValue("%s.pastemode",self.pm.currentText())
@@ -478,7 +482,6 @@ class HaxEditor(QMainWindow):
 		if fn not in self.recentfiles:
 			self.recentfiles.append(fn)	
 			recentact  = QAction(fn,self)	
-			print(fn)	
 			recentact.triggered.connect(lambda state, x=fn: self.open_file(filename=x) )
 			self.recentmenu.addAction(recentact)		
 

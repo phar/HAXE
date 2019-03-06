@@ -5,10 +5,9 @@ from PyQt5 import QtCore
 from PyQt5 import QtGui 
 
 class SelectionActionClasss(QObject):
-	def __init__(self,hexdialog, name=None):
+	def __init__(self, name=None):
 		super(SelectionActionClasss, self).__init__()
 		self.name = name
-		self.hexdialog = hexdialog
 		self.selections = []
 
 	def labelAction(self,selection):
@@ -26,10 +25,9 @@ class SelectionActionClasss(QObject):
 		print("drag!")
 		True
 
-	def addSelection(self, selection):
+	def addSelection(self, hexdialog, selection):
 		self.selections.append(selection)
-		self.hexdialog.addSelection(selection) #fixme
-
+		hexdialog.addSelection(selection) #fixme
 
 
 class Selection(QObject):

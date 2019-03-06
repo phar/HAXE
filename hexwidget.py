@@ -321,11 +321,14 @@ class HexWidget(QAbstractScrollArea):
 		
 	def hover(self,pos):
 		tooltip  = ""
+		handledobjs = []
 		for s in self.pxToSelectionList(pos):
 			if s.obj != None:
-				if tooltip != "":
-					tooltip += "+"
-				tooltip += "[%s]" %  s.obj.labelAction(s)
+				if s.obj not in handledobjs:
+					if tooltip != "":
+						tooltip += "+"
+					tooltip += "[%s]" %  s.obj.labelAction(s)
+					handledobjs.append(s.obj)
 				
 		if tooltip != "":
 			QToolTip.hideText()
@@ -371,7 +374,7 @@ class HexWidget(QAbstractScrollArea):
 
 	def paintHexByte(self, painter, addr, byte, ph):
 		topleft = self.addrToHexPxCoords(addr)
-		bottomleft = topleft + QPoint(0, self.charHeight)
+# 		bottomleft = topleft + QPoint(0, self.charHeight)
 			
 		if len(ph):
 			size = QSize(ceil(self.charWidth*self.getHexCharFormatLen()), ceil(self.charHeight/len(ph)))
@@ -389,7 +392,7 @@ class HexWidget(QAbstractScrollArea):
 
 	def paintAsciiByte(self, painter, addr, byte, ph):
 		topleft = self.addrToAsciiPxCoords(addr)
-		bottomleft = topleft + QPoint(0, self.charHeight)
+# 		bottomleft = topleft + QPoint(0, self.charHeight)
 			
 		if len(ph):
 			size = QSize(ceil(self.charWidth), ceil(self.charHeight/len(ph)))
@@ -399,8 +402,6 @@ class HexWidget(QAbstractScrollArea):
 			painter.setPen(QColor(hexColorComplement(sel.color)))
 		else:
 			painter.setPen(self.palette().color(QPalette.WindowText))
-# 		painter.drawText(bottomleft, byte)
-# 		Qt.AlignCenter
 		painter.drawText(QRect(topleft,topleft + QPoint(self.charWidth,self.charHeight)),Qt.AlignCenter,byte)
 
 
@@ -438,13 +439,18 @@ class HexWidget(QAbstractScrollArea):
 			self.repaintWidget()
 			
 # 		cursor
+		painterself = QPainter(self.viewport())
+		painterself.drawPixmap(0,0,self.widgetpainted)
 		if self.lastpanted < self.paintedevent or (self.blinkstate % 2) == 0: 
-			painterself = QPainter(self.viewport())
-			painterself.drawPixmap(0,0,self.widgetpainted)
 			self.lastpanted  = 	self.paintedevent	
 			if (self.blinkstate % 2) == 0:
 				self.paintCursor(painterself)
+		
 
+	def wheelEvent(self,event):
+		super(HexWidget, self).wheelEvent(event)
+		self.repaintWidget()
+		
 		
 	def repaintWidget(self):
 		self.paintedevent += 1
@@ -602,14 +608,12 @@ class HexWidget(QAbstractScrollArea):
 			
 
 	def scrollWindowToCursor(self):
-# 		x, y = self.indexToAsciiCharCoords(self.cursor.getAddress())
-# 		if y > self.visibleLines() - 2:
-# 			self.verticalScrollBar().setValue(((self.verticalScrollBar().value() + y) - self.visibleLines()) + 2)
-# 		if y < 1:
-# 			self.verticalScrollBar().setValue(self.verticalScrollBar().value() + y)
-# 	
-		pass
-
+		x, y = self.indexToAsciiCharCoords(self.cursor.getAddress())
+		if y > self.visibleLines() - 2:
+			self.verticalScrollBar().setValue(((self.verticalScrollBar().value() + y) - self.visibleLines()) + 2)
+		if y < 1:
+			self.verticalScrollBar().setValue(self.verticalScrollBar().value() + y)
+	
 	def event(self, event):
 		if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:
 			self.toggleActiveView()
