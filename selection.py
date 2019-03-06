@@ -9,30 +9,32 @@ class SelectionActionClasss(QObject):
 		super(SelectionActionClasss, self).__init__()
 		self.name = name
 		self.hexdialog = hexdialog
+		self.selections = []
 
-	def setLabel(self,name):
-		self.name = name
+	def labelAction(self,selection):
+		return ".".join([self.name, selection.getLabel()])
 	
-	def labelAction(self):
-		return self.name
-	
-	def selectAction(self):
+	def selectAction(self, selection):
 		print("click!")
 		True
 
-	def editAction(self):
+	def editAction(self,selection):
 		print("dblckick!")
 		True
 
-	def dragAction(self):
-		print("click!")
+	def dragAction(self,selection,dragdistance):
+		print("drag!")
 		True
+
+	def addSelection(self, selection):
+		self.selections.append(selection)
+		self.hexdialog.addSelection(selection) #fixme
 
 
 
 class Selection(QObject):
 	selectionChanged = QtCore.pyqtSignal(object)
-	def __init__(self, start=0, end=None, active=True, color=Qt.green, obj=None):
+	def __init__(self, start=0, end=None, active=True, label=None, color=Qt.green, obj=None):
 		super(Selection, self).__init__()
 		self._start = int(start)
 		if end is not None:
@@ -42,6 +44,13 @@ class Selection(QObject):
 		self.active = active
 		self.obj = obj
 		self.color = color
+		self.label = label
+		
+	def setLabel(self,label):
+		self.label = label
+		
+	def getLabel(self):
+		return self.label
 		
 	def __repr__(self):	
 		return ("Selection(%s,%s)" % (self._start, self._end))

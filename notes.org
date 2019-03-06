@@ -5,10 +5,6 @@
 to replace the parsed structure values
 
 
-change hilight cololor between ascii and hex sides depending on which selection is active
-confirm save
-confirm large file mode
-large file detection/support
 crash in undo stack
 drag mouse past top and bottom of screen
 

@@ -60,7 +60,7 @@ class BookmarkWidget(QTableWidget):
 # 				self.setItem(i,2,qtw)
 # 			elif s.obj[0] == 'note':
 # 				(type, text) = s.obj
-			qtw = QTableWidgetItem(s.obj.labelAction())
+			qtw = QTableWidgetItem(s.obj.labelAction(s))
 			qtw.setBackground(QColor(s.color))
 			qtw.setForeground(QColor(hexColorComplement(s.color)))
 			self.setItem(i,2, qtw)
@@ -150,22 +150,7 @@ class HexDialog(QMainWindow):
 		self.filestatus.setAlignment(QtCore.Qt.AlignRight)
 		self.statusBar.show()
 		self.blink = False
-		self.blinkstate = 0
-		self.lastblink = 0
-		self.startCursor(500)
 
-	def startCursor(self,interval=500):
-		# cursor blinking timer
-		self.cursorTimer = QTimer()
-		self.cursorBlinkInterval = interval
-		self.cursorTimer.timeout.connect(self.updateCursor)
-		self.cursorTimer.setInterval(interval)
-		self.cursorTimer.start()
-
-	def updateCursor(self):
-# 		self.blink = not self.blink
-		self.blinkstate += 1
-		self.hexWidget.repaintWidget()
 
 	def getSelection(self):
 		return self.hexWidget.getCursor().getSelection()
@@ -210,7 +195,7 @@ class HexDialog(QMainWindow):
 			qtw = QTableWidgetItem("0x%08x" % end)
 			self.bookmarks.setItem(i,1, qtw)
 			qtw.setBackground(QColor( s.color))
-			qtw = QTableWidgetItem(s.obj.labelAction())
+			qtw = QTableWidgetItem(s.obj.labelAction(s))
 			qtw.setBackground(QColor( s.color))
 			self.bookmarks.setItem(i,2, qtw)
 			i+=1

@@ -1,3 +1,9 @@
+format = Struct(
+	"signature" / Const(b"BMP"),
+	"width" / Int8ub,
+	"height" / Int8ub,
+	"pixels" / Array(this.width * this.height, Byte),
+	)
 
 foo = Struct(
     "foo" / Int16ul,

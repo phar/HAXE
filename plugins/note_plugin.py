@@ -5,19 +5,23 @@ from selection import *
 
 
 class NoteActionClass(SelectionActionClasss):		
-	def editAction(self):
-		self.mainWin = NotesGUIWin(self, action='edit')
+	def editAction(self,selection):
+		self.mainWin = NotesGUIWin(self,selection,  action='edit')
 		self.mainWin.show()
 		
-	def dragAction(self,dragdistance):
-		print("click!")
-		True
+	def labelAction(self,selection):
+		if selection in self.selections:
+			return "Note: %s" % selection.getLabel()
+			
+	def dragAction(self,selection,dragdistance):
+		if selection in self.selections:
+			selection += dragdistance
+# 			print("click! %d" % dragdistance)
 
 
 class NotesGUIWin(QDialog):
-	def __init__(self,obj,action='new'):
+	def __init__(self,obj,selection,action='new'):
 		QDialog.__init__(self)
-# 		self.changeHexObj( obj)
 		self.actionclass = obj
 		self.api = self.actionclass.hexdialog.api
 		
@@ -26,8 +30,10 @@ class NotesGUIWin(QDialog):
 
 		gridLayout = QGridLayout()     
 		self.setLayout(gridLayout)  
+		self.action = action
+		self.selection = selection
 
-		self.note = QPlainTextEdit("hash")
+		self.note = QPlainTextEdit("note text")
 		gridLayout.addWidget(self.note, 1,0,1,2)
 
 		gobtn = QPushButton("OK")
@@ -36,8 +42,8 @@ class NotesGUIWin(QDialog):
 
 		self.notetext = ""
 		
-		if action=='edit':
-			self.notetext = self.actionclass.labelAction()
+		if self.action=='edit':
+			self.notetext = self.selection.getLabel()
 			pass
 		else:
 			txt =  self.api.settings.value("%s.notes.lastnote")
@@ -49,16 +55,15 @@ class NotesGUIWin(QDialog):
 		self.note.setPlainText(self.notetext)
 			
 	def addnote(self):
-# 		(start,end) = self.actionclass.hexdialog.getSelection().getRange()
 		text = self.note.toPlainText()
-		self.actionclass.setLabel(text)
-		sel = self.actionclass.hexdialog.getSelection()
-		sel.obj=self.actionclass
-		sel.active=True
-		sel.color = self.actionclass.hexdialog.hexWidget.getNextColor()
-# 		self.actionclass.hexdialog.addSelection(self.actionclass.hexdialog.getSelection(), obj=self.actionclass, color=self.actionclass.hexdialog.hexWidget.getNextColor()) #fixme		self.actionclass.hexdialog.addSelection(self.actionclass.hexdialog.getSelection(), obj=self.actionclass, color=self.actionclass.hexdialog.hexWidget.getNextColor()) #fixme
-		self.actionclass.hexdialog.addSelection(sel) #fixme
-
+		if self.action=='edit':
+			self.selection.setLabel(text)
+		else:
+			self.selection.obj=self.actionclass
+			self.selection.active=True
+			self.selection.color = self.actionclass.hexdialog.hexWidget.getNextColor()
+			self.selection.setLabel(text)
+			self.actionclass.addSelection(self.selection)
 		self.close()
 	
 	def loadSettings(self):
@@ -68,9 +73,6 @@ class NotesGUIWin(QDialog):
 	def saveSettings(self):
 		self.api.settings.setValue("%s.notes.lastnote",self.note.toPlainText())
 # 
-# 	def changeHexObj(self, obj):
-# 		self.obj = obj
-
 	def closeEvent(self,event):
 		self.saveSettings()
 
@@ -79,7 +81,6 @@ class NotesGUIWin(QDialog):
 class NotesPlugin(HexPlugin):
 	def __init__(self,api):
 		super(NotesPlugin, self).__init__(api,"Notes")
-# 		self.mainWin = None
 
 	def start(self):
 		pass
@@ -92,7 +93,6 @@ class NotesPlugin(HexPlugin):
 		return [("add Notes", self.addNote)]
 
 	def addNote(self, hexobj):
-# 		if self.mainWin == None:
-		self.mainWin = NotesGUIWin(NoteActionClass(hexobj))
+		self.mainWin = NotesGUIWin(NoteActionClass(hexobj, name='Note'),hexobj.getSelection())
 		self.mainWin.show()
 	

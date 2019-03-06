@@ -14,7 +14,6 @@ class Cursor(QObject):
 		self.parent = parent
 		self._selection = Selection(0,None,active=False)
 		self._nibble = nibble
-
 		
 	def selectNone(self):
 		self._selection.start = self._selection.end

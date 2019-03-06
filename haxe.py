@@ -81,6 +81,7 @@ class HaxeAPI(QObject):
 		self.loaded_plugins = {}
 		self.scanPlugins()
 		self.startPlugins()
+		self.largfilethreshold = 1073741824
 		self.settings = QSettings("phar", "haxe hex editor")
 		
 	def getConverters(self):
@@ -165,77 +166,37 @@ class HaxeAPI(QObject):
 	def listOpenFiles(self):
 		return [x for x,y in self.openFiles.items()]
 
-	def getBytes(self,file,range=(0,None)):
-		(start,stop) = range
-		if stop == None:
-			stop == len(self.openFiles[file].data)
-		return self.openFiles[file].data[start:stop] 
-
-	def getSelectedRange(self,file):
-		return self.openFiles[file].selection.getRange()
-	
-	def getSelectedBytes(self,file):
-		(start,stop) = self.getSelectedRange(file)
-		return self.openFiles[file].data[start:stop] 
-
-	def patchBytes(self,file,range=(0,None), patch=b'', padchar=b'\x00'):
-		(start,stop) = range
-		if stop == None:
-			return False
-		self.openFiles[file].data[start:stop] = patch.ljust((stop-start),padchar)
-		return True
-		
-	def histogram(self,file,range=(0,None)): #why is this so slow
-		(start,stop) = range
-		a  = np.ndarray.__new__(np.ndarray,
-		   shape=(len(self.openFiles[file].data[start:stop]),),
-		   dtype=np.uint8,
-		   buffer=self.openFiles[file][start:stop],
-		   offset=0,
-		   strides=(1,),
-		   order='C')
-		hist(a, bins=256, range=(0,256), histtype='step')
-				
-
-	def saveFileAs(self):
-		self.filename = QFileDialog.getSaveFileName(self, "Save File as...")[0]
-		if self.filename:
-			self.api.log("Saving...")
-# 			open(self.filename, 'wb').write(self.data)
-			self.api.log("done.")
-			pass
-
-	def saveFile(self):
-		self.filename = QFileDialog.getSaveFileName(self, "Save File as...")[0]
-		if self.filename:
-			self.api.log("Saving...")
-			try:
-# 				self.statusBar().showMessage("wrote %s done." % self.filename)
-				msg = QMessageBox()
-				msg.setIcon(QMessageBox.Critical)
-				msg.setText("Save confirm.")
-				msg.setInformativeText("Are you really sure you want to save to the existing file?")
-				msg.setWindowTitle("Confirm Operation")
-				msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-				retval = msg.exec_()		
-				if retval == QMessageBox.Ok:
-					self.api.log("save confirmed.")
-					raise("FIXME")
-					self.api.log("save done.")
-
-			except:
-				msg = QMessageBox()
-				msg.setIcon(QMessageBox.Critical)
-				msg.setText("Save Failed.")
-				msg.setInformativeText("This is probably because you dont have permissions to write to the file.")
-				msg.setWindowTitle("Critical Error")
-				msg.setStandardButtons(QMessageBox.Ok)
-				self.api.log("save failed.")
-				retval = msg.exec_()		
-		
+# 	def getBytes(self,file,range=(0,None)):
+# 		(start,stop) = range
+# 		if stop == None:
+# 			stop == len(self.openFiles[file].data)
+# 		return self.openFiles[file].data[start:stop] 
+# 	def getSelectedRange(self,file):
+# 		return self.openFiles[file].selection.getRange()
+# 	
+# 	def getSelectedBytes(self,file):
+# 		(start,stop) = self.getSelectedRange(file)
+# 		return self.openFiles[file].data[start:stop] 
+# 
+# 	def patchBytes(self,file,range=(0,None), patch=b'', padchar=b'\x00'):
+# 		(start,stop) = range
+# 		if stop == None:
+# 			return False
+# 		self.openFiles[file].data[start:stop] = patch.ljust((stop-start),padchar)
+# 		return True
+# 		
+# 	def histogram(self,file,range=(0,None)): #why is this so slow
+# 		(start,stop) = range
+# 		a  = np.ndarray.__new__(np.ndarray,
+# 		   shape=(len(self.openFiles[file].data[start:stop]),),
+# 		   dtype=np.uint8,
+# 		   buffer=self.openFiles[file][start:stop],
+# 		   offset=0,
+# 		   strides=(1,),
+# 		   order='C')
+# 		hist(a, bins=256, range=(0,256), histtype='step')
 
 	def find(self, filename, findval, selection=None):
-		print("yep here2")
 		return  self.openFiles[filename].find(findval, selection)
  		
 	def findAll(self, filename, findval, selection=None):	
@@ -243,15 +204,28 @@ class HaxeAPI(QObject):
 		
 	def openFile(self, filename):
 		try:
-			self.openFiles[filename] =  FileBuffer(filename)
+			fs = os.stat(filename)
+			largefile = fs.st_size > self.largfilethreshold
+			if largefile == True:
+				msg = QMessageBox()
+				msg.setIcon(QMessageBox.Critical)
+				msg.setText("Large file!")
+				msg.setInformativeText("This is a big file, would you like to open this file in 'largefile' mode?, this will require less memory, but will disable insertion and deletion as the filesize cannot be changed in this mode.")
+				msg.setWindowTitle("Large File Support")
+				msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No |  QMessageBox.Cancel )
+				retval = msg.exec_()		
+				if retval == QMessageBox.No:
+					largefile = False
+				if retval == QMessageBox.Cancel:
+					return None
+			self.openFiles[filename] =  FileBuffer(filename,largefile=largefile)
 			return filename
 		except:
-			pass #fixme
+			self.log("error opening file")
 			return None
 				
 	def log(self, logmsg):
 		print(logmsg)
-# 		self.qtparent.statusBar().showMessage(logmsg) 
 
 	def getActiveFocus(self):
 		if  self.activefocusfilename != None:
@@ -269,7 +243,6 @@ class HaxeAPI(QObject):
 		
 	def setPasteMode(self,mode):
 		self.paste_mode = mode	
-	
 	
 	
 	
@@ -325,8 +298,7 @@ class HaxEditor(QMainWindow):
 		fn = e.mimeData().text()[7:]
 		print("drag",fn)      	
 		self.open_file(fn)
-	
-	
+		
 
 	def newHexDock(self, filebuff=None):
 		tab = QDockWidget()
@@ -344,6 +316,7 @@ class HaxEditor(QMainWindow):
 		print(filename)
 		if filename in [None, False]:
 			filename = QFileDialog.getOpenFileName(self, "Open File...")[0]
+			
 		if filename:
 			hw = self.api.openFile(filename)
 			if hw != None:
@@ -548,14 +521,59 @@ class HaxEditor(QMainWindow):
 			self.structeditor.setVisible(True)
 
 	def save_file(self):
-		self.api.openFiles[self.api.getActiveFocus()].saveFile()
-		print("yep")
-		pass
-
+		self.api.log("Saving...")
+		try:
+			msg = QMessageBox()
+			msg.setIcon(QMessageBox.Critical)
+			msg.setText("Save confirm.")
+			msg.setInformativeText("Are you really sure you want to save to the existing file?")
+			msg.setWindowTitle("Confirm Operation")
+			msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+			retval = msg.exec_()		
+			if retval == QMessageBox.Ok:
+				self.api.log("save confirmed.")
+				self.api.openFiles[self.api.getActiveFocus()].saveFile()
+				self.api.log("save done.")
+			else:
+				self.api.log("aborted")
+		except:
+			msg = QMessageBox()
+			msg.setIcon(QMessageBox.Critical)
+			msg.setText("Save Failed.")
+			msg.setInformativeText("This is probably because you dont have permissions to write to the file.")
+			msg.setWindowTitle("Critical Error")
+			msg.setStandardButtons(QMessageBox.Ok)
+			self.api.log("save failed.")
+			retval = msg.exec_()	
+			
 	def save_file_as(self):
+		filename = QFileDialog.getSaveFileName(self, "Save File as...")[0]
+		if filename:
+			self.api.log("Saving...")
+			try:
+				msg = QMessageBox()
+				msg.setIcon(QMessageBox.Critical)
+				msg.setText("Save confirm.")
+				msg.setInformativeText("Are you really sure you want to save to the existing file?")
+				msg.setWindowTitle("Confirm Operation")
+				msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+				retval = msg.exec_()		
+				if retval == QMessageBox.Ok:
+					self.api.log("save confirmed.")
+					self.api.openFiles[self.api.getActiveFocus()].saveFileAs(filename)
+					self.api.log("save done.")
 
-		pass
-
+			except:
+				msg = QMessageBox()
+				msg.setIcon(QMessageBox.Critical)
+				msg.setText("Save Failed.")
+				msg.setInformativeText("This is probably because you dont have permissions to write to the file.")
+				msg.setWindowTitle("Critical Error")
+				msg.setStandardButtons(QMessageBox.Ok)
+				self.api.log("save failed.")
+				retval = msg.exec_()
+		else:
+			self.api.log("no filename selected")		
 
 
 if __name__ == '__main__':
