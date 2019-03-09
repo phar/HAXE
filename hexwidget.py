@@ -254,12 +254,15 @@ class HexWidget(QAbstractScrollArea):
 
 	def pxCoordToAddr(self, coord):
 		column, row = self.pxToCharCoords(coord.x(), coord.y())
-		nib = (column - int(column)) > .6
 		column,row = floor(column), floor(row)
 		if column >= self.hex_start() and column < self.ascii_start():
-			rel_column = (column-self.hex_start() / 2.0)
-			line_index = rel_column - (rel_column / self.getHexCharFormatLen())
-			addr = self.pos + (line_index / 2.0) + (row * self.bpl) - 1
+			clen =  self.getHexCharFormatLen()
+# 			nib = ((column -  self.hex_start()) / clen) > .3
+			nib =  (((column -  self.hex_start()) / clen) - int(((column -  self.hex_start()) / clen))) 
+			nib = nib > .3
+			rel_column = (column-self.hex_start() / clen)
+			line_index = rel_column - (rel_column /clen)
+			addr = self.pos + (line_index / clen) + (row * self.bpl)
 			return  (nib,int(addr))
 			
 		elif column >=  self.ascii_start():
@@ -268,6 +271,7 @@ class HexWidget(QAbstractScrollArea):
 			return (0,int(addr))
 		else:
 			return (None,None)
+			
 	def indexToHexCharCoords(self, index):
 		rel_index = index - self.pos
 		cy = int(rel_index / self.bpl) 
@@ -307,9 +311,6 @@ class HexWidget(QAbstractScrollArea):
 
 	# ====================  Event Handling  ==============================
 
-
-
-		
 	def pxToSelectionList(self, pos):
 		"""bytes may be involved in more then one selection, this returns a list of those selections"""
 		selections = []
@@ -331,7 +332,7 @@ class HexWidget(QAbstractScrollArea):
 					handledobjs.append(s.obj)
 				
 		if tooltip != "":
-			QToolTip.hideText()
+# 			QToolTip.hideText()
 			QToolTip.showText(self.mapToGlobal(pos),  tooltip, self)
 						
 	def getHexCharFormat(self):
@@ -407,11 +408,9 @@ class HexWidget(QAbstractScrollArea):
 
 	def cursorMove(self, selection):
 		if selection.start > len(self.filebuff):
-			self.cursor._selection.start = len(self.filebuff)
-			
+			self.cursor._selection.start = len(self.filebuff)			
 		if selection.end > len(self.filebuff):
 			self.cursor._selection.end = len(self.filebuff)
-			
 		self.scrollWindowToCursor()
 		self.repaintWidget()
 
@@ -433,11 +432,6 @@ class HexWidget(QAbstractScrollArea):
 		if  self.widgetpainted == None:
 			self.repaintWidget()						
 		
-		p = self.verticalScrollBar().value() * self.bpl
-		if p != self.pos:
-			self.pos  = p
-			self.repaintWidget()
-			
 # 		cursor
 		painterself = QPainter(self.viewport())
 		painterself.drawPixmap(0,0,self.widgetpainted)
@@ -446,11 +440,12 @@ class HexWidget(QAbstractScrollArea):
 			if (self.blinkstate % 2) == 0:
 				self.paintCursor(painterself)
 		
-
 	def wheelEvent(self,event):
 		super(HexWidget, self).wheelEvent(event)
-		self.repaintWidget()
-		
+		p = self.verticalScrollBar().value() * self.bpl
+		if p != self.pos:
+			self.pos  = p
+			self.repaintWidget()
 		
 	def repaintWidget(self):
 		self.paintedevent += 1
@@ -490,8 +485,9 @@ class HexWidget(QAbstractScrollArea):
 				painter.fillRect(0, (i * self.charHeight),(self.totalCharsPerLine() * self.charWidth),  self.charHeight, self.palette().color(QPalette.Base))
 
 			# address
-			painter.setPen(self.palette().color(QPalette.WindowText))
-			painter.drawText(addr_start, (i * self.charHeight)+self.charHeight, self.getAddressFormat().format(address))
+# 			painter.setPen(self.palette().color(QPalette.WindowText))
+# 			painter.drawText(addr_start, (i * self.charHeight)+self.charHeight, self.getAddressFormat().format(address))
+			self.printAddress(painter, addr_start,(i * self.charHeight)+self.charHeight, address)
 
 			# data
 			for j, byte in enumerate(data):
@@ -505,6 +501,13 @@ class HexWidget(QAbstractScrollArea):
 					
 		self.viewport().update()
 
+
+	def printAddress(self, painter, addr_start, point,address):
+		painter.setPen(self.palette().color(QPalette.WindowText))
+# 		for c in self.getAddressFormat().format(address):
+		painter.drawText(addr_start, point, self.getAddressFormat().format(address))
+# 			painter.drawText(addr_start, (i * self.charHeight)+self.charHeight, self.getAddressFormat().format(address))
+# 			painter.drawText(QRect(QPoint(addr_start,point),QPoint(0,point) + QPoint(self.charWidth,self.charHeight)),Qt.AlignCenter,c)
 	
 	def paintByteAtAddr(self,painter, addr, data, asciidata):
 		ph = []
@@ -519,11 +522,9 @@ class HexWidget(QAbstractScrollArea):
 		self.paintHexByte(painter, addr, data,ph)
 		self.paintAsciiByte(painter, addr,  asciidata,ph)
 					
-	
 	def mouseDoubleClickEvent(self,event):
 		for s in self.pxToSelectionList(event.pos()):
 			s.obj.editAction(s)
-
 
 	def mousePressEvent(self, event):
 		mod = event.modifiers()
@@ -608,11 +609,12 @@ class HexWidget(QAbstractScrollArea):
 			
 
 	def scrollWindowToCursor(self):
-		x, y = self.indexToAsciiCharCoords(self.cursor.getAddress())
-		if y > self.visibleLines() - 2:
-			self.verticalScrollBar().setValue(((self.verticalScrollBar().value() + y) - self.visibleLines()) + 2)
-		if y < 1:
-			self.verticalScrollBar().setValue(self.verticalScrollBar().value() + y)
+		x, y = self.indexToAsciiCharCoords(self.cursor.getPosition())
+# 		if y > self.visibleLines() - 2:
+# 			self.verticalScrollBar().setValue(((self.verticalScrollBar().value() + y) - self.visibleLines()) + 2)
+# 		if y < 1:
+# 			self.verticalScrollBar().setValue(self.verticalScrollBar().value() + y)
+		#fixme
 	
 	def event(self, event):
 		if event.type() == QEvent.KeyPress and event.key() == Qt.Key_Tab:

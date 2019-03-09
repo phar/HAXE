@@ -1,5 +1,11 @@
-format = Struct(
+bmpformat1 = Struct(
 	"signature" / Const(b"BMP"),
+	"width" / Int8ub,
+	"height" / Int8ub,
+	"pixels" / Array(this.width * this.height, Byte),
+	)
+
+bmpformat2 = Struct(
 	"width" / Int8ub,
 	"height" / Int8ub,
 	"pixels" / Array(this.width * this.height, Byte),
