@@ -18,7 +18,7 @@ from IPython import get_ipython
 class IPythonPlugin(HexPlugin):
 	def __init__(self,api):
 		super(IPythonPlugin, self).__init__(api,"iPython")
-		self.loadiPythonEnvironment("ipython.env")
+		self.loadiPythonEnvironment("plugins/ipython.env")
 
 		self.dw = None
 		
