@@ -6,18 +6,16 @@ to replace the parsed structure values
 
 
 crash in undo stack
-drag mouse past top and bottom of screen
 widget should be usable on its own
 import export patch from undostack
 undo for addSelection
-
+jupyter optional
 
 behaviour bugs:
-	shift clicking a selection doesnt work the way shift <arrow> does
 	should overwrite highlighted text when selected (this is more a bug in the undo system at this point)
 	undo's should select the new data
     recent files are mis ordered, doesnt really handle a user opening the same file twice
-	window doesnt current follow cursor with arrow keys either
+
    
 things best done as plugins:
    - intel hex (with sparse support)

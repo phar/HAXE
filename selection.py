@@ -62,20 +62,17 @@ class Selection(QObject):
 	def __iter__(self):
 		return iter(range(min(self._start, self._end), max(self._start, self._end)))
 
-
 	def __add__(self,arg):
 		self._start += int(arg)
 		self._end += int(arg)
 		self.selectionChanged.emit(self.getRange())		
 		return self
-
-
+		
 	def __sub__(self,arg):
 		self._start += int(arg)
 		self._end += int(arg)
 		self.selectionChanged.emit(self.getRange())
 		return self
-		
 		
 	def getRange(self):
 		return (min(self._start, self._end), max(self._start, self._end))

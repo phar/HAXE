@@ -17,29 +17,23 @@
 
 # standard modules
 import time
-import mmap
-import re
 import os
 import collections
 import numpy as np
 import inspect
 import logging
 import glob
-from binascii import *
-# from math import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 import string
 import importlib
 import argparse
+import codecs
+import traceback
 
 # own submodules
 from hexdialog import *
-from ipythonwidget import *
-from cursor import *
-import traceback
-import codecs
 
 
 CLIPBOARD_CONVERT_TO = [
@@ -244,7 +238,6 @@ class HaxeAPI(QObject):
 		self.paste_mode = mode	
 	
 	
-	
 class HaxEditor(QMainWindow):
 	def __init__(self):
 		super(HaxEditor, self).__init__()
@@ -263,19 +256,16 @@ class HaxEditor(QMainWindow):
 		self.docks = {}
 		self.createActions()
 		self.createMenus()
-
-		self.loadiPythonEnvironment("ipython.env")
-
-# 		(name, dock, window, action, shortcut) = self.createDock(self.api.structeditor.widgetfunc)
-# 		self.docks[name] = {'dock':dock, 'window':window,'action':action,'shortcut':shortcut}		
-# 		self.viewmenu.addAction(self.docks[name]['action'])
- 		
-		(name, dock, window, action, shortcut) = self.createDock(self.iPuthonWindow)
-		self.docks[name] = {'dock':dock, 'window':window,'action':action,'shortcut':shortcut}		
-		self.viewmenu.addAction(self.docks[name]['action'])
-		
+	
+		for n,p in self.api.loaded_plugins.items():
+			dw = p.pluginDockableWidget()
+			if dw is not None:
+				print("%s is dockable!" % n)		
+				(name, dock, window, action, shortcut) = self.createDock(p.pluginDockableWidget)
+				self.docks[name] = {'dock':dock, 'window':window,'action':action,'shortcut':shortcut}		
+				self.viewmenu.addAction(self.docks[name]['action'])
+			
 		self.drawIcon()
-# 		self.api.structChanged.connect(self.structChanged);
 	
 		self.open_file(args.filename)
 		self.setAcceptDrops(True)
@@ -397,15 +387,6 @@ class HaxEditor(QMainWindow):
 	def paste_mode(self,arg):
 		self.api.setPasteMode(arg)
 
-	def loadiPythonEnvironment(self, filename="ipython.env"):
-		f = open(filename)
-		self.ipythonenv = f.read()
-		f.close()
-
-	def iPuthonWindow(self):
-		ipython = IPythonWidget(run=self.ipythonenv,main=self)
-		ipython.setMinimumWidth(300)
-		return  ("IPython","Alt+P",ipython)
 		
 	def createDock(self, widgetfunc):
 		self.setDockOptions(self.dockOptions() | QMainWindow.AllowNestedDocks)
@@ -516,12 +497,6 @@ class HaxEditor(QMainWindow):
 		self.filemenu.addAction(self.act_quit)
 		self.viewmenu = self.menuBar().addMenu("&View")
 
-
-	def toggle_structedit(self):
-		if self.structeditor.isVisible():
-			self.structeditor.setVisible(False)
-		else:
-			self.structeditor.setVisible(True)
 
 	def save_file(self):
 		self.api.log("Saving...")

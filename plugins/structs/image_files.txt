@@ -1,10 +1,3 @@
-bmpformat1 = Struct(
-	"signature" / Const(b"BMP"),
-	"width" / Int8ub,
-	"height" / Int8ub,
-	"pixels" / Array(this.width * this.height, Byte),
-	)
-
 BMP_Header = Struct(
 	"signature" / Const(b"BM"),
 	"file_size" / Int32ul,
@@ -45,23 +38,3 @@ PNG_Header = Struct(
 
 
 
-
-foo = Struct(
-    "foo" / Int16ul,
-    "bar" / Int32ul,
-    "baz" / Int64ul
-    )
-
-
-baz = Struct(
-    "foo" / Int16ul,
-    "bar" / Int32ul,
-    "baz" / Int64ul
-    )
-
-
-bar = Struct(
-    "foo" / Int16ul,
-    "bar" / Int32ul,
-    "baz" / Int64ul
-    )    

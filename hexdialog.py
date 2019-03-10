@@ -108,7 +108,7 @@ class HexDialog(QMainWindow):
 		self.clipboardata = []
 		self.clipboarcopy = [] #fixme, replace with hash
 		self.isActiveWindow = False
-		self.hexWidget =  HexWidget(api,self,self.filebuff, font="Courier", fontsize=12)
+		self.hexWidget =  HexWidget(api,self,self.filebuff, font="Menlo", fontsize=12)
 		splitter1 = QSplitter(Qt.Horizontal)	
 		self.setCentralWidget(splitter1)
 		splitter1.addWidget(self.hexWidget)
@@ -224,18 +224,13 @@ class HexDialog(QMainWindow):
 		start,end = self.hexWidget.getSelection().getRange()
 		return Selection(start,end)
 
-# 	def getNewSelectionfromSelection(self):
-# 		return self.hexWidget.getSelection()
-
       	
-	def select_changed(self,selection):
-		(start,end) = selection.getRange()
-		if len(selection):
-			self.selectstatus.setText(" [%d bytes selected at offset 0x%x out of %d bytes]" % (len(selection), start, len(self.filebuff)))
+	def select_changed(self,rnge):
+		(start,end) = rnge
+		if len(range(start,end)):
+			self.selectstatus.setText(" [%d bytes selected at offset 0x%x out of %d bytes]" % (len(range(start,end)), start, len(self.filebuff)))
 		else:
-			self.selectstatus.setText(" [offset 0x%x (%d) of %d bytes]" % (start,start, len(self.filebuff)))
-# 		self.selectstatus.repaint()
-
+			self.selectstatus.setText(" [offset 0x%x (%d) of %d bytes]" % (start,start, len(self.filebuff)))	
 		self.filestatus.setText(self.filebuff.statusString() + "[%s]" %self.hexWidget.charset)
 	
 

@@ -32,3 +32,6 @@ class HexPlugin():
 		
 	def pluginSelectionSubPlacement(self):
 		return []
+
+	def pluginDockableWidget(self):
+		return None

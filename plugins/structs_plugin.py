@@ -5,6 +5,9 @@ from selection import *
 # from construct import *
 import construct
 from construct import *
+from math import *
+
+
 
 class StructActionClass(SelectionActionClasss):
 	pass
@@ -181,7 +184,7 @@ class StructPlugin(HexPlugin):
 		self.items = []
 		ns = {}
 		try:
-			exec(compile("from construct import *\n" + self.structbuff, '<none>', 'exec'), ns)
+			exec(compile("from math import *\nfrom construct import *\n" + self.structbuff, '<none>', 'exec'), ns)
 			results = []
 			self.structs = {}
 			for name in sorted([x for x, v in ns.items() if isinstance(v, construct.Construct) and (x not in dir(construct)) ], key=self.foo):
