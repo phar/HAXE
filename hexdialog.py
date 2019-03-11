@@ -155,7 +155,7 @@ class HexDialog(QMainWindow):
 	def getSelection(self):
 		return self.hexWidget.getCursor().getSelection()
 
-	def jumpto(self,selection):
+	def jumpto(self):
 		f  = JumpToDialog(self,self.api)
 		f.show()
 					
@@ -323,7 +323,7 @@ class JumpToDialog(QDialog):
 				addr = int(self.le1.text())
 			except ValueError:
 				return
-		self.parent.hexWidget.goto(addr) #fixme
+		self.parent.hexWidget.setPosition(addr)
 						
 	def doclose(self):
 		self.close()

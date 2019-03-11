@@ -81,7 +81,7 @@ class HexWidget(QAbstractScrollArea):
 	selectAllEvent = QtCore.pyqtSignal(object)
 	updateSelectionListEvent =  QtCore.pyqtSignal(object)
 	ctxtMenuEvent =  QtCore.pyqtSignal(object)
-	jumpToEvent =  QtCore.pyqtSignal(object)
+	jumpToEvent =  QtCore.pyqtSignal()
 		
 	def __init__(self,api, parent=None, fileobj=None, font="Courier", fontsize=12):
 		super(HexWidget, self).__init__(parent)
@@ -117,6 +117,7 @@ class HexWidget(QAbstractScrollArea):
 		self.charHeightMultiplier = 1.0
 		self.paintedevent = 0
 		self.lastpanted = 0
+		self.knownvisiblelines  = 0
 		
 		self.setWidgetFont(font,fontsize)
 		self.cursor = Cursor(self, 0,0)
@@ -128,6 +129,9 @@ class HexWidget(QAbstractScrollArea):
 		self.adjust()
 		self.blinkstate = 0
 		self.startCursor(500)
+		
+		
+
 
 	def startCursor(self,interval=500):
 		# cursor blinking timer
@@ -200,17 +204,6 @@ class HexWidget(QAbstractScrollArea):
 		bytes = self.filebuff[pos:]
 		yield (pos, len(self.filebuff)-pos,bytes, self.toAscii(bytes))
 
-
-# 	def getVisibleLines(self, pos=0):
-# 		l = 0
-# 		while pos < (len(self.filebuff)-self.bpl) and (l < self.visibleLines()):
-# 			yield (pos, self.bpl, self.toAscii(self.filebuff[pos:pos+self.bpl]))
-# 			pos += self.bpl
-# 			l += 1
-# 			print(l)
-# 		yield (pos, len(self.filebuff)-pos, self.toAscii(self.filebuff[pos:]))
-
-
 	def numLines(self):
 		return ceil(float(len(self.filebuff))/ self.bpl)
 
@@ -231,19 +224,12 @@ class HexWidget(QAbstractScrollArea):
 		return  self.getAddressFormatLen()  + self.gap2 + self.getHexLength() + self.gap3 + self.bpl + self.gap4
 
 	def adjust(self):
-		self.horizontalScrollBar().setRange(0, self.totalCharsPerLine() - self.visibleColumns() )
-		self.horizontalScrollBar().setPageStep(self.visibleColumns())
 		self.verticalScrollBar().setRange(0, self.numLines() - self.visibleLines() + 1)
 		self.verticalScrollBar().setPageStep(self.visibleLines())
 
-
-	def goto(self, address):
-		self.cursor.setAddress(address)
-		
 	# =====================  Coordinate Juggling  ============================
 	def pxToCharCoords(self, px, py):
 		return ( px / self.charWidth, py / self.charHeight)
-
 
 	def charToPxCoords(self, cx, cy):
 		"return upper left corder of the rectangle containing the char at position cx, cy"
@@ -437,15 +423,17 @@ class HexWidget(QAbstractScrollArea):
 		super(HexWidget, self).wheelEvent(event)
 		p = self.verticalScrollBar().value() * self.bpl
 		if p != self.pos:
-			self.pos  = p
-			self.repaintWidget()
+			self.setPosition(p)			
 			
 	def scrollContentsBy(self,distx,disty):
+		print(disty)
 		p = self.verticalScrollBar().value() * self.bpl
 		if p != self.pos:
-			self.pos  = p
-			self.repaintWidget()
+			self.setPosition(p)			
 			
+	def setPosition(self,pos):
+		self.pos  = pos
+		self.repaintWidget()
 					
 	def repaintWidget(self):
 		self.paintedevent += 1
@@ -584,6 +572,7 @@ class HexWidget(QAbstractScrollArea):
 		self.focusEvent.emit(self.cursor.getSelection())
 	
 	def resizeEvent(self, event):
+		repaint = False
 		a = self.getAddressFormatLen()  + self.gap2 + self.getHexLength() + self.gap3 + self.bpl + self.gap4
 		b = (self.viewport().width() / self.charWidth) -  ( self.getAddressFormatLen()  + self.gap2 +  self.gap3 +  self.gap4)
 		c = b - (self.bpl + (self.bpl * self.getHexCharFormatLen()))
@@ -601,6 +590,16 @@ class HexWidget(QAbstractScrollArea):
 			
 		if self.bpl != nbpl:
 			self.bpl = nbpl
+			repaint = True
+			
+		vl = self.visibleLines()
+		if self.knownvisiblelines != vl:
+			self.knownvisiblelines = vl
+			repaint = True
+
+		self.adjust()
+		
+		if repaint:
 			self.repaintWidget()		
 			
 
@@ -670,9 +669,10 @@ class HexWidget(QAbstractScrollArea):
 				elif key == Qt.Key_Home:
 					self.cursor.setCursorPosistion(0)
 				elif key == Qt.Key_End:
-					self.cursor.setCursorPosistion(len(self.filebuff))
+# 					self.cursor.setCursorPosistion(len(self.filebuff))
+					self.pos = len(self.filebuff)
 				elif text != '':
-					oldbyte = self.filebuff[self.cursor.getAddress()] 
+					oldbyte = self.filebuff[self.cursor.getPosition()] 
 					
 					if  self.activeview == 'hex':
 						if text in string.hexdigits:
@@ -686,7 +686,7 @@ class HexWidget(QAbstractScrollArea):
 							self.cursor.right()
 							
 						elif ord(text) in b'gG':
-							self.jumpToEvent.emit(self.cursor.getSelection())
+							self.jumpToEvent.emit()
 
 					elif self.activeview == 'ascii':
 						byte = ord(text)
@@ -697,7 +697,10 @@ class HexWidget(QAbstractScrollArea):
 						
 					elif self.activeview == 'addr':
 						if ord(text) in b'gG':
-							self.jumpToEvent.emit(self.cursor.getSelection())										
+							self.jumpToEvent.emit()	
+		self.cursor.blinkstate = 0
+		self.repaintWidget()
+			
 					
 
 							
