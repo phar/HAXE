@@ -9,7 +9,8 @@ crash in undo stack
 widget should be usable on its own
 import export patch from undostack
 undo for addSelection
-jupyter optional
+display needs to be more efficient
+
 
 behaviour bugs:
 	should overwrite highlighted text when selected (this is more a bug in the undo system at this point)

@@ -329,7 +329,6 @@ class HexWidget(QAbstractScrollArea):
 		return COLOR_PALETTE[len(self.highlights)]
 		
 	def addSelection(self,selection):
-		print("adding selection", selection)
 		self.highlights.append(selection)
 		self.updateSelectionListEvent.emit(self.highlights)
 
@@ -418,18 +417,9 @@ class HexWidget(QAbstractScrollArea):
 			self.lastpanted  = 	self.paintedevent	
 			if (self.blinkstate % 2) == 0:
 				self.paintCursor(painterself)
-		
-	def wheelEvent(self,event):
-		super(HexWidget, self).wheelEvent(event)
-		p = self.verticalScrollBar().value() * self.bpl
-		if p != self.pos:
-			self.setPosition(p)			
-			
+				
 	def scrollContentsBy(self,distx,disty):
-		print(disty)
-		p = self.verticalScrollBar().value() * self.bpl
-		if p != self.pos:
-			self.setPosition(p)			
+		self.setPosition(self.pos - (disty * self.bpl))			
 			
 	def setPosition(self,pos):
 		self.pos  = pos
@@ -669,7 +659,6 @@ class HexWidget(QAbstractScrollArea):
 				elif key == Qt.Key_Home:
 					self.cursor.setCursorPosistion(0)
 				elif key == Qt.Key_End:
-# 					self.cursor.setCursorPosistion(len(self.filebuff))
 					self.pos = len(self.filebuff)
 				elif text != '':
 					oldbyte = self.filebuff[self.cursor.getPosition()] 
