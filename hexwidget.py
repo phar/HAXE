@@ -166,11 +166,17 @@ class HexWidget(QAbstractScrollArea):
 				
 		for i in string.printable:
 			self.fontpixmap[i] = QPixmap(self.charWidth, self.charHeight)
+			self.fontpixmap[i].fill(Qt.transparent)
 			painter = QPainter(self.fontpixmap[i])
-			painter.setBackgroundMode(Qt.TransparentMode)
+
+			painter.setRenderHint(QPainter.Antialiasing, False)
+			painter.setRenderHint(QPainter.TextAntialiasing, False)
+			painter.setRenderHint(QPainter.SmoothPixmapTransform, True)
+			painter.setBackground(QBrush( QtGui.QColor(255, 255, 255)))
 # 			painter.setRenderHint(QPainter.SmoothPixmapTransform)
 			painter.setFont(font)
-			painter.fillRect(QRect(QPoint(0,0),QPoint(self.charWidth,self.charHeight)), self.palette().color(QPalette.Base))
+# 			painter.fillRect(QRect(QPoint(0,0),QPoint(self.charWidth,self.charHeight)), QColor(Qt.transparent))
+			painter.setPen(QtGui.QColor(0, 0, 0,255))
 			painter.drawText(QRect(QPoint(0,0),QPoint(self.charWidth,self.charHeight)),Qt.AlignCenter,i)
 			
 	def toggleAddressFormat(self):
