@@ -5,7 +5,7 @@
 	<key>HierarchyData</key>
 	<array>
 		<string>4CDF2848-E4AF-4E82-8E53-CCA06F284116</string>
-		<string>F65E9D17-FDBA-42A4-A504-D93984501D0C</string>
+		<string>16B9A04E-1D3B-4A51-A92A-01F01CD76780</string>
 		<string>ABD9448D-4ACD-4B0A-AEF1-4D7713792EC5</string>
 		<string>88246C1D-8CE9-4DE6-9DFF-1212E2CA3B65</string>
 		<string>175963B1-F3E3-41E8-A575-C5713D32DBF4</string>
@@ -92,6 +92,53 @@
 			</dict>
 			<key>ItemName</key>
 			<string>settings.py</string>
+			<key>ItemType</key>
+			<string>FileReference</string>
+			<key>UserOverrideItemName</key>
+			<true/>
+		</dict>
+		<key>16B9A04E-1D3B-4A51-A92A-01F01CD76780</key>
+		<dict>
+			<key>ItemData</key>
+			<dict>
+				<key>BookmarkData</key>
+				<data>
+				Ym9va9ACAAAAAAQQMAAAAJT6wnNQw62681x8vQqMjOLI
+				tK56oSrgXDqapqOcWXq9tAEAAAQAAAADAwAAAAgAKAUA
+				AAABAQAAVXNlcnMAAAAEAAAAAQEAAHBoYXIEAAAAAQEA
+				AEhBWEUMAAAAAQEAAGhleGRpYWxvZy5weRAAAAABBgAA
+				EAAAACAAAAAsAAAAOAAAAAgAAAAEAwAATmkGAAAAAAAI
+				AAAABAMAAHfJBgAAAAAACAAAAAQDAABvqi0CAgAAAAgA
+				AAAEAwAA3pc4AgIAAAAQAAAAAQYAAGQAAAB0AAAAhAAA
+				AJQAAAAIAAAAAAQAAEHBCx+2gm1PGAAAAAECAAABAAAA
+				AAAAAA8AAAAAAAAAAAAAAAAAAAAAAAAAAQUAAAQAAAAD
+				AwAAAQAAAAgAAAAEAwAAAgAAAAAAAAAEAAAAAwMAAPUB
+				AAAIAAAAAQkAAGZpbGU6Ly8vCAAAAAEBAABVbnRpdGxl
+				ZAgAAAAEAwAAALBgbnQAAAAIAAAAAAQAAEG/4n6SAAAA
+				JAAAAAEBAAAyOUI3M0UzOS1DRTg0LTM1NTctQTM1NC00
+				MkEwNjlFODZCQTMYAAAAAQIAAIEAAAABAAAA7xMAAAEA
+				AAAAAAAAAAAAAAEAAAABAQAALwAAAOQAAAD+////AQAA
+				AAAAAAASAAAABBAAAEwAAAAAAAAABRAAAKQAAAAAAAAA
+				EBAAAMwAAAAAAAAAQBAAALwAAAAAAAAAVRAAAPQAAAAA
+				AAAAVhAAAOwAAAAAAAAAAiAAAKgBAAAAAAAABSAAABwB
+				AAAAAAAAECAAACwBAAAAAAAAESAAAFwBAAAAAAAAEiAA
+				ADwBAAAAAAAAEyAAAEwBAAAAAAAAICAAAIgBAAAAAAAA
+				MCAAAOwAAAAAAAAAAcAAAAABAAAAAAAAEcAAACAAAAAA
+				AAAAEsAAABABAAAAAAAAENAAAAQAAAAAAAAA
+				</data>
+				<key>FileURL</key>
+				<string>file:///Users/phar/HAXE/hexdialog.py</string>
+				<key>HasSecurityScope</key>
+				<true/>
+				<key>RelativePath</key>
+				<string>./hexdialog.py</string>
+				<key>TypeID</key>
+				<string>_CFileLocator</string>
+				<key>Version</key>
+				<integer>1</integer>
+			</dict>
+			<key>ItemName</key>
+			<string>hexdialog.py</string>
 			<key>ItemType</key>
 			<string>FileReference</string>
 			<key>UserOverrideItemName</key>
@@ -671,7 +718,7 @@
 				<key>HasSecurityScope</key>
 				<true/>
 				<key>RelativePath</key>
-				<string>./ipythonwidget.py</string>
+				<string>../qthexedit/ipythonwidget.py</string>
 				<key>TypeID</key>
 				<string>_CFileLocator</string>
 				<key>Version</key>
@@ -988,53 +1035,6 @@
 			</dict>
 			<key>ItemName</key>
 			<string>LICENSE</string>
-			<key>ItemType</key>
-			<string>FileReference</string>
-			<key>UserOverrideItemName</key>
-			<true/>
-		</dict>
-		<key>F65E9D17-FDBA-42A4-A504-D93984501D0C</key>
-		<dict>
-			<key>ItemData</key>
-			<dict>
-				<key>BookmarkData</key>
-				<data>
-				Ym9va9ACAAAAAAQQMAAAAJT6wnNQw62681x8vQqMjOLI
-				tK56oSrgXDqapqOcWXq9tAEAAAQAAAADAwAAAAgAKAUA
-				AAABAQAAVXNlcnMAAAAEAAAAAQEAAHBoYXIEAAAAAQEA
-				AEhBWEUMAAAAAQEAAGhleGRpYWxvZy5weRAAAAABBgAA
-				EAAAACAAAAAsAAAAOAAAAAgAAAAEAwAATmkGAAAAAAAI
-				AAAABAMAAHfJBgAAAAAACAAAAAQDAABvqi0CAgAAAAgA
-				AAAEAwAA3pc4AgIAAAAQAAAAAQYAAGQAAAB0AAAAhAAA
-				AJQAAAAIAAAAAAQAAEHBCx+2gm1PGAAAAAECAAABAAAA
-				AAAAAA8AAAAAAAAAAAAAAAAAAAAAAAAAAQUAAAQAAAAD
-				AwAAAQAAAAgAAAAEAwAAAgAAAAAAAAAEAAAAAwMAAPUB
-				AAAIAAAAAQkAAGZpbGU6Ly8vCAAAAAEBAABVbnRpdGxl
-				ZAgAAAAEAwAAALBgbnQAAAAIAAAAAAQAAEG/4n6SAAAA
-				JAAAAAEBAAAyOUI3M0UzOS1DRTg0LTM1NTctQTM1NC00
-				MkEwNjlFODZCQTMYAAAAAQIAAIEAAAABAAAA7xMAAAEA
-				AAAAAAAAAAAAAAEAAAABAQAALwAAAOQAAAD+////AQAA
-				AAAAAAASAAAABBAAAEwAAAAAAAAABRAAAKQAAAAAAAAA
-				EBAAAMwAAAAAAAAAQBAAALwAAAAAAAAAVRAAAPQAAAAA
-				AAAAVhAAAOwAAAAAAAAAAiAAAKgBAAAAAAAABSAAABwB
-				AAAAAAAAECAAACwBAAAAAAAAESAAAFwBAAAAAAAAEiAA
-				ADwBAAAAAAAAEyAAAEwBAAAAAAAAICAAAIgBAAAAAAAA
-				MCAAAOwAAAAAAAAAAcAAAAABAAAAAAAAEcAAACAAAAAA
-				AAAAEsAAABABAAAAAAAAENAAAAQAAAAAAAAA
-				</data>
-				<key>FileURL</key>
-				<string>file:///Users/phar/HAXE/hexdialog.py</string>
-				<key>HasSecurityScope</key>
-				<true/>
-				<key>RelativePath</key>
-				<string>./hexdialog.py</string>
-				<key>TypeID</key>
-				<string>_CFileLocator</string>
-				<key>Version</key>
-				<integer>1</integer>
-			</dict>
-			<key>ItemName</key>
-			<string>hexdialog.py</string>
 			<key>ItemType</key>
 			<string>FileReference</string>
 			<key>UserOverrideItemName</key>

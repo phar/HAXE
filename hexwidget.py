@@ -113,7 +113,7 @@ class HexWidget(QAbstractScrollArea):
 		self.gap4 = 3
 		self.pos = 0
 		self.colorBars = True
-		self.charWidthMultiplier = 1.0
+		self.charWidthMultiplier = 1.2
 		self.charHeightMultiplier = 1.0
 		self.paintedevent = 0
 		self.lastpanted = 0
@@ -155,6 +155,7 @@ class HexWidget(QAbstractScrollArea):
 	def setWidgetFont(self,font="Courier",size=12):
 		self.font = font
 		self.fontsize = size
+		self.fontpixmap = {}
 		
 		font = QFont(self.font, self.fontsize)
 		font.setStyleStrategy(QFont.NoAntialias)
@@ -162,7 +163,16 @@ class HexWidget(QAbstractScrollArea):
 		
 		self.charWidth = self.fontMetrics().maxWidth() * self.charWidthMultiplier
 		self.charHeight = self.fontMetrics().height() * self.charHeightMultiplier
-
+				
+		for i in string.printable:
+			self.fontpixmap[i] = QPixmap(self.charWidth, self.charHeight)
+			painter = QPainter(self.fontpixmap[i])
+			painter.setBackgroundMode(Qt.TransparentMode)
+# 			painter.setRenderHint(QPainter.SmoothPixmapTransform)
+			painter.setFont(font)
+			painter.fillRect(QRect(QPoint(0,0),QPoint(self.charWidth,self.charHeight)), self.palette().color(QPalette.Base))
+			painter.drawText(QRect(QPoint(0,0),QPoint(self.charWidth,self.charHeight)),Qt.AlignCenter,i)
+			
 	def toggleAddressFormat(self):
 		if 	self.addressformat == "{:08d}":
 			self.addressformat = "{:08x}"
@@ -223,9 +233,6 @@ class HexWidget(QAbstractScrollArea):
 	def totalCharsPerLine(self):
 		return  self.getAddressFormatLen()  + self.gap2 + self.getHexLength() + self.gap3 + self.bpl + self.gap4
 
-	def adjust(self):
-		self.verticalScrollBar().setRange(0, self.numLines() - self.visibleLines() + 1)
-		self.verticalScrollBar().setPageStep(self.visibleLines())
 
 	# =====================  Coordinate Juggling  ============================
 	def pxToCharCoords(self, px, py):
@@ -358,16 +365,19 @@ class HexWidget(QAbstractScrollArea):
 		
 		if len(ph):
 			size = QSize(ceil(self.charWidth*self.getHexCharFormatLen()), ceil(self.charHeight/len(ph)))
+			
 			for i,sel in enumerate(ph):
 				rect = QRect(topleft + QPoint(0,(self.charHeight/len(ph)) * i), size)
 				painter.fillRect(rect,QColor( sel.color))
+				
 			painter.setPen(QColor(hexColorComplement(sel.color)))
 		else:
 			painter.setPen(self.palette().color(QPalette.WindowText))
 		
 		for i,b in enumerate(list(self.getHexCharFormat().format(byte))):
 			top = topleft + QPoint(i*self.charWidth,0)
-			painter.drawText(QRect(top,top + QPoint(self.charWidth,self.charHeight)),Qt.AlignCenter,b)
+# 			painter.drawText(QRect(top,top + QPoint(self.charWidth,self.charHeight)),Qt.AlignCenter,b)
+			painter.drawPixmap(QRect(top,top + QPoint(self.charWidth,self.charHeight)),self.fontpixmap[b])
 
 
 	def paintAsciiByte(self, painter, addr, byte, ph):
@@ -381,7 +391,8 @@ class HexWidget(QAbstractScrollArea):
 			painter.setPen(QColor(hexColorComplement(sel.color)))
 		else:
 			painter.setPen(self.palette().color(QPalette.WindowText))
-		painter.drawText(QRect(topleft,topleft + QPoint(self.charWidth,self.charHeight)),Qt.AlignCenter,byte)
+		painter.drawPixmap(QRect(topleft,topleft + QPoint(self.charWidth,self.charHeight)),self.fontpixmap[byte])
+# 		painter.drawText(QRect(topleft,topleft + QPoint(self.charWidth,self.charHeight)),Qt.AlignCenter,byte)
 
 
 	def cursorMove(self, cursor):
@@ -411,27 +422,35 @@ class HexWidget(QAbstractScrollArea):
 		if  self.widgetpainted == None:
 			self.repaintWidget()						
 
+		s = time.time()
 		painterself = QPainter(self.viewport())
 		painterself.drawPixmap(0,0,self.widgetpainted)
-		if self.lastpanted < self.paintedevent or (self.blinkstate % 2) == 0: 
-			self.lastpanted  = 	self.paintedevent	
-			if (self.blinkstate % 2) == 0:
-				self.paintCursor(painterself)
-				
+# 		if self.lastpanted < self.paintedevent or (self.blinkstate % 2) == 0: 
+# 			self.lastpanted  = 	self.paintedevent	
+# 			if (self.blinkstate % 2) == 0:
+# 				self.paintCursor(painterself)
+# 	
+# 		self.viewport().update()
+# 		t  =   time.time() - s
+# 		if(t  > .0005):
+# 			print(t)
+					
 	def scrollContentsBy(self,distx,disty):
 		self.setPosition(self.pos - (disty * self.bpl))			
 			
 	def setPosition(self,pos):
 		self.pos  = pos
 		self.repaintWidget()
-					
+# 	self.paintedevent += 1
+				
 	def repaintWidget(self):
+		s = time.time()
 		self.paintedevent += 1
 		self.widgetpainted = QPixmap(self.viewport().width(), self.viewport().height())
 		painter = QPainter(self.widgetpainted)
 		
 		painter.setRenderHint(QPainter.SmoothPixmapTransform)
-	
+		painter.setBackgroundMode(Qt.TransparentMode)
 		painter.fillRect(0, 0,self.viewport().width(), self.viewport().height(), self.palette().color(QPalette.Base))
 
 		palette = self.viewport().palette()
@@ -476,6 +495,7 @@ class HexWidget(QAbstractScrollArea):
 			painter.drawLine(ascii_start-(self.charWidth/2), 0, ascii_start-(self.charWidth/2), self.height())								
 					
 		self.viewport().update()
+		print(time.time()-s)
 
 
 	def printAddress(self, painter, addr_start, point,address):
@@ -537,7 +557,7 @@ class HexWidget(QAbstractScrollArea):
 				self.dragactive = False
 			
 			self.dragselection = sl
-		self.repaintWidget()			
+# 		self.repaintWidget()			
 
 	def mouseMoveEvent(self, event):	
 		(nib,cur) = self.pxCoordToAddr(event.pos())
@@ -560,9 +580,15 @@ class HexWidget(QAbstractScrollArea):
 	
 	def focusInEvent(self, event):
 		self.focusEvent.emit(self.cursor.getSelection())
+
+	def adjust(self):
+		print(self.numLines() - self.visibleLines() + 1)
+		self.verticalScrollBar().setRange(0, self.numLines() - self.visibleLines() + 1)
+		self.verticalScrollBar().setPageStep(self.visibleLines())
 	
 	def resizeEvent(self, event):
 		repaint = False
+
 		a = self.getAddressFormatLen()  + self.gap2 + self.getHexLength() + self.gap3 + self.bpl + self.gap4
 		b = (self.viewport().width() / self.charWidth) -  ( self.getAddressFormatLen()  + self.gap2 +  self.gap3 +  self.gap4)
 		c = b - (self.bpl + (self.bpl * self.getHexCharFormatLen()))
@@ -577,6 +603,8 @@ class HexWidget(QAbstractScrollArea):
 				widths.append(l)				
 	
 			nbpl =  widths.index(min(widths, key=abs)) + 1
+
+# 		self.adjust()
 			
 		if self.bpl != nbpl:
 			self.bpl = nbpl
@@ -587,8 +615,6 @@ class HexWidget(QAbstractScrollArea):
 			self.knownvisiblelines = vl
 			repaint = True
 
-		self.adjust()
-		
 		if repaint:
 			self.repaintWidget()		
 			
