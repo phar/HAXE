@@ -113,12 +113,12 @@ class HexWidget(QAbstractScrollArea):
 		self.gap4 = 3
 		self.pos = 0
 		self.colorBars = True
-		self.charWidthMultiplier = 1.2
+		self.charWidthMultiplier = 1.0
 		self.charHeightMultiplier = 1.0
 		self.paintedevent = 0
 		self.lastpanted = 0
 		self.knownvisiblelines  = 0
-		
+		self.fontpixmap = {'light':{},'dark':{}}
 		self.setWidgetFont(font,fontsize)
 		self.cursor = Cursor(self, 0,0)
 		
@@ -158,25 +158,32 @@ class HexWidget(QAbstractScrollArea):
 		self.fontpixmap = {}
 		
 		font = QFont(self.font, self.fontsize)
-		font.setStyleStrategy(QFont.NoAntialias)
-		self.setFont(font)
 		
-		self.charWidth = self.fontMetrics().maxWidth() * self.charWidthMultiplier
-		self.charHeight = self.fontMetrics().height() * self.charHeightMultiplier
-				
+		self.fm = QFontMetrics(font)
+		self.charWidth = self.fm.maxWidth() * self.charWidthMultiplier
+		self.charHeight = self.fm.height() * self.charHeightMultiplier
+		
+		self.fontpixmap = {'light':{},'dark':{}}
 		for i in string.printable:
-			self.fontpixmap[i] = QPixmap(self.charWidth, self.charHeight)
-			self.fontpixmap[i].fill(Qt.transparent)
-			painter = QPainter(self.fontpixmap[i])
-
-			painter.setRenderHint(QPainter.Antialiasing, False)
-			painter.setRenderHint(QPainter.TextAntialiasing, False)
+			self.fontpixmap['dark'][i] = QPixmap(self.charWidth, self.charHeight)
+			self.fontpixmap['light'][i] = QPixmap(self.charWidth, self.charHeight)
+			self.fontpixmap['dark'][i].fill(Qt.transparent)
+			self.fontpixmap['light'][i].fill(Qt.transparent)
+			
+			painter = QPainter(self.fontpixmap['dark'][i])
+			painter.setRenderHint(QPainter.Antialiasing, True)
+			painter.setRenderHint(QPainter.TextAntialiasing, True)
 			painter.setRenderHint(QPainter.SmoothPixmapTransform, True)
-			painter.setBackground(QBrush( QtGui.QColor(255, 255, 255)))
-# 			painter.setRenderHint(QPainter.SmoothPixmapTransform)
 			painter.setFont(font)
-# 			painter.fillRect(QRect(QPoint(0,0),QPoint(self.charWidth,self.charHeight)), QColor(Qt.transparent))
 			painter.setPen(QtGui.QColor(0, 0, 0,255))
+			painter.drawText(QRect(QPoint(0,0),QPoint(self.charWidth,self.charHeight)),Qt.AlignCenter,i)
+
+			painter = QPainter(self.fontpixmap['light'][i])
+			painter.setRenderHint(QPainter.Antialiasing, True)
+			painter.setRenderHint(QPainter.TextAntialiasing, True)
+			painter.setRenderHint(QPainter.SmoothPixmapTransform, True)
+			painter.setFont(font)
+			painter.setPen(QtGui.QColor(255, 255, 255,255))
 			painter.drawText(QRect(QPoint(0,0),QPoint(self.charWidth,self.charHeight)),Qt.AlignCenter,i)
 			
 	def toggleAddressFormat(self):
@@ -382,8 +389,7 @@ class HexWidget(QAbstractScrollArea):
 		
 		for i,b in enumerate(list(self.getHexCharFormat().format(byte))):
 			top = topleft + QPoint(i*self.charWidth,0)
-# 			painter.drawText(QRect(top,top + QPoint(self.charWidth,self.charHeight)),Qt.AlignCenter,b)
-			painter.drawPixmap(QRect(top,top + QPoint(self.charWidth,self.charHeight)),self.fontpixmap[b])
+			painter.drawPixmap(QRect(top,top + QPoint(self.charWidth,self.charHeight)),self.fontpixmap['dark'][b])
 
 
 	def paintAsciiByte(self, painter, addr, byte, ph):
@@ -397,8 +403,7 @@ class HexWidget(QAbstractScrollArea):
 			painter.setPen(QColor(hexColorComplement(sel.color)))
 		else:
 			painter.setPen(self.palette().color(QPalette.WindowText))
-		painter.drawPixmap(QRect(topleft,topleft + QPoint(self.charWidth,self.charHeight)),self.fontpixmap[byte])
-# 		painter.drawText(QRect(topleft,topleft + QPoint(self.charWidth,self.charHeight)),Qt.AlignCenter,byte)
+		painter.drawPixmap(QRect(topleft,topleft + QPoint(self.charWidth,self.charHeight)),self.fontpixmap['dark'][byte])
 
 
 	def cursorMove(self, cursor):
@@ -431,15 +436,11 @@ class HexWidget(QAbstractScrollArea):
 		s = time.time()
 		painterself = QPainter(self.viewport())
 		painterself.drawPixmap(0,0,self.widgetpainted)
-# 		if self.lastpanted < self.paintedevent or (self.blinkstate % 2) == 0: 
-# 			self.lastpanted  = 	self.paintedevent	
-# 			if (self.blinkstate % 2) == 0:
-# 				self.paintCursor(painterself)
-# 	
-# 		self.viewport().update()
-# 		t  =   time.time() - s
-# 		if(t  > .0005):
-# 			print(t)
+		if self.lastpanted < self.paintedevent or (self.blinkstate % 2) == 0: 
+			self.lastpanted  = 	self.paintedevent	
+			if (self.blinkstate % 2) == 0:
+				self.paintCursor(painterself)
+
 					
 	def scrollContentsBy(self,distx,disty):
 		self.setPosition(self.pos - (disty * self.bpl))			
