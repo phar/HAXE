@@ -5,29 +5,32 @@ from PyQt5 import QtCore
 from PyQt5 import QtGui 
 
 class SelectionActionClasss(QObject):
-	def __init__(self, name=None):
-		super(SelectionActionClasss, self).__init__()
+	updated =  QtCore.pyqtSignal()
+
+	def __init__(self,pluginparent, name=None):
+		super(SelectionActionClasss, self).__init__(None)
 		self.name = name
 		self.selections = []
+		self.pluginparent = pluginparent
 
-	def labelAction(self,selection):
+	def labelAction(self,hexobj, selection):
 		return ".".join([self.name, selection.getLabel()])
 	
-	def selectAction(self, selection):
+	def selectAction(self,hexobj,  selection):
 		print("click!")
-		True
+		pass
 
-	def editAction(self,selection):
+	def editAction(self,hexobj, selection):
 		print("dblckick!")
-		True
-
-	def dragAction(self,selection,dragdistance):
+		pass
+		
+	def dragAction(self,hexobj, selection,dragdistance):
 		print("drag!")
-		True
-
-	def addSelection(self, hexdialog, selection):
+		pass
+		
+	def addSelection(self, hexobj , selection):
 		self.selections.append(selection)
-		hexdialog.addSelection(selection) #fixme
+		hexobj.addSelection(selection) #fixme
 
 
 class Selection(QObject):
@@ -63,8 +66,14 @@ class Selection(QObject):
 		return iter(range(min(self._start, self._end), max(self._start, self._end)))
 
 	def __add__(self,arg):
-		self._start += int(arg)
-		self._end += int(arg)
+		if self._start + int(arg) > 0:
+			self._start += int(arg)
+			self._end += int(arg)
+		else:
+			self._end = len(self)
+			self._start = 0
+		
+		
 		self.selectionChanged.emit(self.getRange())		
 		return self
 		

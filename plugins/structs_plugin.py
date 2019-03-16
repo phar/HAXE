@@ -10,18 +10,28 @@ from math import *
 
 
 class StructActionClass(SelectionActionClasss):
-	pass
-
-	def labelAction(self,selection):
+	def __init__(self,pluginparent, name=None):
+		super(StructActionClass, self).__init__(pluginparent, name)
+	
+	def labelAction(self,hexobj, selection):
 		for i in self.selections:
 			if i == selection:
 				return "%s: %s"  % (self.name, selection.label)				
 		return self.name
 		
-	def editAction(self,selection):
+	def editAction(self,hexobj, selection):
 		print("dblckick!")
 		True
 		
+	def dragAction(self,hexobj, selection,dragdistance):
+# 		print(dragdistance)
+		if selection in self.selections:
+# 			for s in self.selections:
+				print(selection.label.split("."),self.pluginparent.structs)
+				if selection.label.split(".")[0] in self.pluginparent.structs:
+					print("yep")
+# 				s += dragdistance
+# 		
 
 class StructEditor(QTextEdit):
 	structChanged = pyqtSignal(object)
@@ -93,8 +103,8 @@ class StructPlugin(HexPlugin):
 		self.structs = {}
 		self.structbuff = ""
 		self.structfilegood = False
-		print(dir(api))
-		self.ac = StructActionClass(name='Struct')
+
+		self.ac = StructActionClass(self, name='Struct')
 
 		txt = self.api.settings.value("structs.laststructfile")
 		if txt is not None:
@@ -157,10 +167,11 @@ class StructPlugin(HexPlugin):
 				if selection is not None:					
 					selection.obj=self.ac
 					selection.active=True
-					selection.color = hexobj.hexWidget.getNextColor()
+					selection.color =  self.api.color_palette[len( hexobj.hexWidget.highlights)]
 					selection.setLabel(".".join([struct, i.name]))
 					self.ac.addSelection(hexobj, selection)	
-						
+		self.ac.updated.emit()
+
 # 		wholeselection = Selection(addr, addr + offset) #i though id like this
 # 		wholeselection.obj=self.ac
 # 		wholeselection.active=True
@@ -168,8 +179,6 @@ class StructPlugin(HexPlugin):
 # 		wholeselection.setLabel(struct)
 # 		self.ac.addSelection(hexobj, wholeselection)
 
-
-	
 
 
 	def pluginSelectionPlacement(self, selection=None):

@@ -26,12 +26,14 @@
 			<key>CollectionItems</key>
 			<array>
 				<string>39C7F982-83BD-4D6C-8DF9-E33E16B08BD8</string>
+				<string>AD050D4C-BA88-442D-AA1D-B16616E24595</string>
 				<string>4E5D8A8F-F7EA-41C9-9CDB-3A3BC2AA9285</string>
 				<string>76AF71D6-C0CE-4481-B24D-FBB7B0AE5E50</string>
 				<string>E9D45730-84B9-4D1A-8C9A-0946084044CC</string>
 				<string>A8971145-6E2E-4663-943A-6D04534D8957</string>
 				<string>83AF902C-5F49-4566-9B8A-7C02DA30C16A</string>
 				<string>9AC733C4-681E-4C85-8F01-0AB7F192824F</string>
+				<string>088D95CC-47A6-418C-B616-D9A2F090C65E</string>
 				<string>45DB2653-6C0B-4E77-B915-9F38A7B89957</string>
 				<string>63817C6B-2E72-4B63-83FA-72DE07656542</string>
 			</array>
@@ -92,6 +94,56 @@
 			</dict>
 			<key>ItemName</key>
 			<string>settings.py</string>
+			<key>ItemType</key>
+			<string>FileReference</string>
+			<key>UserOverrideItemName</key>
+			<true/>
+		</dict>
+		<key>088D95CC-47A6-418C-B616-D9A2F090C65E</key>
+		<dict>
+			<key>ItemData</key>
+			<dict>
+				<key>BookmarkData</key>
+				<data>
+				Ym9vaxwDAAAAAAQQMAAAAFlg1h5STqNMP7HZ7YMaqX+H
+				iqiHftbwconOZV8bfjAUDAIAAAQAAAADAwAAAAgAKAUA
+				AAABAQAAVXNlcnMAAAAEAAAAAQEAAHBoYXIEAAAAAQEA
+				AEhBWEUHAAAAAQEAAHBsdWdpbnMAFAAAAAEBAABiaXRt
+				YXB2aWV3X3BsdWdpbi5weRQAAAABBgAAEAAAACAAAAAs
+				AAAAOAAAAEgAAAAIAAAABAMAAKWbCgAAAAAACAAAAAQD
+				AAAJrhAAAAAAAAgAAAAEAwAAJVyNAAAAAAAIAAAABAMA
+				AHhcjQAAAAAACAAAAAQDAACwCJ8AAAAAABQAAAABBgAA
+				gAAAAJAAAACgAAAAsAAAAMAAAAAIAAAAAAQAAEHBGFV5
+				kuYGGAAAAAECAAABAAAAAAAAAA8AAAAAAAAAAAAAAAAA
+				AAAIAAAABAMAAAMAAAAAAAAABAAAAAMDAAD1AQAACAAA
+				AAEJAABmaWxlOi8vLwwAAAABAQAATWFjaW50b3NoIEhE
+				CAAAAAQDAAAA4AHj6AAAAAgAAAAABAAAQcCqYoj7prwk
+				AAAAAQEAAEUwQUZDQzNBLTk3OUQtNDc1Qy04MDJBLTFC
+				QzdDN0M3MUNERRgAAAABAgAAgQAAAAEAAADvEwAAAQAA
+				AAAAAAAAAAAAAQAAAAEBAAAvAAAAAAAAAAEFAAAaAAAA
+				AQEAAE5TVVJMRG9jdW1lbnRJZGVudGlmaWVyS2V5AAAE
+				AAAAAwMAABwAAADYAAAA/v///wEAAAAAAAAAEQAAAAQQ
+				AABkAAAAAAAAAAUQAADQAAAAAAAAABAQAAD8AAAAAAAA
+				AEAQAADsAAAAAAAAAAIgAADIAQAAAAAAAAUgAAA4AQAA
+				AAAAABAgAABIAQAAAAAAABEgAAB8AQAAAAAAABIgAABc
+				AQAAAAAAABMgAABsAQAAAAAAACAgAACoAQAAAAAAADAg
+				AADUAQAAAAAAAAHAAAAcAQAAAAAAABHAAAAgAAAAAAAA
+				ABLAAAAsAQAAAAAAABDQAAAEAAAAAAAAANwBAIAAAgAA
+				AAAAAA==
+				</data>
+				<key>FileURL</key>
+				<string>file:///Users/phar/HAXE/plugins/bitmapview_plugin.py</string>
+				<key>HasSecurityScope</key>
+				<true/>
+				<key>RelativePath</key>
+				<string>./plugins/bitmapview_plugin.py</string>
+				<key>TypeID</key>
+				<string>_CFileLocator</string>
+				<key>Version</key>
+				<integer>1</integer>
+			</dict>
+			<key>ItemName</key>
+			<string>bitmapview_plugin.py</string>
 			<key>ItemType</key>
 			<string>FileReference</string>
 			<key>UserOverrideItemName</key>
@@ -921,6 +973,54 @@
 			</dict>
 			<key>ItemName</key>
 			<string>__init__.py</string>
+			<key>ItemType</key>
+			<string>FileReference</string>
+			<key>UserOverrideItemName</key>
+			<true/>
+		</dict>
+		<key>AD050D4C-BA88-442D-AA1D-B16616E24595</key>
+		<dict>
+			<key>ItemData</key>
+			<dict>
+				<key>BookmarkData</key>
+				<data>
+				Ym9va+QCAAAAAAQQMAAAAISKp1AaXvOV+Js3j3or9Aws
+				HgHtDwtSQdH53GTvUGT04AEAAAQAAAADAwAAAAgAKAUA
+				AAABAQAAVXNlcnMAAAAEAAAAAQEAAHBoYXIEAAAAAQEA
+				AEhBWEUHAAAAAQEAAHBsdWdpbnMAFwAAAAEBAABzYXZl
+				c2VsZWN0aW9uX3BsdWdpbi5weQAUAAAAAQYAABAAAAAg
+				AAAALAAAADgAAABIAAAACAAAAAQDAAClmwoAAAAAAAgA
+				AAAEAwAACa4QAAAAAAAIAAAABAMAACVcjQAAAAAACAAA
+				AAQDAAB4XI0AAAAAAAgAAAAEAwAAig2rAAAAAAAUAAAA
+				AQYAAIQAAACUAAAApAAAALQAAADEAAAACAAAAAAEAABB
+				wR7MMuozIhgAAAABAgAAAQAAAAAAAAAPAAAAAAAAAAAA
+				AAAAAAAACAAAAAQDAAADAAAAAAAAAAQAAAADAwAA9QEA
+				AAgAAAABCQAAZmlsZTovLy8MAAAAAQEAAE1hY2ludG9z
+				aCBIRAgAAAAEAwAAAOAB4+gAAAAIAAAAAAQAAEHAqmKI
+				+6a8JAAAAAEBAABFMEFGQ0MzQS05NzlELTQ3NUMtODAy
+				QS0xQkM3QzdDNzFDREUYAAAAAQIAAIEAAAABAAAA7xMA
+				AAEAAAAAAAAAAAAAAAEAAAABAQAALwAAAAAAAAABBQAA
+				zAAAAP7///8BAAAAAAAAABAAAAAEEAAAaAAAAAAAAAAF
+				EAAA1AAAAAAAAAAQEAAAAAEAAAAAAABAEAAA8AAAAAAA
+				AAACIAAAzAEAAAAAAAAFIAAAPAEAAAAAAAAQIAAATAEA
+				AAAAAAARIAAAgAEAAAAAAAASIAAAYAEAAAAAAAATIAAA
+				cAEAAAAAAAAgIAAArAEAAAAAAAAwIAAA2AEAAAAAAAAB
+				wAAAIAEAAAAAAAARwAAAIAAAAAAAAAASwAAAMAEAAAAA
+				AAAQ0AAABAAAAAAAAAA=
+				</data>
+				<key>FileURL</key>
+				<string>file:///Users/phar/HAXE/plugins/saveselection_plugin.py</string>
+				<key>HasSecurityScope</key>
+				<true/>
+				<key>RelativePath</key>
+				<string>./plugins/saveselection_plugin.py</string>
+				<key>TypeID</key>
+				<string>_CFileLocator</string>
+				<key>Version</key>
+				<integer>1</integer>
+			</dict>
+			<key>ItemName</key>
+			<string>saveselection_plugin.py</string>
 			<key>ItemType</key>
 			<string>FileReference</string>
 			<key>UserOverrideItemName</key>

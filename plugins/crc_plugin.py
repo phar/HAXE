@@ -89,6 +89,7 @@ class CRCGUIWin(QMainWindow):
 			self.crcout.setText (hex(crc32_func(self.obj.filebuff[start:end])))
 		except:
 			self.crcout.setText ("invalid input values")
+			self.crc.repaint()
 			
 		print("booop")
 		

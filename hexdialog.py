@@ -2,22 +2,22 @@ import mmap
 import os
 import time
 import string
-from cursor import *
-from selection import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore
 from PyQt5 import QtGui 
-from filebuffer import FileBuffer
 import traceback
 
+from selection import *
+from cursor import *
 from hexwidget import *
 
 class BookmarkWidget(QTableWidget):
 	def __init__(self,parent):
 		QWidget.__init__(self,parent)
 		self.parent = parent
+		self.bookmarks = self.parent.hexWidget.highlights
 		self.setSelectionBehavior(QAbstractItemView.SelectRows)
 		self.horizontalHeader().setStretchLastSection(True)
 		self.setColumnCount(3)
@@ -51,26 +51,22 @@ class BookmarkWidget(QTableWidget):
 			self.setItem(i,1, qtw)
 			qtw.setBackground(QColor( s.color))
 			qtw.setForeground(QColor(hexColorComplement( s.color)))
-
-# 			if s.obj[0] == 'struct':
-# 				(type, structname,parent,child) = s.obj
-# 				qtw =  QTableWidgetItem(".".join([structname,child.name]) + " %s" % "")
-# 				qtw.setBackground(QColor( s.color))
-# 				qtw.setForeground(QColor(hexColorComplement( s.color)))
-# 				self.setItem(i,2,qtw)
-# 			elif s.obj[0] == 'note':
-# 				(type, text) = s.obj
-			qtw = QTableWidgetItem(s.obj.labelAction(s))
+			qtw = QTableWidgetItem(s.obj.labelAction(self, s))
 			qtw.setBackground(QColor(s.color))
 			qtw.setForeground(QColor(hexColorComplement(s.color)))
 			self.setItem(i,2, qtw)
 			i+=1
 			
-			
 	def mouseDoubleClickEvent(self, event):
-		self.parent.hexWidget.goto(int(self.item(self.currentIndex().row(),1).text(), 16))
-		self.parent.hexWidget.goto(int(self.item(self.currentIndex().row(),0).text(), 16))
-		
+		if self.currentIndex().column() == 0:
+			self.parent.hexWidget.cursor.setCursorPosition(int(self.item(self.currentIndex().row(),0).text(), 16))
+		elif self.currentIndex().column() == 1:
+			self.parent.hexWidget.cursor.setCursorPosition(int(self.item(self.currentIndex().row(),1).text(), 16))
+		elif self.currentIndex().column() == 2:
+			for s in self.bookmarks:
+				if self.item(self.currentIndex().row(),2).text() == s.obj.labelAction(self.parent, s):
+					s.obj.editAction(self.parent, s) #fixme 
+			
 	def loadBookmarks(self):
 		self.filename = QFileDialog.getOpenFileName(self, "Load Bookmarks From...")[0]
 		if self.filename:
@@ -108,12 +104,12 @@ class HexDialog(QMainWindow):
 		self.clipboardata = []
 		self.clipboarcopy = [] #fixme, replace with hash
 		self.isActiveWindow = False
-		self.hexWidget =  HexWidget(api,self,self.filebuff, font="Menlo", fontsize=12)
+		self.hexWidget =  HexWidget(api,self,self.filebuff, font="Courier", fontsize=12)
+		self.bookmarks  = BookmarkWidget(self)
 		splitter1 = QSplitter(Qt.Horizontal)	
 		self.setCentralWidget(splitter1)
 		splitter1.addWidget(self.hexWidget)
 			
-		self.bookmarks  = BookmarkWidget(self)
 		self.hexWidget.updateSelectionListEvent.connect(self.bookmarks.maintainBookmarks)
 		
 		splitter1.addWidget(self.hexWidget)
@@ -138,8 +134,8 @@ class HexDialog(QMainWindow):
 		self.hexWidget.jumpToEvent.connect(self.jumpto)
 		self.hexWidget.findEvent.connect(self.search)
 	
-		self.synccheck = QCheckBox("Sync")
-		self.statusBar.addWidget(self.synccheck)
+# 		self.synccheck = QCheckBox("Sync")
+# 		self.statusBar.addWidget(self.synccheck)
 		
 		self.selectstatus = QLabel("")
 		self.statusBar.addWidget(self.selectstatus)
@@ -165,7 +161,7 @@ class HexDialog(QMainWindow):
 		pluginmenus = {}
 		for n,m in self.api.loaded_plugins.items():
 			for pn, pf in m.pluginSelectionPlacement():
-# 				try:
+				try:
 					sm =  m.pluginSelectionSubPlacement()
 					if len(sm):
 						submenu = QMenu(pn)		
@@ -177,8 +173,8 @@ class HexDialog(QMainWindow):
 								submenu.addSeparator()
 					else:
 						pluginmenus['plugin_%s' % n] = menu.addAction("%s" % pn, lambda n = pn, fn = pf: fn(self))
-# 				except:
-# 					self.api.pluginSinCallstack()
+				except:
+					self.api.pluginSinCallstack()
 
 		
 		action = menu.exec_(self.mapToGlobal(event.pos()))
@@ -195,7 +191,7 @@ class HexDialog(QMainWindow):
 			qtw = QTableWidgetItem("0x%08x" % end)
 			self.bookmarks.setItem(i,1, qtw)
 			qtw.setBackground(QColor( s.color))
-			qtw = QTableWidgetItem(s.obj.labelAction(s))
+			qtw = QTableWidgetItem(s.obj.labelAction(self.parent,s))
 			qtw.setBackground(QColor( s.color))
 			self.bookmarks.setItem(i,2, qtw)
 			i+=1
@@ -266,10 +262,9 @@ class HexDialog(QMainWindow):
 				t = cb.text().encode("utf-8")
 				t = self.api.getPasteModeFn()(t)
 						
-			print(t)
 			self.filebuff.addEdit(selection, t)
 			(start,end) = self.hexWidget.cursor._selection.getRange()
-			self.hexWidget.goto(start)
+			self.hexWidget.cursor.setCursorPosition(start)
 			self.hexWidget.cursor.updateSelection(Selection(start, start + len(t)))
 		except:
 			print("somthing has gone wrong in the paste translation system")
@@ -350,15 +345,12 @@ class JumpToDialog(QDialog):
 			self.saveSettings()
 
 
-class FindAllDialog(QDialog):
-	def __init__(self, po=None,parent=None):
-		super(FindAllDialog, self).__init__(parent)
-		self.lyt = QGridLayout()
-		self.setLayout(self.lyt)
-		self.parent = po
-# 		self.api = api
-
-
+# class FindAllDialog(QDialog):
+# 	def __init__(self, po=None,parent=None):
+# 		super(FindAllDialog, self).__init__(parent)
+# 		self.lyt = QGridLayout()
+# 		self.setLayout(self.lyt)
+# 		self.parent = po
 
 
 class SearchDialog(QDialog):
@@ -412,7 +404,6 @@ class SearchDialog(QDialog):
 		searchval = self.getsearchvalue()
 		self.parent.hexWidget.getCursor().selectNone()		
 		x = self.parent.filebuff.findNext(searchval, self.parent.hexWidget.getCursor())		
-		print(x)
 			
 		if x >= 0:
 			self.parent.hexWidget.getCursor().setSelection(Selection(x, x+len(searchval)))
@@ -429,7 +420,6 @@ class SearchDialog(QDialog):
 		searchval = self.getsearchvalue()
 		self.parent.hexWidget.getCursor().selectNone()		
 		x = self.parent.filebuff.findPrev(searchval, self.parent.hexWidget.getCursor())		
-		print(x)
 					
 		if x >= 0:
 			self.parent.hexWidget.getCursor().setSelection(Selection(x, x+len(searchval)))

@@ -32,10 +32,11 @@ CAPSTONE_SUPPORTED_ARCHMODES = [
 
 
 class CapstoneGUIWin(QDialog):
-	def __init__(self,obj):
+	def __init__(self,pluginparent):
 		QDialog.__init__(self)
-		self.changeHexObj( obj)
-	
+# 		self.changeHexObj( obj)
+		self.pluginparent = pluginparent
+		
 		self.setMinimumSize(QSize(630, 350))    
 		self.setWindowTitle("Disassembler plugin") 
 
@@ -61,30 +62,32 @@ class CapstoneGUIWin(QDialog):
 		self.loadSettings()
 	
 	def dodisasm(self):
-		(start,end) = self.obj.hexWidget.cursor._selection.getRange()
+		(start,end) = self.pluginparent.api.getActiveFocus().getCursor().getRange()
 
 		md = Cs(CAPSTONE_SUPPORTED_ARCHMODES[self.archcb.currentIndex()][0],CAPSTONE_SUPPORTED_ARCHMODES[self.archcb.currentIndex()][1])
 		md.detail = True
 		if CAPSTONE_SUPPORTED_ARCHMODES[self.archcb.currentIndex()][3] is not None:
 			md.syntax = CAPSTONE_SUPPORTED_ARCHMODES[self.archcb.currentIndex()][3]		
 		outtxt = ""
-		for i in md.disasm(self.obj.filebuff[start:end], start):
+		for i in md.disasm(self.pluginparent.api.getActiveFocus().filebuff[start:end], start):
 			outtxt += "%x: %s \t\t%s\t%s\n" %(i.address,"".join(["%02x" % x for x in i.bytes]), i.mnemonic, i.op_str)
 		self.disasmwindow.setPlainText(outtxt)
-	
+		self.disasmwindow.repaint() #had to do this on my new machine not sure why
+
+		
 	def loadSettings(self):
-		txt = self.obj.api.settings.value("%s.capstoneplugin.arch")
+		txt = self.pluginparent.api.settings.value("%s.capstoneplugin.arch")
 		index = self.archcb.findText(txt, Qt.MatchFixedString)
 		if index >= 0:
 			self.archcb.setCurrentIndex(index)
 		pass
          
 	def saveSettings(self):
-		self.obj.api.settings.setValue("%s.capstoneplugin.arch",self.archcb.currentText())
+		self.parent.api.settings.setValue("%s.capstoneplugin.arch",self.archcb.currentText())
 		pass
 
-	def changeHexObj(self, obj):
-		self.obj = obj
+# 	def changeHexObj(self, obj):
+# 		self.obj = obj
 
 
 	def closeEvent(self,event):
@@ -109,5 +112,5 @@ class CapstonePlugin(HexPlugin):
 
 	def selectionfilter(self, hexobj):
 		if self.mainWin == None:
-			self.mainWin = CapstoneGUIWin(hexobj)
+			self.mainWin = CapstoneGUIWin(self)
 		self.mainWin.show()

@@ -34,6 +34,7 @@ class Cursor(QObject):
 		return self._selection
 		
 	def setCursorPosition(self, pos):
+		self._selection.start =  pos
 		self._selection.end =  pos
 		self.changed.emit(self)		
 			

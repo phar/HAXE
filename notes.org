@@ -8,15 +8,17 @@ to replace the parsed structure values
 crash in undo stack
 widget should be usable on its own
 import export patch from undostack
-undo for addSelection
-display needs to be more efficient
-
+undo for selectActions items
+fix width adjstment
+signal when a label action event has been updated
+replace does not yet work
+add a find all gui element
+bookmarks need to update dynamically
 
 behaviour bugs:
 	should overwrite highlighted text when selected (this is more a bug in the undo system at this point)
 	undo's should select the new data
     recent files are mis ordered, doesnt really handle a user opening the same file twice
-
    
 things best done as plugins:
    - intel hex (with sparse support)

@@ -51,6 +51,8 @@ class HashGUIWin(QDialog):
 		(start,end) = self.obj.hexWidget.cursor._selection.getRange()
 		h.update(self.obj.filebuff[start:end])
 		self.hashout.setPlainText(h.hexdigest())
+		self.hashout.repaint() #had to do this on my new machine not sure why
+
 
 	def closeEvent(self,event):
 			self.saveSettings()
